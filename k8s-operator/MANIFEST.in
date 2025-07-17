@@ -1,0 +1,1 @@
+recursive-include src/gcp_symphony_operator/manifests *

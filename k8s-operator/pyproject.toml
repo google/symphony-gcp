@@ -1,0 +1,71 @@
+[project]
+authors = [
+    { name = "Lineberry, Casey", email = "casey.lineberry@accenture.com" },
+    { name = "Kim, Cory", email = "cory.y.kim@accenture.com" },
+]
+dependencies = [
+    "importlib-resources >= 5.0.0",
+    "jinja2 >= 3.0.0",
+    "kopf >= 1.35.0",
+    "kubernetes >= 30.3.0",
+    "kubernetes-asyncio >= 30.3.0",
+    "pydantic >= 1.9.0",
+    "pyyaml >= 6.0",
+    "tenacity >= 9.1.2",
+    "toml >= 0.10.2",
+    "tomli >= 2.2.1",
+    "typing-extensions >= 4.0.0"
+]
+description = "An operator for the IBM Spectrum Symphony hostfactory plugin for Google Cloud Platform (GKE)"
+name = "gcp-symphony-operator"
+readme = "README.md"
+requires-python = ">=3.12"
+version = "0.2.2"
+
+[project.optional-dependencies]
+dev = [
+    "pytest == 8.3.3",
+    "pytest-cov == 6.1.1",
+    "pytest-mock == 3.14.1",
+    "pytest-asyncio == 1.0.0",
+    "mock == 5.2.0",
+    "coverage == 7.8.2",
+    "black == 25.1.0",
+    "isort == 6.0.1",
+    "mypy == 1.16.*",
+    "flake8 == 7.2.*"
+]
+
+[build-system]
+build-backend = "setuptools.build_meta"
+requires = ["setuptools>=61.0"]
+
+[tool.setuptools]
+packages = [
+    "gcp_symphony_operator",
+    "gcp_symphony_operator.handlers",
+    "gcp_symphony_operator.workers",
+    "gcp_symphony_operator.api",
+    "gcp_symphony_operator.api.v1",
+    "gcp_symphony_operator.api.v1.types",
+    "gcp_symphony_operator.k8s",
+]
+package-dir = {""= "src"}
+include-package-data = true
+
+[tools.setuptools.build]
+pre-build-hook = "build_scripts.generate_version:generate_version"
+
+[tool.setuptools.package-data]
+"gcp_symphony_operator" = ["manifests/**"]
+
+[tool.mypy]
+python_version = "3.13"
+
+[[tool.mypy.overrides]]
+module = ["kubernetes","kubernetes.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["pyyaml", "pyyaml.*"]
+ignore_missing_imports = true

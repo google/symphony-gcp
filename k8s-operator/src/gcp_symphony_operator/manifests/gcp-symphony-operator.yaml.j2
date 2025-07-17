@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: "{{ operator_name }}"
+  namespace: "{{ namespace }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: "{{ operator_name }}"
+  template:
+    metadata:
+      labels:
+        app: "{{ operator_name }}"
+        version: "{{ operator_version }}"
+    spec:
+      serviceAccountName: "{{ service_account_name }}"
+      {% if image_pull_secret_name %}
+      imagePullSecrets:
+        - name: "{{ image_pull_secret_name }}"
+      {% endif %}
+      containers:
+        - name: "{{ operator_name }}"
+          image: "{{ operator_name }}:{{ operator_image_tag }}"
+          imagePullPolicy: "{{ container_image_pull_policy }}"
+          ports:
+            - containerPort: 8080
+              name: health
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: health
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          env:
+            - name: GCP_HF_DEFAULT_NAMESPACES
+              value: {{ default_namespaces | join(',') }}
+            - name: GCP_HF_LOG_LEVEL
+              value: "{{ log_level }}"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace

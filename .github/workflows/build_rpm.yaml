@@ -1,0 +1,57 @@
+---
+name: RPM Build
+on: 
+  workflow_dispatch:
+  push:
+    paths:
+      - hf-provider/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ["8", "9"]
+    container:
+      image: rockylinux/rockylinux:${{ matrix.version }}
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: install required rpm packages
+      run: |
+           dnf install -y python3.9  python3-pip rpm-build
+           alternatives --set python3 /usr/bin/python3.9 || true
+
+    - name: build clis
+      run: |
+           cd hf-provider
+           pip3 install uv
+           uv venv
+           source .venv/bin/activate
+           uv pip install -r pyproject.toml
+           uv pip install pyinstaller
+           PYTHONPATH=src pyinstaller --onefile src/gce_provider/__main__.py --name hf-gce --paths .venv/lib/python3.9/site-packages
+           PYTHONPATH=src pyinstaller --onefile src/gke_provider/__main__.py --name hf-gke --paths .venv/lib/python3.9/site-packages
+
+    - name: run gce rpmbuild
+      id: gce-rpm
+      run: rpmbuild -bb hf-provider/resources/hf-gcpgce-provider.spec | grep Wrote |awk '{print "gce_rpm_path="$2}' >> $GITHUB_OUTPUT
+
+    - name: Upload gce artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hf-gcpgce-provider-1.0.0-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        path: "${{ steps.gce-rpm.outputs.gce_rpm_path }}"
+        compression-level: 0
+
+    - name: run gke rpmbuild
+      id: gke-rpm
+      run: rpmbuild -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote |awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
+
+    - name: Upload gke artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hf-gcpgke-provider-1.0.0-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        path: "${{ steps.gke-rpm.outputs.gke_rpm_path }}"
+        compression-level: 0
+

@@ -1,0 +1,44 @@
+{
+  "templates": [
+    {
+      "templateId": "template-gcp-01",
+      "maxNumber": 10,
+      "attributes": {
+        "type": [
+          "String",
+          "X86_64"
+        ],
+        "ncpus": [
+          "Numeric",
+          "1"
+        ],
+        "nram": [
+          "Numeric",
+          "1024"
+        ]
+      },
+      "gcp_zone": "<CHANGEME-gcp_zone>",
+      "gcp_instance_group": "<CHANGEME-gcp_instance_group>"
+    },
+    {
+      "templateId": "template-gcp-02",
+      "maxNumber": 10,
+      "attributes": {
+        "type": [
+          "String",
+          "X86_64"
+        ],
+        "ncpus": [
+          "Numeric",
+          "4"
+        ],
+        "nram": [
+          "Numeric",
+          "2048"
+        ]
+      },
+      "gcp_zone": "<CHANGEME-gcp_zone>",
+      "gcp_instance_group": "<CHANGEME-gcp_instance_group>"
+    }
+  ]
+}

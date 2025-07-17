@@ -1,0 +1,13 @@
+{
+  "GKE_KUBECONFIG": "kubeconfig",
+  "GKE_CRD_NAMESPACE": "gcp-symphony",
+  "GKE_POD_OWNER_APIVERSION":"symphony.spectrumcomputing.ibm.com/v1", 
+  "GKE_POD_OWNER_KIND":"SymphonyCluster",
+  "GKE_POD_OWNER_NAME":"SymCluster",
+  "KUBERNETES_SERVICE_HOST":"172.30.0.1",
+  "KUBERNETES_SERVICE_PORT": 443,
+  "LOG_LEVEL":"INFO",
+  "LOG_MAX_FILE_SIZE": 10,
+  "LOG_MAX_ROTATE": 5,
+  "ACCEPT_PROPAGATED_LOG_SETTING": true
+}

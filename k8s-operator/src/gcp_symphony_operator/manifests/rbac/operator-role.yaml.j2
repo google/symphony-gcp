@@ -1,0 +1,96 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: "{{ namespace_role_name }}"
+  namespace: "{{ namespace }}"
+rules:
+  # Core resources
+  - apiGroups:
+      - apiextensions.k8s.io
+    resources:
+      - customresourcedefinitions
+    verbs:
+      - get
+      - list
+      - create
+      - update
+      - patch
+
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - roles
+    verbs:
+      - get
+      - list
+
+  - apiGroups:
+      - rbac.authorization.k8s.io
+    resources:
+      - rolebindings
+    verbs:
+      - get
+      - list
+
+  - apiGroups:
+      - ""
+    resources:
+      - serviceaccounts
+    verbs:
+      - get
+
+  - apiGroups:
+      - ""
+    resources:
+      - pods
+    verbs:
+      - get
+      - list
+      - watch
+      - create
+      - delete
+      - update
+      - patch
+
+  # Custom resources
+  - apiGroups:
+      - "{{ crd_group }}"
+    resources:
+      - "{{ crd_plural }}"
+      - "{{ crd_return_request_plural }}"
+    verbs:
+      - get
+      - list
+      - watch
+      - update
+      - patch
+      - create
+      - delete
+  - apiGroups:
+      - "{{ crd_group }}"
+    resources:
+      - "{{ crd_plural }}/status"
+      - "{{ crd_return_request_plural }}/status"
+    verbs:
+      - get
+      - update
+      - patch
+      - delete
+      - create
+
+  # Kopf framework requirements
+  - apiGroups:
+      - "{{ crd_group }}"
+    resources:
+      - kopfpeerings
+    verbs:
+      - list
+      - watch
+      - patch
+      - get
+  - apiGroups:
+      - ""
+    resources:
+      - events
+    verbs:
+      - create

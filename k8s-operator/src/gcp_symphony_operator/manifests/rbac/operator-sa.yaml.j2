@@ -1,0 +1,6 @@
+# Template for creating a RoleBinding in Kubernetes for the GCP Symphony Operator
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ service_account_name }}"
+  namespace: "{{ namespace }}"

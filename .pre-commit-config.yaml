@@ -1,0 +1,64 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+        exclude: ".json$"
+      - id: end-of-file-fixer
+      - id: check-toml
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: debug-statements
+      - id: detect-aws-credentials
+
+  # Add custom version generation hook
+  - repo: local
+    hooks:
+      - id: generate-version
+        name: Generate version file
+        entry: python -m k8s-operator.build_scripts.generate_version
+        language: system
+        pass_filenames: false
+        files: (pyproject\.toml|k8s-operator/build_scripts/generate_version\.py)
+        always_run: true
+
+  # Ensure the generated version file is added to commits
+  - repo: local
+    hooks:
+      - id: add-version-file
+        name: Add version file to commit
+        entry: git add k8s-operator/src/gcp_symphony_operator/__init__.py
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        always_run: true
+
+  - repo: https://github.com/psf/black
+    rev: 25.1.0
+    hooks:
+      - id: black
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 7.2.0
+    hooks:
+      - id: flake8
+
+  - repo: https://github.com/PyCQA/isort
+    rev: 6.0.1
+    hooks:
+      - id: isort
+        args: ["--profile", "black"] # Ensure compatibility with Black formatting
+
+  # Uncomment the following section if you want to use mypy for type checking
+  # Note: Ensure you have mypy installed in your environment
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.16.0
+  #   hooks:
+  #     - id: mypy
+  #       language_version: python3.13
+  #       args: [--ignore-missing-imports, --no-strict-optional] # Adjust mypy args as needed
+  #       # You might need to specify additional_dependencies for mypy if your project uses specific libraries
+  #       # additional_dependencies: ["boto3-stubs[essential]", "pandas-stubs"]
+  #       additional_dependencies:
+  #         - types-PyYAML
