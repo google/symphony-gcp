@@ -1,0 +1,18 @@
+{
+  "templates":
+  [
+    {
+      "templateId": "templates-test-001",
+      "maxNumber": 1,
+      "attributes":
+      {
+        "type": "X86_64",
+        "ncores": "1",
+        "ncpus": "4",
+        "nram": "1"
+      },
+      "attr_1": "optional_attr_1",
+      "attr_2": "optional_attr_2"
+    }
+  ]
+}

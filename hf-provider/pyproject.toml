@@ -1,0 +1,54 @@
+[project]
+name = "google-symphony-hf"
+version = "0.2.1"
+description = "Default template for PDM package"
+authors = [
+    { name = "Lineberry, Casey", email = "casey.lineberry@accenture.com" },
+    { name = "Kim, Cory", email = "cory.y.kim@accenture.com" },
+]
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = "==3.9.*"
+dependencies = [
+    "kubernetes==32.0.1",
+    "pydantic==2.11.4",
+    "python-dotenv==1.1.0",
+    "PyYAML==6.0.2",
+    "pytest >= 7.0.0",
+    "pytest-cov >= 3.0.0",
+    "typing-extensions >= 4.0.0",
+    "google-cloud-compute>=1.31.0",
+    "google-cloud-pubsub>=2.30.0",
+    "tenacity>=9.1.2",
+    "google-auth>=2.40.3",
+]
+
+[project.scripts]
+hf-gce = "gce_provider.__main__:main"
+hf-gke = "gke_provider.__main__:main"
+# for backward compatibility, will remove in future versions
+gcphf  = "gke_provider.__main__:main"
+
+
+[project.optional-dependencies]
+api = [
+    "pytest >= 7.0.0",
+    "pytest-cov >= 3.0.0",
+]
+
+[tool.black]
+line-length = 100
+
+[tool.flake8]
+max-line-length = 100
+
+[tool.isort]
+profile = "black"
+
+[tool.pdm]
+package-dir = { "" = "src" }
+distribution = false
+
+[tool.pdm.scripts]
+hf-gce = { call = "gce_provider.__main__:main", working_dir = "src" }
+hf-gke = { call = "gke_provider.__main__:main", working_dir = "src" }

@@ -1,0 +1,23 @@
+imagePullSecrets:
+  - name: regcred
+nodeSelector:
+  kubernetes.io/hostname: symphony-docker
+containers:
+  - name: hf-sym-compute
+    image: registry.cory.kim/sym732:latest
+    securityContext:
+      privileged: true
+    command: ["/bin/sh", "-c", "source /opt/ibm/spectrumcomputing/profile.platform; egosh ego start; /usr/sbin/sshd -D"]
+    resources:
+      requests:
+        cpu: 4
+        memory: "2048Mi"
+    volumeMounts:
+      - name: spectrumcomputing-volume
+        mountPath: /opt/ibm/spectrumcomputing
+volumes:
+  - name: spectrumcomputing-volume
+    hostPath:
+      path: /opt/ibm/spectrumcomputing
+      type: Directory
+

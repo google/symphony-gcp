@@ -1,0 +1,20 @@
+#nodeSelector:  ## If using Custom Compute Class
+#  cloud.google.com/compute-class: my-custom-compute-class
+volumes:  ## If using a PV to access a shared symphony install
+  - name: symphony
+    persistentVolumeClaim:
+      claimName: gcp-symphony-pvc
+containers:
+  - name: sym-compute
+    image: rockylinux/rockylinux:8
+    command: ["/bin/sh", "-c", "dnf install -y findutils libnsl procps java ; useradd egoadmin -u 1002; source /mnt/symphony-shared/spectrumcomputing/profile.platform; echo '10.0.0.6 symphony-management-0' >> /etc/hosts; egosh ego start; tail -f /dev/null "]
+    securityContext:
+      privileged: true
+    stdin: true
+    tty: true
+    resources:
+      requests:
+        memory: "2048M"
+    volumeMounts:  ## If using a PV to access a shared symphony install
+      - mountPath: "/mnt/symphony-shared"
+        name: symphony
