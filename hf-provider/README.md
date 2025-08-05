@@ -43,7 +43,7 @@ uv venv
 source .venv/bin/activate
 
 # install project dependencies
-uv pip install -r pyproject.toml
+uv pip install .
 
 # install pyinstaller
 uv pip install pyinstaller

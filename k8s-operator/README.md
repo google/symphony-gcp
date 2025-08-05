@@ -18,6 +18,9 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ## <a id="change-log"></a>Change log
 
+### Version 0.2.4
+- Updated GKE pod label for proper cluster attribution
+
 ### Version 0.2.3
 - Dockerfile updates to allow for passing a VERSION for a more detailed tagging label, if desired.
 - No functional changes with operator code

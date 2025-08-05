@@ -1,6 +1,7 @@
 import logging
 import os
 from functools import lru_cache
+from socket import gethostname
 
 from dotenv import load_dotenv
 
@@ -112,7 +113,7 @@ class Config:
         self.crd_label_name_text = "symphony_gke_connector"
         # Get the hostname from the running environment for use in the crd_label_value_text
         try:
-            self.crd_label_value_text = os.gethostname()  # type: ignore
+            self.crd_label_value_text = gethostname()  # type: ignore
         except Exception as e:
             self.crd_label_value_text = "KeepingUpWithTheGKEConnector"
         self.crd_return_request_singular = hf_provider_conf.get(
