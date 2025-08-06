@@ -9,7 +9,7 @@ from gce_provider.commands.helpers.request_machine_status_helper import (
 from gce_provider.commands.helpers.request_return_machine_status_helper import (
     RequestReturnMachineStatusEvaluator,
 )
-from gce_provider.config import Config
+from gce_provider.config import Config, get_config
 from gce_provider.db.machines import MachineDao
 from gce_provider.model.models import HfMachineStatus
 
@@ -30,6 +30,9 @@ def to_machine_response(
 
 
 def get_request_status(request: HFRequestStatus, config: Optional[Config] = None):
+    if config is None:
+        config = get_config()
+    config.logger.debug(f"request = {request}")
     if "requestId" not in request.requests:
         raise ValueError("No requestID found.")
 
