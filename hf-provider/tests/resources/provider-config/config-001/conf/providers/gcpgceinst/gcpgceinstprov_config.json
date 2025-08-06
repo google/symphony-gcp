@@ -4,6 +4,6 @@
   "LOG_MAX_FILE_SIZE": 10,
   "LOG_MAX_ROTATE": 5,
   "ACCEPT_PROPAGATED_LOG_SETTING": true,
-
+  "GCP_CREDENTIALS_FILE": "/Users/casey.lineberry/.config/gcloud/application_default_credentials.json",
   "PUBSUB_TIMEOUT": 100
 }

@@ -36,8 +36,8 @@ def request_machines(
 
     # Prepare labels for the instances
     labels = {
-       "symphony.deployment": f"{config.hf_provider_name}-hostfactory",
-       "symphony.requestId": request_id,
+       "symphony-deployment": f"{config.hf_provider_name}-hostfactory",
+       "symphony-requestId": request_id,
        config.instance_label_name_text: config.instance_label_value_text
     }
 
@@ -46,8 +46,7 @@ def request_machines(
             name=f"{instance_prefix}{generate_unique_id()}",
             preserved_state=compute.PreservedState(
                 metadata=labels
-            ),
-            labels=labels,
+            )
         )
         for _ in range(count)
     ]

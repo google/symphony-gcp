@@ -33,8 +33,12 @@ def get_request_status(request: HFRequestStatus, config: Optional[Config] = None
     if config is None:
         config = get_config()
     config.logger.debug(f"request = {request}")
-    if "requestId" not in request.requests:
-        raise ValueError("No requestID found.")
+    # check to see if any element of the request.requests list contains an object with a key "requestId"
+    if len(request.requests) < 1 or not any(
+        "requestId" in req and req["requestId"] for req in flatten([request.requests])
+    ):
+        config.logger.error("No requestId found in request")
+        raise ValueError("No requestId found.")
 
     request_list = flatten([request.requests])
     request_responses = []
