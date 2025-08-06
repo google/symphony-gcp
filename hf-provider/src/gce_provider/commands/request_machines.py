@@ -44,6 +44,9 @@ def request_machines(
     instances = [
         compute.PerInstanceConfig(
             name=f"{instance_prefix}{generate_unique_id()}",
+            preserved_state=compute.PreservedState(
+                metadata=labels
+            ),
             labels=labels,
         )
         for _ in range(count)

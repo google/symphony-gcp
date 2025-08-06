@@ -237,7 +237,7 @@ def parse_args() -> tuple[str, Any]:
     Parse the args from the script
     :return: the command and payload
     """
-    parser = argparse.ArgumentParser(prog="gcphf", description="GCP HostFactory Provider for GKE")
+    parser = argparse.ArgumentParser(prog="hf-gce", description="GCP HostFactory Provider for GCE")
 
     parser.add_argument("command", choices=valid_commands)
     parser.add_argument("json", nargs="?")
