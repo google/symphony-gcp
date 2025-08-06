@@ -115,6 +115,8 @@ class Config:
         try:
             self.crd_label_value_text = gethostname()  # type: ignore
         except Exception as e:
+            self.logger.error("Unable to get hostname via socket class."
+                              f" Will have to use the default.\n {e}")
             self.crd_label_value_text = "KeepingUpWithTheGKEConnector"
         self.crd_return_request_singular = hf_provider_conf.get(
             "GKE_CRD_RETURN_REQUEST_SINGULAR", DEFAULT_CRD_RETURN_REQUEST_SINGULAR
