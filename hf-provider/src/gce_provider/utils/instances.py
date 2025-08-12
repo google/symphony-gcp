@@ -1,4 +1,5 @@
 from types import SimpleNamespace
+from typing import Optional
 from google.cloud import compute_v1 as compute
 from google.cloud.compute_v1.types import InstancesSetLabelsRequest, SetLabelsInstanceRequest
 from gce_provider.config import Config, get_config
@@ -33,7 +34,7 @@ instances=[
 def set_instance_labels(
     instances: list[SimpleNamespace],
     zone: str,
-    config: Config | None
+    config: Optional[Config] = None
 ) -> list[str]:
     if config is None:
         config = get_config()
