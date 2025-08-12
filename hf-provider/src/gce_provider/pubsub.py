@@ -40,6 +40,10 @@ def callback(message: pubsub.subscriber.message.Message) -> None:
 
 def launch_pubsub_daemon():
     """Launch pubsub as a process within Python"""
+    config = get_config()
+    logger = config.logger
+    logger.info("Launching pubsub daemon")
+    logger.info(f"pubsub process: {__file__}")
     subprocess.Popen(
         [sys.executable, __file__],
         start_new_session=True,
