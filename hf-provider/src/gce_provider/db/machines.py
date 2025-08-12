@@ -439,14 +439,14 @@ class MachineDao:
                 SELECT machine_name, delete_grace_period
                 FROM machines
                 WHERE return_request_id IS NULL
-                AND machine_state IN ({MachineState.PREEMPTED.value}, {MachineState.DELETED.value})
+                AND machine_state IN (?, ?)
                 """
         with sqlite3.connect(
             self.config.db_path,
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         ) as conn:
             cur = conn.cursor()
-            cur.execute(query)
+            cur.execute(query, (MachineState.PREEMPTED.value, MachineState.DELETED.value))
             rows = cur.fetchall()
             return [
                 HFReturnRequestsResponse.Request(machine=row[0], gracePeriod=row[1]) for row in rows
