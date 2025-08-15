@@ -9,21 +9,19 @@ from gcp_symphony_operator.k8s.core_v1 import call_list_pod_for_namespace_on_nod
 from gcp_symphony_operator.k8s.custom_objects import (
     call_create_namespaced_custom_object,
 )
+from gcp_symphony_operator.handlers.machine_return_request import process_pod_delete
 
 
-class PreemptionKeys(str, enum.Enum):
-    """
-    Enum for preemption keys used in GKE.
-    """
-
-    GKE_SPOT_LABELS = [
-        "cloud.google.com/gke-spot=true",
-        "cloud.google.com/gke-provisioning=spot",
-    ]
-    NODE_TAINTS_LIST = [
-        "DeletionCandidateOfClusterAutoscaler",
-        "node.cloudprovider.kubernetes.io/shutdown",
-    ]
+# Constants for preemption keys used in GKE.
+GKE_SPOT_LABELS = {
+    "cloud.google.com/gke-spot": "true",
+    "cloud.google.com/gke-provisioning": "spot"
+}
+NODE_TAINTS_LIST = {
+    "DeletionCandidateOfClusterAutoscaler",
+    "node.cloudprovider.kubernetes.io/shutdown",
+    "node.kubernetes.io/unschedulable",
+}
 
 
 def preemption_handler_factory(config, logger: Logger) -> Any:
@@ -44,7 +42,7 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
         new: list[dict] | None,
         name: str,
         labels: dict[str, str] | None = None,
-        status: dict[str, str] | None = None,
+        meta: dict[str, Any] | None = None,
         logger: Logger | None = None,
         **kwargs,
     ):
@@ -58,9 +56,9 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
         if not labels:
             return
 
-        # Check to see if any of the label selectors in PremptionKeys.GKE_SPOT_LABELS list
+        # Check to see if any of the label selectors in GKE_SPOT_LABELS list
         # are present in the node labels.
-        if not any(label in labels for label in PreemptionKeys.GKE_SPOT_LABELS.value):
+        if not any(label in labels for label in GKE_SPOT_LABELS.keys()):
             logger.debug(
                 f"Node {name} is not a GKE Spot VM. Skipping preemption handling."
             )
@@ -76,10 +74,10 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
 
         # check if termination taint was added
         old_has_termination = any(
-            t.get("key") in PreemptionKeys.NODE_TAINTS_LIST.value for t in old_taints
+            t.get("key") in NODE_TAINTS_LIST for t in old_taints
         )
         new_has_termination = any(
-            t.get("key") in PreemptionKeys.NODE_TAINTS_LIST.value for t in new_taints
+            t.get("key") in NODE_TAINTS_LIST for t in new_taints
         )
 
         if not old_has_termination and new_has_termination:
@@ -116,43 +114,20 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
                 )
                 logger.debug(f"Pods to terminate: {machine_list}")
                 if machine_list:
-                    # Create a MachineReturnRequest custom resource
-                    request_id = str(uuid.uuid4())[:64]  # Generate a unique request ID
-                    meta_name = (
-                        f"{config.preempted_machine_request_id_prefix}{request_id}"
-                    )
-                    namespace = config.default_namespaces[0]
-                    new_label = {"symphony.requestId": request_id}
-                    resource_body = {
-                        "apiVersion": f"{config.crd_group}/{config.crd_api_version}",
-                        "kind": config.crd_return_request_kind,
-                        "metadata": {
-                            "generateName": f"{meta_name}-",
-                            "namespace": namespace,
-                            "labels": new_label,
-                        },
-                        "spec": {
-                            "requestId": meta_name,
-                            "machineIds": machine_list,
-                            "labels": new_label,
-                        },
-                    }
-                    if hasattr(resource_body, "items:"):
-                        resource_body = dict(resource_body)
-                    logger.debug(
-                        "Node Preemption! Creating MachineReturnRequest: "
-                        f"{resource_body}"
-                    )
-                    try:
-                        await call_create_namespaced_custom_object(
-                            body=resource_body,
-                            plural=config.crd_return_request_plural,
-                            namespace=namespace,
-                        )
-                    except Exception as e:
-                        message = f"Failed to create MachineReturnRequest: {e}"
-                        logger.error(message)
-                        raise kopf.TemporaryError(message, delay=5)
+                    request_id = ( meta.get('uid', str(uuid.uuid4())[:64]) 
+                                   if meta is not None else str(uuid.uuid4())[:64] )
+                    delete_request_id = f"{config.preempted_machine_request_id_prefix}{request_id}"
+                    #delete each pod
+                    for machine_id in machine_list:
+                        try:
+                            await process_pod_delete(delete_request_id=delete_request_id,
+                                                     machine_id=machine_id,
+                                                     namespace=config.default_namespaces[0])
+                        except Exception as e:
+                            logger.error(f"Failed to delete pod {machine_id} for preemption: {e}")
+                            raise kopf.TemporaryError(
+                                f"Failed to delete pod {machine_id} for preemption: {e}", delay=5
+                                )
 
     # preemption handler factory return
     return handle_node_preemption
