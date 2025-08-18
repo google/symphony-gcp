@@ -58,7 +58,7 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
 
         # Check to see if any of the label selectors in GKE_SPOT_LABELS list
         # are present in the node labels.
-        if not any(label in labels for label in GKE_SPOT_LABELS.keys()):
+        if not any(labels.get("key") == value for key, value in GKE_SPOT_LABELS.items()):
             logger.debug(
                 f"Node {name} is not a GKE Spot VM. Skipping preemption handling."
             )
