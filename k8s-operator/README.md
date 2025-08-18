@@ -20,6 +20,10 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ### Version 0.2.4
 - Updated GKE pod label for proper cluster attribution
+- Refactored machine_return_request module to put pod deletion as its own function for use by
+  the preemption handler.
+- Updated preemption handler to delete pods directly rather than generate a new mrr (rrm) CRD.
+- Added proper tagging/labels to GKE pods for appropriate attribution tracking.
 
 ### Version 0.2.3
 - Dockerfile updates to allow for passing a VERSION for a more detailed tagging label, if desired.
