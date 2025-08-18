@@ -281,6 +281,14 @@ def machine_return_request_handler_factory(config: Config, logger: Logger) -> An
                         machine_id=machine_id,
                         namespace=meta.get("namespace", config.default_namespaces[0]),
                     )
+                    machine_events[machine_id]["status"] = mse.COMPLETED
+                    machine_events[machine_id]["returnCompletionTime"] = (
+                        datetime.datetime.now(datetime.timezone.utc).isoformat()
+                    )
+                    machine_events[machine_id][
+                        "message"
+                    ] = "Pod deletion successful"
+                    completed_count += 1
                 except ApiException as e:
                     if e.status == 404:
                         # Pod already deleted, mark as completed
