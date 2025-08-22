@@ -29,7 +29,6 @@ def register_handlers(config: Config) -> None:
         container_state_change,
         machine_return_request,
         pod_delete,
-        preemption,
         resource_create,
         resource_update,
     )
@@ -58,6 +57,7 @@ def register_handlers(config: Config) -> None:
     )
 
     if config.enable_gke_preemption_handling:
+        from gcp_symphony_operator.handlers import preemption
         _resource_handlers["preemption"] = preemption.preemption_handler_factory(
             config, logger
         )
