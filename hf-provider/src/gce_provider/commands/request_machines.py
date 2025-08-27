@@ -34,15 +34,19 @@ def request_machines(
 
     logger.info(f"Received request to provision {count} machines with prefix {instance_prefix}")
 
-    # TODO: determine if these labels are even needed
-    # labels = {
-    #    "symphony.deployment": "hf-service",
-    #    "symphony.requestId": request_id,
-    # }
+    # Prepare labels for the instances
+    labels = {
+       "symphony-deployment": f"{config.hf_provider_name}-hostfactory",
+       "symphony-requestId": request_id,
+       config.instance_label_name_text: config.instance_label_value_text
+    }
 
     instances = [
         compute.PerInstanceConfig(
             name=f"{instance_prefix}{generate_unique_id()}",
+            preserved_state=compute.PreservedState(
+                metadata=labels
+            )
         )
         for _ in range(count)
     ]

@@ -38,6 +38,7 @@ def request_machines(hfr: HFRequest, config: Optional[Config] = None) -> Dict[st
     labels = {
         "symphony.deployment": "hf-service",
         "symphony.requestId": name_prefix,
+        config.crd_label_name_text: config.crd_label_value_text
     }
 
     try:

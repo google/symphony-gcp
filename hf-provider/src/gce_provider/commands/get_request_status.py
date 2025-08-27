@@ -9,7 +9,7 @@ from gce_provider.commands.helpers.request_machine_status_helper import (
 from gce_provider.commands.helpers.request_return_machine_status_helper import (
     RequestReturnMachineStatusEvaluator,
 )
-from gce_provider.config import Config
+from gce_provider.config import Config, get_config
 from gce_provider.db.machines import MachineDao
 from gce_provider.model.models import HfMachineStatus
 
@@ -30,8 +30,15 @@ def to_machine_response(
 
 
 def get_request_status(request: HFRequestStatus, config: Optional[Config] = None):
-    if "requestId" not in request.requests:
-        raise ValueError("No requestID found.")
+    if config is None:
+        config = get_config()
+    config.logger.debug(f"request = {request}")
+    # check to see if any element of the request.requests list contains an object with a key "requestId"
+    if len(request.requests) < 1 or not any(
+        "requestId" in req and req["requestId"] for req in flatten([request.requests])
+    ):
+        config.logger.error("No requestId found in request")
+        raise ValueError("No requestId found.")
 
     request_list = flatten([request.requests])
     request_responses = []

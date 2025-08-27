@@ -1,6 +1,7 @@
 import logging
 import os
 from functools import lru_cache
+from socket import gethostname
 
 from dotenv import load_dotenv
 
@@ -109,6 +110,14 @@ class Config:
         self.crd_kind = hf_provider_conf.get("GKE_CRD_KIND", DEFAULT_CRD_KIND)
         self.crd_singular = hf_provider_conf.get("GKE_CRD_SINGULAR", DEFAULT_CRD_SINGULAR)
         self.crd_plural = hf_provider_conf.get("GKE_CRD_PLURAL", f"{self.crd_singular}s")
+        self.crd_label_name_text = "symphony_gke_connector"
+        # Get the hostname from the running environment for use in the crd_label_value_text
+        try:
+            self.crd_label_value_text = gethostname()  # type: ignore
+        except Exception as e:
+            self.logger.error("Unable to get hostname via socket class."
+                              f" Will have to use the default.\n {e}")
+            self.crd_label_value_text = "KeepingUpWithTheGKEConnector"
         self.crd_return_request_singular = hf_provider_conf.get(
             "GKE_CRD_RETURN_REQUEST_SINGULAR", DEFAULT_CRD_RETURN_REQUEST_SINGULAR
         )
@@ -125,10 +134,6 @@ class Config:
         # This allows the user to override the default HF log directory/filename
         self.hf_provider_log_file = hf_provider_conf.get("LOGFILE", HF_PROVIDER_LOGFILE)
         self.log_level = hf_provider_conf.get("LOG_LEVEL", DEFAULT_LOG_LEVEL)
-        fast_api_enabled_str = hf_provider_conf.get(
-            "FAST_API_ENABLED", str(DEFAULT_FAST_API_ENABLED)
-        ).upper()
-        self.fast_api_enabled = fast_api_enabled_str in ["true", "1", "t", "y", "yes"]
 
         logging.basicConfig(
             format="%(asctime)s - %(levelname)s - %(message)s",

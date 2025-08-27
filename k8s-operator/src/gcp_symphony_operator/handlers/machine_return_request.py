@@ -42,6 +42,29 @@ async def create_machine_event() -> Dict[str, Any]:
         "message": "Return request received",
     }
 
+async def process_pod_delete(delete_request_id: str, machine_id: str, namespace: str):
+    # patch the pod being returned so that the delete_handler can get the
+    # delete request ID and remove the finalizer to speed up deletion
+    patch_body = {
+        "metadata": {
+            "labels": {"symphony.returnRequestId": delete_request_id}
+        }
+    }
+    try:
+        await call_patch_namespaced_pod(
+            name=machine_id,
+            namespace=namespace,
+            body=patch_body,
+        )  # type: ignore
+        
+        # delete the pod
+        await call_delete_namespaced_pod(
+            name=machine_id,
+            namespace=namespace,
+        )  # type: ignore
+    except Exception | ApiException as e:
+        raise
+    
 
 def machine_return_request_handler_factory(config: Config, logger: Logger) -> Any:
     """
@@ -251,69 +274,40 @@ def machine_return_request_handler_factory(config: Config, logger: Logger) -> An
                     machine_events[machine_id]["status"] = mse.IN_PROGRESS
                     machine_events[machine_id]["message"] = "Processing return request"
 
-                # patch the pod being returned so that the delete_handler can get the
-                # delete request ID and remove the finalizer to speed up deletion
-                patch_body = {
-                    "metadata": {
-                        "labels": {"symphony.returnRequestId": delete_request_id}
-                    }
-                }
-                try:
-                    await call_patch_namespaced_pod(
-                        name=machine_id,
-                        namespace=meta.get("namespace", config.default_namespaces[0]),
-                        body=patch_body,
-                    )  # type: ignore
-                except ApiException as e:
-                    logger.error(
-                        "Non-stopping error patching returnRequestId"
-                        f"to pod {machine_id}.: {e}"
-                    )
 
                 try:
-                    # Try to delete the pod
-                    try:
-                        await call_delete_namespaced_pod(
-                            name=machine_id,
-                            namespace=meta["namespace"],
-                        )  # type: ignore
+                    await process_pod_delete(
+                        delete_request_id=delete_request_id,
+                        machine_id=machine_id,
+                        namespace=meta.get("namespace", config.default_namespaces[0]),
+                    )
+                    machine_events[machine_id]["status"] = mse.COMPLETED
+                    machine_events[machine_id]["returnCompletionTime"] = (
+                        datetime.datetime.now(datetime.timezone.utc).isoformat()
+                    )
+                    machine_events[machine_id][
+                        "message"
+                    ] = "Pod deletion successful"
+                    completed_count += 1
+                except ApiException as e:
+                    if e.status == 404:
+                        # Pod already deleted, mark as completed
                         machine_events[machine_id]["status"] = mse.COMPLETED
                         machine_events[machine_id]["returnCompletionTime"] = (
                             datetime.datetime.now(datetime.timezone.utc).isoformat()
                         )
                         machine_events[machine_id][
                             "message"
-                        ] = "Pod deletion successful"
+                        ] = "Pod was already returned"
                         completed_count += 1
-                    except ApiException as e:
-                        if e.status == 404:
-                            # Pod already deleted, mark as completed
-                            machine_events[machine_id]["status"] = mse.COMPLETED
-                            machine_events[machine_id]["returnCompletionTime"] = (
-                                datetime.datetime.now(datetime.timezone.utc).isoformat()
-                            )
-                            machine_events[machine_id][
-                                "message"
-                            ] = "Pod was already returned"
-                            completed_count += 1
-                        else:
-                            # Failed to delete pod
-                            machine_events[machine_id]["status"] = mse.FAILED
-                            machine_events[machine_id][
-                                "message"
-                            ] = f"Failed to return pod: {e.reason}"
-                            failed_count += 1
-                            logger.error(f"Error deleting pod {machine_id}: {e}")
-                except Exception as e:
-                    # General error
-                    machine_events[machine_id]["status"] = mse.FAILED
-                    machine_events[machine_id][
-                        "message"
-                    ] = f"Error processing return request: {str(e)}"
-                    failed_count += 1
-                    logger.error(
-                        f"Error processing return request for {machine_id}: {e}"
-                    )
+                    else:
+                        # Failed to delete pod
+                        machine_events[machine_id]["status"] = mse.FAILED
+                        machine_events[machine_id][
+                            "message"
+                        ] = f"Failed to return pod: {e.reason}"
+                        failed_count += 1
+                        logger.error(f"Error deleting pod {machine_id}: {e}")
             else:
                 # If the pod does not exist, mark as completed
                 # so it's properly tracked on the MRR and on the GCPSR

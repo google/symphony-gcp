@@ -1,9 +1,8 @@
 {
   "GCP_PROJECT_ID": "symphony-dev-1",
-  "LOG_LEVEL":"DEBUG",
+  "LOG_LEVEL":"INFO",
   "LOG_MAX_FILE_SIZE": 10,
   "LOG_MAX_ROTATE": 5,
   "ACCEPT_PROPAGATED_LOG_SETTING": true,
-
   "PUBSUB_TIMEOUT": 100
 }

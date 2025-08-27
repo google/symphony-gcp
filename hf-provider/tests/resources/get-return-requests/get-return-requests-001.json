@@ -1,1 +1,6 @@
-{"machines": [{"name": "g17c05acd-e364-46a9-802a-7e47a94a8d84-h2p7m-pod-0", "machineId": "d66ba408-e3c2-4491-92a9-61a35d6c953e"}]}
+{
+    "machines": [
+        {"name": "sym-6c605695-14e3-4060-ac75-14b6c3d3d119"},
+        {"name": "sym-87c7d538-240e-471a-9a47-c1af3c38d58a"}
+    ]
+}

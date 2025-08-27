@@ -3,6 +3,7 @@ import os
 from functools import lru_cache
 
 from dotenv import load_dotenv
+from socket import gethostname
 
 import common.utils.path_utils as path_utils
 from common.utils.file_utils import load_json_file
@@ -99,6 +100,15 @@ class Config:
             raise Exception(
                 f"Error: Please configure the plugin via the file {hf_provider_conf_path}"
             )
+        
+        # determine the instance label value text, defaulting to hostname
+        self.instance_label_name_text = "symphony_gce_connector"        
+        try:
+            self.instance_label_value_text = gethostname()  # type: ignore
+        except Exception as e:
+            self.logger.error("Unable to get hostname via socket class."
+                              f" Will have to use the default.\n {e}")
+            self.instance_label_value_text = "KeepingUpWithTheGCEConnector"
 
         # configure general settings
         self.gcp_credentials_file = hf_provider_conf.get(

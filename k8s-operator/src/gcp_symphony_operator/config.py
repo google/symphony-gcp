@@ -52,6 +52,21 @@ class Config:
     DEFAULT_OPERATOR_IMAGE_TAG = "latest"
     DEFAULT_KUBECONFIG_PATH = "/app/.kube/config"
     DEFAULT_CONTAINER_IMAGE = "nginx:latest"  # fallback value used for testing only
+    DEFAULT_KUBERNETES_POD_LABEL_NAME_TEXT = "symphony_gke_connector"
+    """
+    str: The label name used to identify pods created by GKE Symphony Connector.
+    This is used to filter resources in the cluster.
+    Default is "symphony_gke_connector".
+    """
+    DEFAULT_KUBERNETES_POD_LABEL_VALUE_TEXT = "KeepingUpWithTheGKE"
+    """
+    str: The label value used to identify pods created by GKE Symphony Connector.
+    This is used to filter resources in the cluster. This should be the server name
+    of the IBM Symphony server that requested the machines. This value is only used
+    as a fallback if the server name is not available in the request.
+    Default is "KeepingUpWithTheGKE".
+    """
+    
     DEFAULT_KUBERNETES_RBAC_CHECK = False
 
     DEFAULT_KUBERNETES_CLIENT_TIMEOUT_ENABLE = False
@@ -270,6 +285,14 @@ class Config:
             f"{self.env_var_prefix}KUBERNETES_CLIENT_LOG_LEVEL",
             Config.DEFAULT_LOG_LEVEL,
         ).upper()
+        self.pod_label_name_text = os.environ.get(
+            f"{self.env_var_prefix}POD_LABEL_NAME_TEXT",
+            Config.DEFAULT_KUBERNETES_POD_LABEL_NAME_TEXT
+        )
+        self.pod_label_value_text = os.environ.get(
+            f"{self.env_var_prefix}POD_LABEL_VALUE_TEXT",
+            Config.DEFAULT_KUBERNETES_POD_LABEL_VALUE_TEXT,
+        )
         self.cluster_role_name = os.environ.get(
             f"{self.env_var_prefix}CLUSTER_ROLE_NAME", Config.DEFAULT_CLUSTER_ROLE_NAME
         )

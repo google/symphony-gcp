@@ -157,7 +157,11 @@ def resource_create_handler_factory(config: Config, logger: Logger) -> Any:
             """
             labels = gcpsr.metadata.get("labels", {})
             if not labels:
-                labels = {"symphony.requestId": request_id}
+                # Add default labels if none are on the custom resource
+                labels = {
+                    "symphony.requestId": request_id,
+                    config.pod_label_name_text: config.pod_label_value_text
+                }
             pod_name = f"{gcpsr.metadata['name']}-pod-{i}"
             pod_spec = gcpsr.spec.podSpec
             # if the pod spec provided does not have a termination grace period,

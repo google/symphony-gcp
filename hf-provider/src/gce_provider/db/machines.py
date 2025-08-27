@@ -16,6 +16,7 @@ from gce_provider.db.gce_helpers import (
 from gce_provider.db.transaction import Statement, Transaction
 from gce_provider.model.models import HfMachine, HfMachineStatus, ResourceIdentifier
 from gce_provider.utils.constants import MachineState
+from gce_provider.utils.instances import set_instance_labels
 
 
 def _generate_instance_creation_params(instance: compute.Instance):
@@ -186,7 +187,8 @@ class MachineDao:
 
         request = message.protoPayload.request
         machine_names = [x.name for x in request.instances]
-
+        # strip the gcp zone from the url provided by the client message
+        zone = message.protoPayload.response.zone.split("/")[-1]
         machine_name_param = ",".join("?" for _ in machine_names)
         with Transaction(self.config) as trans:
             trans.execute(
@@ -199,6 +201,11 @@ class MachineDao:
                     )
                 ],
             )
+
+        # update the labels for the instances
+        if len(failed_instances := set_instance_labels(request.instances, zone, self.config)) > 0:
+            self.logger.warning("Failed to set labels for instance(s): "
+                                f"{', '.join(failed_instances)}")
 
         self.logger.info(
             f"Finished handling instance creation for operation {message.operation.id}"
@@ -432,14 +439,14 @@ class MachineDao:
                 SELECT machine_name, delete_grace_period
                 FROM machines
                 WHERE return_request_id IS NULL
-                AND machine_state IN ({MachineState.PREEMPTED.value}, {MachineState.DELETED.value})
+                AND machine_state IN (?, ?)
                 """
         with sqlite3.connect(
             self.config.db_path,
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         ) as conn:
             cur = conn.cursor()
-            cur.execute(query)
+            cur.execute(query, (MachineState.PREEMPTED.value, MachineState.DELETED.value))
             rows = cur.fetchall()
             return [
                 HFReturnRequestsResponse.Request(machine=row[0], gracePeriod=row[1]) for row in rows
