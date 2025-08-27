@@ -41,7 +41,9 @@ This document outlines all user-adjustable environment variables for the GCP Sym
 | `GCP_HF_KUBERNETES_RBAC_CHECK` | `False` | Whether to check RBAC permissions on operator startup. |
 | `GCP_HF_KUBERNETES_CLIENT_TIMEOUT_ENABLE` | `False` | Whether to enable Kubernetes client timeout |
 | `GCP_HF_KUBERNETES_CLIENT_TIMEOUT` | `10` | Timeout for Kubernetes client operations (seconds) |
-| `GCP_HF_ENABLE_GKE_PREEMPTION_HANDLING` | `True` | Whether to enable the preemption handler to monitor for GKE preemption of Spot VMs. |
+| `GCP_HF_ENABLE_GKE_PREEMPTION_HANDLING` | `True` | Whether to enable the preemption handler to monitor for preemption of VMs. |
+| `GCP_HF_GKE_PREEMPT_LABELS` | `{"cloud.google.com/gke-spot": "true", "cloud.google.com/gke-provisioning": "spot"}` | A dictionary listing the node labels that indicate a VM is preemptable by the Google Compute Engine. Used when _ENABLE_GKE_PREEMPTION_HANDLING is set to True |
+| `GCP_HF_GKE_NODE_TAINTS_LIST` | `{"DeletionCandidateOfClusterAutoscaler", "node.cloudprovider.kubernetes.io/shutdown", "node.kubernetes.io/unschedulable"}` | A set of strings listing the possible TAINTS that GKE will apply to a node that is being preempted by Google Compute Engine. Used when _ENABLE_GKE_PREEMPTION_HANDLING is True. |
 
 ## Kopf Framework Configuration
 

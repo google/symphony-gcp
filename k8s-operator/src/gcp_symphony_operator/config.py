@@ -79,14 +79,14 @@ class Config:
     int: The timeout in seconds for Kubernetes client requests.
     """
 
-    DEFAULT_ENABLE_GKE_PREEMPTION_HANDLING = True
+    DEFAULT_ENABLE_GKE_PREEMPTION_HANDLING = False
     """
     bool: Whether to enable GKE preemption handling.
-    This will allow the operator to handle GKE Spot VM preemption events.
-    The behavior is to create a MachineReturnRequest custom resource and allow
-    for the operator to delete the affected pods and track them appropriately
+    This will allow the operator to handle GKE VM preemption events.
+    The behavior is to delete any pods on a node that are on an
+    affected by preemption. The delete handler will track them appropriately
     on their parent GCPSymphonyResource
-    Default is True.
+    Default is False.
     """
 
     DEFAULT_KOPF_POSTING_ENABLED = False
@@ -176,6 +176,28 @@ class Config:
     DEFAULT_HEALTH_CHECK_PORT = 8080
     DEFAULT_HEALTH_CHECK_PATH = "/health"
     DEFAULT_READINESS_CHECK_PATH = "/ready"
+
+    # Constants for preemption keys used in GKE.
+    DEFAULT_GKE_PREEMPT_LABELS = {
+        "cloud.google.com/gke-spot": "true",
+        "cloud.google.com/gke-provisioning": "spot"
+    }
+    """
+    dict: A dictionary of labels used to identify GKE VMs that may be subject to preemption.
+    This is used to filter resources in the cluster.
+    Default is {"cloud.google.com/gke-spot": "true", "cloud.google.com/gke-provisioning": "spot"}.
+    """
+
+    DEFAULT_GKE_NODE_TAINTS_LIST = {
+        "DeletionCandidateOfClusterAutoscaler",
+        "node.cloudprovider.kubernetes.io/shutdown",
+        "node.kubernetes.io/unschedulable",
+    }
+    """
+    set: A set of taints used to identify nodes that are being preempted by the compute engine. These are only applied after passing the GKE_PREEMPT_LABELS filter.
+    This is used to filter resources in the cluster.
+    Default is {"DeletionCandidateOfClusterAutoscaler", "node.cloudprovider.kubernetes.io/shutdown", "node.kubernetes.io/unschedulable"}.
+    """
 
     _instance: Optional["Config"] = None
     __initialized = False
@@ -567,6 +589,15 @@ class Config:
         self.readiness_check_path = os.environ.get(
             f"{self.env_var_prefix}READINESS_CHECK_PATH",
             Config.DEFAULT_READINESS_CHECK_PATH,
+        )
+
+        self.gke_preempt_labels = os.environ.get(
+            f"{self.env_var_prefix}GKE_PREEMPT_LABELS",
+            Config.DEFAULT_GKE_PREEMPT_LABELS,
+        )
+        self.gke_node_taints_list = os.environ.get(
+            f"{self.env_var_prefix}GKE_NODE_TAINTS_LIST",
+            Config.DEFAULT_GKE_NODE_TAINTS_LIST,
         )
 
         if self.log_level == "DEBUG":

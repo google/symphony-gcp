@@ -12,18 +12,6 @@ from gcp_symphony_operator.k8s.custom_objects import (
 from gcp_symphony_operator.handlers.machine_return_request import process_pod_delete
 
 
-# Constants for preemption keys used in GKE.
-GKE_SPOT_LABELS = {
-    "cloud.google.com/gke-spot": "true",
-    "cloud.google.com/gke-provisioning": "spot"
-}
-NODE_TAINTS_LIST = {
-    "DeletionCandidateOfClusterAutoscaler",
-    "node.cloudprovider.kubernetes.io/shutdown",
-    "node.kubernetes.io/unschedulable",
-}
-
-
 def preemption_handler_factory(config, logger: Logger) -> Any:
     """
     Factory function to create the preemption handler.
@@ -35,7 +23,9 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
     Returns:
         A function that handles node preemption events.
     """
-
+    gke_spot_labels = config.gke_preempt_labels
+    node_taints_list = config.gke_node_taints_list
+    
     @kopf.on.field("v1", "node", field="spec.taints")  # type: ignore
     async def handle_node_preemption(
         old: list[dict] | None,
@@ -56,9 +46,9 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
         if not labels:
             return
 
-        # Check to see if any of the label selectors in GKE_SPOT_LABELS list
+        # Check to see if any of the label selectors in gke_spot_labels list
         # are present in the node labels.
-        if not any(labels.get("key") == value for key, value in GKE_SPOT_LABELS.items()):
+        if not any(labels.get("key") == value for key, value in gke_spot_labels.items()):
             logger.debug(
                 f"Node {name} is not a GKE Spot VM. Skipping preemption handling."
             )
@@ -74,10 +64,10 @@ def preemption_handler_factory(config, logger: Logger) -> Any:
 
         # check if termination taint was added
         old_has_termination = any(
-            t.get("key") in NODE_TAINTS_LIST for t in old_taints
+            t.get("key") in node_taints_list for t in old_taints
         )
         new_has_termination = any(
-            t.get("key") in NODE_TAINTS_LIST for t in new_taints
+            t.get("key") in node_taints_list for t in new_taints
         )
 
         if not old_has_termination and new_has_termination:

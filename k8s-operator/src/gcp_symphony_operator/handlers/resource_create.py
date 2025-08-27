@@ -166,11 +166,11 @@ def resource_create_handler_factory(config: Config, logger: Logger) -> Any:
             pod_spec = gcpsr.spec.podSpec
             # if the pod spec provided does not have a termination grace period,
             # use the default grace period from the config
-            if not hasattr(pod_spec, "default_grace_period") or (
-                hasattr(pod_spec, "default_grace_period")
-                and pod_spec["default_grace_period"] is None
+            if not hasattr(pod_spec, "terminationGracePeriodSeconds") or (
+                hasattr(pod_spec, "terminationGracePeriodSeconds")
+                and pod_spec["terminationGracePeriodSeconds"] is None
             ):
-                pod_spec["default_grace_period"] = config.default_pod_grace_period
+                pod_spec["terminationGracePeriodSeconds"] = config.default_pod_grace_period
             logger.debug(f"\n\npod_spec = {pod_spec}\n\n")
             pod_body = V1Pod(
                 api_version="v1",
