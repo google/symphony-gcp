@@ -10,13 +10,7 @@
       <excludeFolder url="file://$MODULE_DIR$/src/gcphf_cli.egg-info" />
       <excludeFolder url="file://$MODULE_DIR$/tests/resources/provider-config/scratch" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.9 (google-symphony-hf)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.9 virtualenv at ~/code/google/google-symphony-hf/hf-provider/.venv" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
-  </component>
-  <component name="PackageRequirementsSettings">
-    <option name="requirementsPath" value="$MODULE_DIR$/pyproject.toml" />
-  </component>
-  <component name="TestRunnerService">
-    <option name="PROJECT_TEST_RUNNER" value="py.test" />
   </component>
 </module>

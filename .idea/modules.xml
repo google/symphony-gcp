@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/hf-provider/.venv/.venv.iml" filepath="$PROJECT_DIR$/hf-provider/.venv/.venv.iml" />
+      <module fileurl="file://$PROJECT_DIR$/google-symphony-hf.iml" filepath="$PROJECT_DIR$/google-symphony-hf.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hf-provider/hf-provider.iml" filepath="$PROJECT_DIR$/hf-provider/hf-provider.iml" />
+      <module fileurl="file://$PROJECT_DIR$/k8s-operator/k8s-operator.iml" filepath="$PROJECT_DIR$/k8s-operator/k8s-operator.iml" />
+    </modules>
+  </component>
+</project>
