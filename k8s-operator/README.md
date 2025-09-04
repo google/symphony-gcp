@@ -18,6 +18,12 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ## <a id="change-log"></a>Change log
 
+### Version 0.2.5
+- Exposed option to enable/disable preemption handling logic. Defaulted to false.
+- Exposed labels and taints variables to allow the user to specify a list of labels
+  to identify VMs in the cluster that can be preempted by Google Compute Engine, and
+  taints that would indicate a VM is being preempted.
+
 ### Version 0.2.4
 - Updated GKE pod label for proper cluster attribution
 - Refactored machine_return_request module to put pod deletion as its own function for use by
