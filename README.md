@@ -40,6 +40,7 @@ IBM Spectrum Symphony's Host Factory provides dynamic resource provisioning capa
 - **Enterprise Integration**: Seamlessly integrates with existing Symphony deployments without requiring architectural changes
 
 ## <a id="architecture"></a>Architecture
+This is an overview of the system architecture. Detailed documentation can be found [here](docs/architecture/README.md).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
