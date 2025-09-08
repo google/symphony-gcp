@@ -1,0 +1,8 @@
+resource.type="k8s_cluster" 
+resource.labels.cluster_name="${cluster_name}"
+log_id("cloudaudit.googleapis.com/activity") 
+protoPayload.methodName="io.k8s.core.v1.pods.delete" 
+protoPayload.status.code=0
+protoPayload.response.metadata.labels."managed-by"="gcp-symphony-operator"
+-- protoPayload.authenticationInfo.principalEmail=~"system:node:*"
+-- Deletion by node and not operator modification

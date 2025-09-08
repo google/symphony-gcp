@@ -1,0 +1,41 @@
+{
+    "auxiliary_startup_vars": {
+        "EGO_TOP": "/mnt/nfs/install",
+        "RPMDB_DIR": "/mnt/nfs/rpmdb",
+        "SHARED_TOP": "/mnt/nfs/install",
+        "EGO_ADMIN_USERNAME": "Admin",
+        "EGO_ADMIN_PASSWORD": "Admin",
+        "SYM_BIN": "/opt/ibm/bin/sym-7.3.2.0_x86_64.bin",
+        "SYM_BIN_GCS_PATH": "gs://symphony_dev_2/symphony_binaries/sym-7.3.2.0_x86_64.bin",
+        "SYM_ENTITLEMENT": "/opt/ibm/bin/sym_732_adv_entitlement.dat",
+        "SYM_ENTITLEMENT_GCS_PATH": "gs://symphony_dev_2/symphony_binaries/sym_732_adv_entitlement.dat",
+        "CLUSTER_ADMIN_UID": "10001",
+        "CLUSTER_ADMIN_GID": "10001",
+        "MOUNT_POINT": "/mnt/nfs/",
+        "SUCCESS_TAG": "startup-done",
+        "FAIL_TAG": "startup-fail"
+    },
+    "symphony_compute_replicas": 0,
+    "symphony_mgmt_replicas": 2,
+    "network_from": "cluster-network",
+    "cluster_index": 0,
+    "ci-workspace": "ci-sym-732",
+    "symphony_mgmt_template": {
+        "machine_type": "t2d-standard-60",
+        "disk": {
+            "type":  "pd-ssd",
+            "size":  50
+        }
+    },
+    "nfs_server_template": {
+        "machine_type": "n2-standard-8",
+        "disk": {
+            "type":  "pd-ssd",
+            "size":  50
+        }
+    },
+    "nfs_server_disk": {
+        "type": "pd-ssd",
+        "size": 200
+    }
+}

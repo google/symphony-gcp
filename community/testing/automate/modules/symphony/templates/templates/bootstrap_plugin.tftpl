@@ -1,0 +1,225 @@
+
+# ============ Install plugin ============
+install_kubectl () {
+    # Dependencies for kubectl
+    yum -y install kubectl google-cloud-sdk-gke-gcloud-auth-plugin
+}
+
+
+install_hf-cli () {
+    if yum -y install python3.12; then
+        echo "Successfully installed python3.12!"
+        PYTHON_BINARY=python3.12
+    else
+        echo "Failed install python3.12..."
+        return 1
+    fi
+    su - $CLUSTERADMIN -c "$PYTHON_BINARY -m ensurepip"
+    su - $CLUSTERADMIN -c "$PYTHON_BINARY -m pip install --upgrade pip"
+    su - $CLUSTERADMIN -c "$PYTHON_BINARY -m pip install uv"
+    su - $CLUSTERADMIN -c "$PYTHON_BINARY -m uv tool install --index=https://oauth2accesstoken:$(gcloud auth print-access-token)@${python_repository}/simple google-symphony-hf"
+    ln -s $(su - $CLUSTERADMIN -c "command -v hf-gke") /bin/hf-gke
+    ln -s $(su - $CLUSTERADMIN -c "command -v hf-gce") /bin/hf-gce
+}
+
+# ============ Configure scripts ============
+
+create_provider_plugin_scripts () {
+    # Generate scripts in place...
+
+    mkdir -p $GCP_GKE_SCRIPT_DIR
+
+    scripts=(
+        "getAvailableTemplates"
+        "getRequestStatus"
+        "getReturnRequests"
+        "requestMachines"
+        "requestReturnMachines"
+    )
+
+    cat <<-'EOT' > $GCP_GKE_SCRIPT_DIR/script.sh
+${provider_script}
+EOT
+
+    for script in "$${scripts[@]}"; do
+        ln -s $GCP_GKE_SCRIPT_DIR/script.sh $GCP_GKE_SCRIPT_DIR/$script.sh
+    done
+
+    # Make sure scripts are executable
+    chmod 755 -R $GCP_GKE_SCRIPT_DIR/*
+}
+
+# ============ Configure plugin ============
+
+create_plugin_config () {
+    mkdir $GCP_GKE_CONF_DIR
+    cat<<EOT > $GCP_GKE_CONF_DIR/gcpgkeinstprov_config.json
+${plugin_config}
+EOT
+}
+
+# ============ Create templates ============
+
+create_template_config () {
+    cat<<EOT > $GCP_GKE_CONF_DIR/gcpgkeinstprov_templates.json
+${plugin_template_config}
+EOT
+}
+
+create_template () {
+    mkdir $GCP_GKE_CONF_DIR/pod-specs && \
+    cat<<EOT > $GCP_GKE_CONF_DIR/pod-specs/spec-001.yaml
+${plugin_template}
+EOT
+}
+
+# ============ Configure hostProviders.json ============
+
+disable_all_providers () {
+    # Disable current providers
+    local TEMP_FILE=$(mktemp)
+    cat $HF_PROVIDERS | jq -r '.providers |= map(if .enabled == 1 then .enabled = 0 else . end)' > $TEMP_FILE
+    mv $TEMP_FILE $HF_PROVIDERS
+}
+
+add_provider () {
+    # Add new provider to hostProviders.json
+    local TEMP_FILE=$(mktemp)
+    cat $HF_PROVIDERS | jq -r '.providers += [${hostproviders-provider}]' > $TEMP_FILE
+    mv $TEMP_FILE $HF_PROVIDERS
+}
+
+# ============ Configure hostProviderPlugins.json ============
+
+disable_all_providers_plugins () {
+    # Disable current providers plugins 
+    local TEMP_FILE=$(mktemp)
+    cat $HF_PROVIDER_PLUGINS | jq -r '.providerplugins |= map(if .enabled == 1 then .enabled = 0 else . end)' > $TEMP_FILE
+    mv $TEMP_FILE $HF_PROVIDER_PLUGINS
+}
+
+add_provider_plugin () {
+    # Add new provider plugin to hostProviderPlugins.json
+    local TEMP_FILE=$(mktemp)
+    cat $HF_PROVIDER_PLUGINS | jq -r '.providerplugins += [${hostproviderplugins-providerplugin}]' > $TEMP_FILE
+    mv $TEMP_FILE $HF_PROVIDER_PLUGINS
+}
+
+# ============ Configure hostRequestors.json ============
+
+add_provider_to_requestors () {
+    # Remove other providers and add the new provider to the admin requestor instance
+    local TEMP_FILE=$(mktemp)
+    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="admin") | .providers) = ["gcpgkeinst"]' > $TEMP_FILE
+    mv $TEMP_FILE $HF_REQUESTORS
+
+    # Remove other providers and add the new provider to the symA requestor instance
+    local TEMP_FILE=$(mktemp)
+    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="symAinst") | .providers) = ["gcpgkeinst"]' > $TEMP_FILE
+    mv $TEMP_FILE $HF_REQUESTORS
+}
+
+enable_symA_requestor () {
+    local TEMP_FILE=$(mktemp)
+    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="symAinst") | .enabled) = 1' > $TEMP_FILE
+    mv $TEMP_FILE $HF_REQUESTORS
+}
+
+patch_symA_python_version () {
+    local SYMA_SCRIPTS_ARRAY=(
+        $HF_TOP/$HF_VERSION/requestorplugins/symA/scripts/getDemandRequests.sh
+        $HF_TOP/$HF_VERSION/requestorplugins/symA/scripts/getReturnRequests.sh
+    )
+
+    for script in "$${SYMA_SCRIPTS_ARRAY[@]}"; do
+        local TEMP_SCRIPT_FILE=$(mktemp)
+        sed 's/\bpython\b/python3/g' $script > $TEMP_SCRIPT_FILE
+        mv $TEMP_SCRIPT_FILE $script
+        chmod a+rx $script
+    done
+}
+
+# ============ Bootstrap ============
+
+backup_inplace_modifications () {
+    cp $HF_PROVIDER_PLUGINS $HF_PROVIDER_PLUGINS.bkp
+    cp $HF_PROVIDERS $HF_PROVIDERS.bkp
+    cp $HF_REQUESTORS $HF_REQUESTORS.bkp
+}
+
+restore_inplace_modifications () {
+    mv $HF_PROVIDER_PLUGINS.bkp $HF_PROVIDER_PLUGINS
+    mv $HF_PROVIDERS.bkp $HF_PROVIDERS
+    mv $HF_REQUESTORS.bkp $HF_REQUESTORS
+}
+
+bootstrap_kubeconfig () {
+    # Project variable
+    CLUSTER_NAME="test-cluster"
+    CLUSTER_REGION="us-central1-a"
+    CLUSTER_PROJECT="symphony-gcp-host-factory"
+
+    # Get kubeconfig
+    gcloud container clusters get-credentials $CLUSTER_NAME \
+        --region $CLUSTER_REGION \
+        --project $CLUSTER_PROJECT
+}
+
+bootstrap_plugin () {
+    INPUT_VARIABLES=(CLUSTERADMIN EGO_TOP)
+    check_all_set "$${INPUT_VARIABLES[@]}"
+
+    source $EGO_TOP/profile.platform
+
+    export HF_PROVIDER_PLUGINS=$HF_TOP/conf/providerplugins/hostProviderPlugins.json
+    export HF_PROVIDERS=$HF_TOP/conf/providers/hostProviders.json
+    export HF_REQUESTORS=$HF_TOP/conf/requestors/hostRequestors.json
+    export GCP_GKE_SCRIPT_DIR=$HF_TOP/$HF_VERSION/providerplugins/gcpgke/scripts
+    export GCP_GKE_CONF_DIR=$HF_TOP/conf/providers/gcpgkeinst
+    
+    install_kubectl
+    install_hf-cli
+
+    echo "Creating Python symbolic link for symA..."
+    ln -s $(command -v python3) /usr/bin/python
+    
+    echo "Running backup_inplace_modifications..."
+    export -f backup_inplace_modifications && run_as_egoadmin "backup_inplace_modifications"
+    
+    echo "Running create_provider_plugin_scripts..."
+    export -f create_provider_plugin_scripts && run_as_egoadmin "create_provider_plugin_scripts"
+    
+    echo "Running disable_all_providers..."
+    export -f disable_all_providers && run_as_egoadmin "disable_all_providers"
+    
+    echo "Running add_provider..."
+    export -f add_provider && run_as_egoadmin "add_provider"
+    
+    echo "Running disable_all_providers_plugins..."
+    export -f disable_all_providers_plugins && run_as_egoadmin "disable_all_providers_plugins"
+    
+    echo "Running add_provider_plugin..."
+    export -f add_provider_plugin && run_as_egoadmin "add_provider_plugin"
+    
+    echo "Running add_provider_to_requestors..."
+    export -f add_provider_to_requestors && run_as_egoadmin "add_provider_to_requestors"
+
+    echo "Running patch_symA_python_version..."
+    export -f patch_symA_python_version && run_as_egoadmin "patch_symA_python_version"
+
+    # echo "Running enable_symA_requestor..."
+    # export -f enable_symA_requestor && run_as_egoadmin "enable_symA_requestor"
+    
+    echo "Running create_plugin_config..."
+    export -f create_plugin_config && run_as_egoadmin "create_plugin_config"
+    
+    echo "Running create_template_config..."
+    export -f create_template_config && run_as_egoadmin "create_template_config"
+    
+    echo "Running create_template..."
+    export -f create_template && run_as_egoadmin "create_template"
+
+
+    # bootstrap_kubeconfig
+    # TODO: Enable hostfactory `egosh service start HostFactory`
+}

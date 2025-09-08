@@ -1,0 +1,80 @@
+#!/bin/bash
+
+# Forward failures in piped commands
+set -eo pipefail
+
+# =================== Load ===================
+
+# Load common libraries
+${common_functions}
+${common_startup_scripts}
+${startup_script_functions}
+
+# Set environment variables
+%{ for key,value in common_vars }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# Copy Symphony binaries
+if [[ $SHARED_FS_INSTALL != "Y" ]]; then
+    if [[ -z $SYM_BIN_GCS_PATH ]]; then
+        echo "SYM_BIN_GCS_PATH is not set... Exiting..."
+        exit 1
+    fi
+    if [ ! -f $SYM_BIN ]; then
+        [ ! -d $(dirname $SYM_BIN) ] && mkdir -p $(dirname $SYM_BIN)
+        gcloud storage cp $SYM_BIN_GCS_PATH $SYM_BIN
+    fi
+fi
+
+# =================== Config ===================
+
+# Set environment variables
+%{ for key,value in environment_variables }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# Get primary hostname if not shared FS install
+if [[ $SHARED_FS_INSTALL != "Y" ]]; then
+    export PRIMARY_HOSTNAME=$(curl -s -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/attributes/PRIMARY_HOSTNAME")
+fi
+
+{
+# Check required environment variables are all set
+check_required_vars
+
+# =================== Setup Install  ===================
+
+wait_disable_google_guest_managed_accounts
+preinstall_compute
+install_compute
+
+# =================== Post Install Config  ===================
+
+%{ if install_only == null || ! install_only }
+
+postinstall_compute
+join_compute
+run_as_egoadmin "egosh ego start"
+
+%{ endif }
+
+TAG=$SUCCESS_TAG add_compute_self_tag
+} || {
+TAG=$FAIL_TAG add_compute_self_tag
+}
+
+
+

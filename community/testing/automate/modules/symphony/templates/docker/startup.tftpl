@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Add symphony binary to $SYM_BIN
+# Add primary hostname arg
+
+# Forward failures in piped commands
+set -eo pipefail
+
+# =================== Load ===================
+
+# Load common libraries
+${common_functions}
+${common_startup_scripts}
+${startup_script_functions}
+
+# Set environment variables
+%{ for key,value in common_vars }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# =================== Config ===================
+
+# Set environment variables
+%{ for key,value in environment_variables }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+{
+# Check required environment variables are all set
+check_required_vars
+
+# =================== Setup Install  ===================
+
+preinstall_compute
+install_compute
+
+# =================== Post Install Config  ===================
+
+%{ if install_only == null || ! install_only }
+
+postinstall_compute
+join_compute
+run_as_egoadmin "egosh ego start"
+
+%{ endif }
+
+}
+
+
+

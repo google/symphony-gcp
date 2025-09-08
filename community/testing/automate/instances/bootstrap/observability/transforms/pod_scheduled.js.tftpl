@@ -1,0 +1,25 @@
+function filter(message, metadata) {
+    if (!message.data) return null;
+
+    const log = JSON.parse(message.data);
+
+    const filtered = {
+        time: log.timestamp,
+        cluster: log.resource.labels.cluster_name,
+        namespace: log.protoPayload.request.metadata.namespace,
+        source: "audit",
+        run: "${run_id}",
+        event: "pod:scheduled",
+        sym_request: null,
+        container_name: null,
+        pod: log.protoPayload.request.metadata.name,
+        node: log.protoPayload.request.target.name,
+        acn: null,
+        detail: null,
+    };
+
+    return {
+        data: JSON.stringify(filtered),
+        attributes: message.attributes
+    };
+}

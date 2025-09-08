@@ -1,0 +1,5 @@
+{
+        "name": "gcpgke",
+        "enabled": 1,
+        "scriptPath": "${HF_TOP}/${HF_VERSION}/providerplugins/gcpgke/scripts/"
+}

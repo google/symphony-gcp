@@ -1,0 +1,26 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+
+  const filtered = {
+    time:  log.jsonPayload.metadata.creationTimestamp,
+    cluster:  log.resource.labels.cluster_name,
+    namespace: null,
+    source: "k8s-api-log",
+    run:  "${run_id}",
+    event: "node:ready",
+    sym_request: null,
+    container_name: null,
+    pod: null,
+    node: log.jsonPayload.reportingInstance,
+    acn: null,
+    detail: null,
+    // detail: JSON.stringify({})
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}
