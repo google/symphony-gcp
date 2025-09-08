@@ -1,0 +1,30 @@
+{
+    "bootstrap_from": "cluster-base",
+    "target_symphony_shared_workspace": "cluster-0",
+    "target_cluster_workspace": "cluster-0",
+    "run_id": "example-run-id",
+    "enable_preemption_handling": "False",
+    "secondary_boot_disks": [
+        "sym-compute",
+        "sym-compute-10",
+        "sym-compute-20",
+        "sym-compute-50"
+    ],
+    "autoscaling_groups": [
+        {
+            "machineFamily": "c3d",
+            "minCores": 16,
+            "minMemoryGb": 32,
+            "spot": true,
+            "storage": {
+                "bootDiskType":  "hyperdisk-balanced",
+                "secondaryBootDisks": [
+                    {
+                        "diskImageName": "sym-compute-10",
+                        "mode": "CONTAINER_IMAGE_CACHE"
+                    }
+                ]
+            }
+        }
+    ]
+}

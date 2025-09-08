@@ -1,0 +1,54 @@
+logging:
+  processors:
+    add_labels:
+      type: modify_fields
+      fields: 
+        jsonPayload.run_id:
+          static_value: "${run_id}"
+  receivers:
+    syslog:
+      type: files
+      include_paths:
+      - /var/log/messages
+      - /var/log/syslog
+    symphony:
+      type: files
+      include_paths:
+      - $EGO_TOP/kernel/log/*
+      record_log_file_path: true
+    symphony_hostfactory:
+      type: files
+      include_paths:
+      - $HF_TOP/log/hostfactory.*
+      record_log_file_path: true
+    symphony_plugin_gke:
+      type: files
+      include_paths:
+      - $HF_TOP/log/gcpgkeinst-provider.*
+      record_log_file_path: true
+  service:
+    pipelines:
+      default_pipeline:
+        processors: [add_labels]
+        receivers: 
+          - syslog
+      symphony_pipeline:
+        processors: [add_labels]
+        receivers:
+          - symphony
+          - symphony_hostfactory
+          - symphony_plugin_gke
+metrics:
+  receivers:
+    hostmetrics:
+      type: hostmetrics
+      collection_interval: 60s
+  processors:
+    metrics_filter:
+      type: exclude_metrics
+      metrics_pattern: []
+  service:
+    pipelines:
+      default_pipeline:
+        receivers: [hostmetrics]
+        processors: [metrics_filter]

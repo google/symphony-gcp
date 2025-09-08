@@ -1,0 +1,48 @@
+options:
+  env:
+    - GO111MODULE=on
+  volumes:
+    - name: go-modules
+      path: /go
+
+
+steps:
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/ai-on-gke/tools.git']
+
+# This is required to patch the image builder in order to comply
+# with no public addresses policy 
+- name: 'busybox'
+  dir: '/workspace/tools/gke-disk-image-builder'
+  entrypoint: 'sh'
+  args: 
+    - '-c'
+    - | 
+      mv imager.go imager.go.bak
+      sed '/req.Subnet/a AccessConfigs: []*compute.AccessConfig{},' imager.go.bak > imager.go
+    
+# Ensure dependencies are correct
+- name: 'golang'
+  dir: '/workspace/tools/gke-disk-image-builder'
+  env: ['GO111MODULE=on']
+  args: 
+  - 'go'
+  - 'mod'
+  - 'tidy'
+  
+- name: 'golang'
+  env: ['GO111MODULE=on']
+  dir: '/workspace/tools/gke-disk-image-builder'
+  args:
+    - 'go'
+    - 'run'
+    - './cli'
+    - --project-name=${PROJECT_NAME}
+    - --image-name=${IMAGE_NAME}
+    - --zone=${ZONE}
+    - --gcs-path=gs://symphony-dev-2_cloudbuild/
+    - --network=symphony-network-base
+    - --subnet=symphony-subnet-base
+    - --image-pull-auth=ServiceAccountToken
+    - --disk-size-gb=${DISK_SIZE}
+    - --container-image=us-docker.pkg.dev/symphony-dev-2/hf-gcp-testing/sym-compute:rocky9-7.3.2

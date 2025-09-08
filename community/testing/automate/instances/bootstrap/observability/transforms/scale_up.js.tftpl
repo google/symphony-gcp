@@ -1,0 +1,34 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+  const scale = log.jsonPayload.decision.scaleUp;
+
+  // Helper function to sum an array of numbers
+  const sum = (acc, val) => acc + val;
+
+  const filtered = {
+    // TODO: Maybe needted to convert this timestamp...
+    time: log.jsonPayload.decision.decideTime,
+    cluster: log.resource.labels.cluster_name,
+    namespace: null,
+    source: "audit",
+    run: "${run_id}",
+    event: "scale_up",
+    sym_request: null,
+    container_name: null,
+    pod: null,
+    node: null,
+    acn: null,
+    detail: JSON.stringify({
+      node_count: scale.increasedMigs.map(m => m.requestedNodes).reduce(sum, 0),
+      pods: scale.triggeringPods.map(p => ({ pod: p.name, acn: p.controller.name, namespace: p.namespace })),
+      migs: scale.increasedMigs
+    })
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}

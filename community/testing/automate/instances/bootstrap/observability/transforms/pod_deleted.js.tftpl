@@ -1,0 +1,30 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+
+  const filtered = {
+    time: log.protoPayload.response.metadata.deletionTimestamp,
+    cluster: log.resource.labels.cluster_name,
+    namespace: log.protoPayload.response.metadata.namespace,
+    source: "audit",
+    run: "${run_id}",
+    event: "pod:delete",
+    sym_request: log.protoPayload.response.metadata.labels["symphony.requestId"],
+    container_name:  log.protoPayload.response.spec.containers[0].name,
+    pod: log.protoPayload.response.metadata.name,
+    node: log.protoPayload.response.spec.nodeName,
+    acn: log.protoPayload.response.metadata.labels.app,
+    detail: JSON.stringify({
+      principal_email: log.protoPayload.authenticationInfo.principalEmail,
+      request: log.protoPayload?.request,
+      conditions: log.protoPayload?.response.status.conditions,
+      containerStatuses: log.protoPayload?.response.status.containerStatuses,
+    })
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}

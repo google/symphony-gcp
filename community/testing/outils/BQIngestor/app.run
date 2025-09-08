@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+from bqingestor import main
+
+# Run the operator
+if __name__ == "__main__":
+    main.main()

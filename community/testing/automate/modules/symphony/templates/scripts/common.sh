@@ -1,0 +1,1 @@
+../../../../../automate/common/common.sh

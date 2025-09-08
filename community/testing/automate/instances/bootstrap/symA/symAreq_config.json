@@ -1,0 +1,23 @@
+{
+    "scaling_policy": "throughput",
+    "slot_mapping":
+        {
+            "ncores": 1,
+            "nram": 1024
+        },
+    "cloud_apps":[
+        {
+            "name": "symping7.3.2"
+        }
+    ],
+    "log_parameters":
+    {
+       "level": "LOG_INFO",
+       "max_file_size": 10,
+       "max_rotate": 5
+    },
+    "resource_groups":["ComputeHosts"],
+    "resource_plans":["ComputeHosts"],
+    "host_return_policy": "immediate",
+    "unavailable_host_timeout":30
+}

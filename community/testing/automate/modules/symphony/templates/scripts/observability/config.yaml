@@ -1,0 +1,40 @@
+# /etc/google-cloud-ops-agent/config.yaml
+# sudo service google-cloud-ops-agent-diagnostics restart
+
+# TODO: Create a template using $EGO_TOP
+
+logging:
+  receivers:
+    syslog:
+      type: files
+      include_paths:
+      - /var/log/messages
+      - /var/log/syslog
+    symphony:
+      type: files
+      include_paths:
+      - $EGO_TOP/kernel/log/*
+      - $HF_TOP/log/*
+      record_log_file_path: true
+  service:
+    pipelines:
+      default_pipeline:
+        receivers: 
+          - syslog
+      symphony:
+        receivers:
+          - symphony
+metrics:
+  receivers:
+    hostmetrics:
+      type: hostmetrics
+      collection_interval: 60s
+  processors:
+    metrics_filter:
+      type: exclude_metrics
+      metrics_pattern: []
+  service:
+    pipelines:
+      default_pipeline:
+        receivers: [hostmetrics]
+        processors: [metrics_filter]

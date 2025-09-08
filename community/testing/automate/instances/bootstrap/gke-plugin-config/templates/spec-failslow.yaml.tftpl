@@ -1,0 +1,11 @@
+containers:
+- image: busybox
+  name: test
+  command:
+    - "sh"
+    - "-c"
+  args: 
+    - |
+      sleep 60;
+      false
+restartPolicy: "Never"

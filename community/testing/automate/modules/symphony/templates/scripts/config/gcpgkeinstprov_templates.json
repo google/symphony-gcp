@@ -1,0 +1,14 @@
+{
+    "templates": [
+        {
+            "templateId": "template-gcp-01",
+            "maxNumber": 10,
+            "attributes": {
+                "type": ["String", "X86_64"],
+                "ncpus": ["Numeric", "1"],
+                "nram": ["Numeric", "1024"]
+            },
+            "podSpecYaml": "pod-specs/spec-001.yaml"
+        }
+    ]
+}

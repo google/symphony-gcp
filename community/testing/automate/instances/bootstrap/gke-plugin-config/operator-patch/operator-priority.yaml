@@ -1,0 +1,7 @@
+apiVersion: scheduling.k8s.io/v1
+description: Used for the Symphony Operator
+kind: PriorityClass
+metadata:
+  name: gcp-symphony-operator
+preemptionPolicy: PreemptLowerPriority
+value: 1000000000

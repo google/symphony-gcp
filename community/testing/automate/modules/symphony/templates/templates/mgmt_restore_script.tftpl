@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Forward failures in piped commands
+set -eo pipefail
+
+# =================== Load ===================
+
+# Load common libraries
+${common_functions}
+${common_startup_scripts}
+${startup_script_functions}
+${plugin_bootstrap_functions}
+
+# Set environment variables
+%{ for key,value in common_vars }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# =================== Config ===================
+
+# Set environment variables
+%{ for key,value in environment_variables }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# Get primary hostname if not shared FS install
+if [[ $SHARED_FS_INSTALL != "Y" ]]; then
+    export PRIMARY_HOSTNAME=$(curl -s -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/attributes/PRIMARY_HOSTNAME")
+fi
+
+{
+    # Check required environment variables are all set
+    check_required_vars
+
+# =================== Restore  ===================
+    
+    wait_disable_google_guest_managed_accounts
+    restore_mgmt
+
+    TAG=$SUCCESS_TAG add_compute_self_tag
+} || {
+    TAG=$FAIL_TAG add_compute_self_tag
+}

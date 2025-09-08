@@ -1,0 +1,6 @@
+resource.type="k8s_container"
+resource.labels.project_id="symphony-dev-2"
+resource.labels.location="us-central1"
+resource.labels.cluster_name="cluster-test-0"
+resource.labels.namespace_name="gcp-symphony"
+labels.k8s-pod/app="gcp-symphony-operator" severity>=WARNING
