@@ -1,0 +1,27 @@
+containers:
+  - name: hf-sym-compute
+    image: us-central1-docker.pkg.dev/symphony-gcp-host-factory/hf-gcp-testing/sym-shared-rocky8:latest
+    env:
+      - name: "EGO_TOP"
+        value: "$EGO_TOP"
+    volumeMounts:
+      - name: nfs-vol
+        # TODO: Add variable to specify mount point... and case to see if it is shared or not type install.
+        mountPath: /mnt/nfs
+    securityContext:
+      capabilities:
+        add: ["SYS_NICE"]
+    resources:
+      requests:
+        ephemeral-storage: "10Gi"
+        memory: "1Gi"
+      limits:
+        ephemeral-storage: "20Gi"
+        memory: "1Gi"
+imagePullSecrets:
+  - name: gcr-json-key
+imagePullPolicy: Always
+volumes:
+  - name: nfs-vol
+    persistentVolumeClaim:
+      claimName: pvc-nfs

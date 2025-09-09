@@ -1,0 +1,35 @@
+function filter(message, metadata) {
+    if (!message.data) return null;
+
+    const log = JSON.parse(message.data);
+    const res = log.protoPayload.response;
+    const conditions = res.status.conditions
+    const time = conditions.find(obj => obj.type === "Ready" && obj.status === "True")?.lastTransitionTime
+
+    // filter if not able to find status Ready.
+    if (time == null) {
+        return null
+    }
+
+    const filtered = {
+        time: time,
+        cluster: log.resource.labels.cluster_name,
+        namespace: null,
+        source: "audit",
+        run: "${run_id}",
+        event: "node:ready_patch",
+        sym_request: null,
+        container_name: null,
+        pod: null,
+        node: res.metadata.name,
+        acn: null,
+        detail: JSON.stringify({
+            conditions: conditions
+        })
+    };
+
+    return {
+        data: JSON.stringify(filtered),
+        attributes: message.attributes
+    };
+}

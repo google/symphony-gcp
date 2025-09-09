@@ -1,0 +1,35 @@
+containers:
+  - name: hf-sym-compute-shared
+    image: ${docker_registry}/sym-shared-rocky8:latest
+    imagePullPolicy: IfNotPresent
+    env:
+      - name: "EGO_TOP"
+        value: "$EGO_TOP"
+    securityContext:
+      capabilities:
+        add: ["SYS_NICE"]
+    resources:
+      requests:
+        ephemeral-storage: "3Gi"
+        memory: "3Gi"
+        cpu: "1"
+    volumeMounts:
+      - name: nfs-vol
+        # TODO: Add variable to specify mount point...
+        mountPath: /mnt/nfs
+volumes:
+  - name: nfs-vol
+    persistentVolumeClaim:
+      claimName: pvc-nfs
+nodeSelector:
+  cloud.google.com/compute-class: ${compute_class}
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: symphony.deployment
+          operator: In
+          values:
+          - hf-service
+      topologyKey: kubernetes.io/hostname

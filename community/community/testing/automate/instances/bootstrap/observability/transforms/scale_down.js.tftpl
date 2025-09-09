@@ -1,0 +1,29 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+  const scale = log.jsonPayload.decision.scaleDown;
+
+  const filtered = {
+    time: log.jsonPayload.decision.decideTime,
+    cluster: log.resource.labels.cluster_name,
+    namespace: null,
+    source: "audit",
+    run: "${run_id}",
+    event: "scale_down",
+    sym_request: null,
+    container_name: null,
+    pod: null,
+    node: null,
+    acn: null,
+    detail: JSON.stringify({
+      node_count: scale.nodesToBeRemoved.length,
+      node: scale.nodesToBeRemoved,
+    })
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}

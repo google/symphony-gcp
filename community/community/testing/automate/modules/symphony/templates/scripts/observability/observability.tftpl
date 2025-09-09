@@ -1,0 +1,8 @@
+
+
+configure_ops_agent () {
+    cat<<EOT > /etc/google-cloud-ops-agent/config.yaml
+${ops_agent_conf}
+EOT
+    service google-cloud-ops-agent-diagnostics restart
+}

@@ -1,0 +1,27 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+
+  const filtered = {
+    time: log.timestamp,
+    cluster: "${cluster_name}", // this could in theory be extracted from the node name...
+    namespace: null,
+    source: "audit",
+    run: "${run_id}",
+    event: "node:preempted",
+    sym_request: null,
+    container_name: null,
+    pod: null,
+    node: log.protoPayload.resourceName.split("/").pop(),
+    acn: null,
+    detail: JSON.stringify({
+        "labels": log.resource.labels
+    }),
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}

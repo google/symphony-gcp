@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcp-symphony-operator
+  namespace: $GCP_HF_DEFAULT_NAMESPACES
+spec:
+  template:
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: gcp-symphony-operator
+          volumeMounts: 
+            - name: kubeconfig
+              mountPath: /app/.kube/config
+          env:
+          - name: GCP_HF_KUBECONFIG_PATH
+            value: /app/.kube/config
+      volumes:
+        - name: kubeconfig
+          configMap:
+            name: proxy_kubeconfig
+            items:
+            - key: config
+              path: config

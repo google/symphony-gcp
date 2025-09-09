@@ -1,0 +1,14 @@
+containers:
+- image: busybox
+  name: oom-test
+  command:
+    - "sh"
+    - "-c"
+  args: 
+    - "sleep 60; yes | tr \\n x | head -c 1000000000 | grep n || true"
+  resources:
+    limits:
+      memory: "128Mi"
+    requests:
+      memory: "64Mi"
+restartPolicy: "Never"

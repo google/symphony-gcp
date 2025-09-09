@@ -1,0 +1,42 @@
+{
+    "cluster_subnet_group_index": 0,
+    "auto_provisioning_defaults": {
+        "disk_type": "pd-ssd",
+        "disk_size": 20,
+        "logging_variant": "MAX_THROUGHPUT",
+        "management": {
+            "auto_repair": false,
+            "auto_upgrade": false
+        }
+    },
+    "base_pool_spec": {
+        "machine_type": "n2-standard-32",
+        "disk_type": "pd-ssd",
+        "disk_size": "100",
+        "preemptible": false,
+        "spot": false,
+        "initial_node_count": 1,
+        "logging_variant": "MAX_THROUGHPUT"
+    },
+    "compute_pools_spec": [
+        {
+            "name": "c3d",
+            "machine_type": "c3d-standard-16",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 15,
+            "preemptible": false,
+            "spot": true,
+            "logging_variant": "MAX_THROUGHPUT",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        }
+    ]
+}

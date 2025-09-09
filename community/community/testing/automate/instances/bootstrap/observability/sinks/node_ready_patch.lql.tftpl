@@ -1,0 +1,9 @@
+log_id("cloudaudit.googleapis.com/activity")
+resource.labels.cluster_name="${cluster_name}"
+resource.type="k8s_cluster"
+protoPayload.methodName="io.k8s.core.v1.nodes.patch"
+protoPayload.response.status.conditions.reason="KubeletReady"
+protoPayload.response.status.conditions.type="Ready"
+protoPayload.authenticationInfo.principalEmail="system:serviceaccount:kube-system:node-controller"
+-- This log is not linked to the operator behaviour
+-- It will however be duplicated sometimes, requiring post treatment to remove duplicates

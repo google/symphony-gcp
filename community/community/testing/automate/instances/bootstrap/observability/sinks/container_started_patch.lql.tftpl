@@ -1,0 +1,11 @@
+resource.type="k8s_cluster" AND
+log_id("cloudaudit.googleapis.com/activity") AND
+protoPayload.methodName="io.k8s.core.v1.pods.patch"
+resource.labels.cluster_name="${cluster_name}"
+protoPayload.response.status.containerStatuses.started="true"
+protoPayload.response.status.containerStatuses.restartCount=0
+protoPayload.response.metadata.labels."managed-by"="gcp-symphony-operator"
+-- should look at status.conditions.type=Ready .status=True -> lastTransitionTime
+-- restart count is the variable which garantees that it is the first start time.
+-- however, this is problematic because it will not work if operator is dead
+-- the operator actually has a handler for the `protoPayload.response.status.containerStatuses` object.

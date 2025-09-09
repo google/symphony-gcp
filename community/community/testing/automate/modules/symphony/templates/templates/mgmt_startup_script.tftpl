@@ -1,0 +1,92 @@
+#!/bin/bash
+
+# Forward failures in piped commands
+set -eo pipefail
+
+# =================== Load ===================
+
+# Load common libraries
+${common_functions}
+${common_startup_scripts}
+${startup_script_functions}
+${plugin_bootstrap_functions}
+
+# Set environment variables
+%{ for key,value in common_vars }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# Copy Symphony binaries
+if [ ! -f $SYM_BIN ]; then
+    if [[ -z $SYM_BIN_GCS_PATH ]]; then
+        echo "SYM_BIN_GCS_PATH is not set... Exiting..."
+        exit 1
+    fi
+    [ ! -d $(dirname $SYM_BIN) ] && mkdir -p $(dirname $SYM_BIN)
+    gcloud storage cp $SYM_BIN_GCS_PATH $SYM_BIN
+fi
+# Copy entitlement file. Only needed for management
+if [ ! -f $SYM_ENTITLEMENT ]; then
+    if [[ -z $SYM_ENTITLEMENT_GCS_PATH ]]; then
+        echo "SYM_ENTITLEMENT_GCS_PATH is not set... Exiting..."
+        exit 1
+    fi
+    [ ! -d $(dirname $SYM_ENTITLEMENT) ] && mkdir -p $(dirname $SYM_ENTITLEMENT)
+    gcloud storage cp $SYM_ENTITLEMENT_GCS_PATH $SYM_ENTITLEMENT
+fi
+
+# =================== Config ===================
+
+# Set environment variables
+%{ for key,value in environment_variables }
+%{ if value != null }
+echo "Setting ${key}=${value}"
+export ${key}="${value}"
+%{ endif }
+%{ if value == null }
+echo "Key ${key} not set."
+%{ endif }
+%{ endfor }
+
+# Get primary hostname if not shared FS install
+if [[ $SHARED_FS_INSTALL != "Y" ]]; then
+    export PRIMARY_HOSTNAME=$(curl -s -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/attributes/PRIMARY_HOSTNAME")
+fi
+
+{
+# Check required environment variables are all set
+check_required_vars
+
+# =================== Setup Install  ===================
+
+wait_disable_google_guest_managed_accounts
+preinstall_mgmt
+install_mgmt
+
+# =================== Post Install Config  ===================
+
+%{ if install_only == null || ! install_only }
+
+postinstall_mgmt
+join_mgmt
+
+# TODO: Change this for startup_mgmt
+# Requires modifying terraform to add secondary nodes metadata
+run_as_egoadmin "egosh ego start"
+wait_for_cluster_start
+touch $EGO_TOP/startup.lock
+
+%{ endif }
+
+TAG=$SUCCESS_TAG add_compute_self_tag
+} || {
+TAG=$FAIL_TAG add_compute_self_tag
+}
+
+

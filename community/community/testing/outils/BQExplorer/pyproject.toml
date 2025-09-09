@@ -1,0 +1,17 @@
+[project]
+name = "bqexplorer"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "db-dtypes>=1.4.3",
+    "google-cloud-bigquery>=3.35.0",
+    "google-cloud-logging>=3.12.1",
+    "jupyter>=1.1.1",
+    "kaleido>=1.0.0",
+    "openpyxl>=3.1.5",
+    "pandas>=2.3.1",
+    "plotly[express]>=6.2.0",
+    "pyarrow>=21.0.0",
+]
