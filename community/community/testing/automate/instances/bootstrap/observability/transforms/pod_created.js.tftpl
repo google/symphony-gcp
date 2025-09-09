@@ -1,0 +1,26 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+
+  const filtered = {
+    time: log.protoPayload.response.metadata.creationTimestamp,
+    cluster: log.resource.labels.cluster_name,
+    namespace: log.protoPayload.request.metadata.namespace,
+    source: "audit",
+    run: "${run_id}",
+    event: "pod:create",
+    sym_request: log.protoPayload.request.metadata.labels["symphony.requestId"],
+    container_name: log.protoPayload.request.spec.containers[0].name,
+    pod: log.protoPayload.request.metadata.name,
+    node: null,
+    acn: log.protoPayload.request.metadata.labels.app,
+    detail: null
+    // detail: JSON.stringify({})
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}

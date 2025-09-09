@@ -1,0 +1,13 @@
+resources:
+  - operator.yaml
+  - cluster_role.yaml
+  - cluster_role_binding.yaml
+  - crd.yaml
+  - role.yaml
+  - role_binding.yaml
+  - service_account.yaml
+  - return_request_crd.yaml
+  - operator-pdb.yaml
+  - operator-priority.yaml
+patches:
+  - path: operator-patch.yaml

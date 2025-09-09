@@ -1,0 +1,26 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+
+  const filtered = {
+    time: ,
+    cluster: ,
+    namespace: ,
+    source: ,
+    run: "${run_id}",
+    event: ,
+    sym_request: ,
+    container_name: ,
+    pod: ,
+    node: ,
+    acn: ,
+    detail: ,
+    // detail: JSON.stringify({})
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}

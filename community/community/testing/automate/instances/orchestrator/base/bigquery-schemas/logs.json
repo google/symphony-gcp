@@ -1,0 +1,67 @@
+[
+    {
+        "name": "time",
+        "type": "TIMESTAMP",
+        "mode": "REQUIRED"
+    },
+    {
+        "name": "source",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "k8s:api | k8s:state | HF | operator"
+    },
+    {
+        "name": "run",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "test run ID"
+    },
+    {
+        "name": "event",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "service:start | service:end | pod:create | pod:delete | pod:state_* | acn-cr:create | acn-cr:status_* | acn-cr:delete | acn-dr:create | acn-dr:status_* | acn-dr:delete | HF:getAvailableTemplates | HF:getRequestStatus | HF:getReturnRequests | HF:requestMachines | HF:requestReturnMachines"
+    },
+    {
+        "name": "sym_request",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Symphony request ID"
+    },
+    {
+        "name": "node_template",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Symphony Node template ID (can also be inferred from node pool, thus from nodes names)"
+    },
+    {
+        "name": "cluster",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Kubernetes cluster ID for deferred run id resolution"
+    },
+    {
+        "name": "node",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "VM hostname, or kubernetes node name"
+    },
+    {
+        "name": "pod",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "kubernetes pod name"
+    },
+    {
+        "name": "acn",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Accenture cutstom create/delete ressource ID"
+    },
+    {
+        "name": "detail",
+        "type": "JSON",
+        "mode": "NULLABLE",
+        "description": "Optional request detail document"
+    }
+]

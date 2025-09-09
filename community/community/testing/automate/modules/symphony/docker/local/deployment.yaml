@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: antoine-local
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: antoine-local
+  template:
+    metadata:
+      labels:
+        app: antoine-local
+    spec:
+      containers:
+        - name: hf-sym-compute
+          image: us-docker.pkg.dev/symphony-dev-2/hf-gcp-testing/sym-compute:rocky9-7.3.2
+          imagePullPolicy: Always
+          env:
+            - name: SYM_MASTER
+              value: "sym-shared-mgmt-fix-test-0.us-central1-a.c.symphony-dev-2.internal"
+            - name: SYM_CLUSTER_NAME
+              value: "test-cluster"
+          securityContext:
+            capabilities:
+              add: ["SYS_NICE"]
+          resources:
+            requests:
+              ephemeral-storage: "3Gi"
+              memory: "300Mi"
+          lifecycle:
+            preStop:
+              exec: 
+                command: 
+                - /bin/bash
+                - -c
+                - |
+                  set -e
+                  PROFILE=$EGO_TOP/profile.platform
+                  if [ ! -f $PROFILE ]; then
+                      return 1
+                  else
+                      source $PROFILE || true
+                  fi
+                  egosh user logon -u Admin -x Admin >/dev/null 2>&1
+                  yes | egosh ego shutdown
+      nodeSelector:
+        cloud.google.com/compute-class: test-pool

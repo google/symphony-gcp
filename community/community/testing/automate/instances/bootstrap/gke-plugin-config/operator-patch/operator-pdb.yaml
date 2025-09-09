@@ -1,0 +1,11 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: gcp-symphony-operator-pdb
+  namespace: $GCP_HF_DEFAULT_NAMESPACES
+spec:
+  # minAvailable: 1
+  maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: gcp-symphony-operator

@@ -1,0 +1,28 @@
+containers:
+- image: python:3.9-slim
+  name: test
+  command:
+    - "python3"
+    - "-c"
+  args: 
+    - |
+      import sys
+      import random
+      import time
+
+      print("Container starting...")
+      sys.stdout.flush()
+
+      # 5 % chance of success
+      if random.random() > 0.05:
+        
+        print("Node failed to connect to master...")
+        sys.stdout.flush()
+        sys.exit(1) # Exit with error
+
+      print("Correctly connected to node!")
+      sys.stdout.flush()
+      while True:
+        time.sleep(9999999)
+
+restartPolicy: "Always"
