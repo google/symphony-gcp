@@ -1,0 +1,41 @@
+# This file is maintained automatically by "terraform init".
+# Manual edits may be lost in future updates.
+
+provider "registry.terraform.io/hashicorp/google" {
+  version     = "6.34.1"
+  constraints = "~> 6.34.0"
+  hashes = [
+    "h1:R00ovCV8Mst89rO1lwjIoDSW7RGfYmaAtFZvJgCa6CM=",
+    "zh:33dd49452eb6f476f09f1178d90f1989940869ea22e28ccb2c6d3bc144e1afcc",
+    "zh:40aa3e81cf0f768a8ebedc4ba85cc3fe23e59d5e651c5d140de3a63a3e6bf251",
+    "zh:45c9d65f2c3abf4d49781b49ee56b0a905f51b0d9a1dbdd0cf880e6772d593cd",
+    "zh:747855c9210739db736d158dcadd949795ad6df8fc8d05403906998487daee44",
+    "zh:861c32c383963e4e034c442cbf4491da1e91811734b6d59b5f5b5765b1a1b7c2",
+    "zh:988398285896521873190590a4112c16d2fcb09fccec926fe661cc662a385175",
+    "zh:b841b92147f06edbe2ad49c1120252e2fc5661c88fcc12a4ea48ebd9cad31a9c",
+    "zh:ce54dba672ec1e4f90a68afad5380304a4644cf8e62416c8843f714e4908faaa",
+    "zh:f569b65999264a9416862bca5cd2a6177d94ccb0424f3a4ef424428912b9cb3c",
+    "zh:f871a5268f803ce2de52728d58443dc60e7a0814c56cd1a0ce25c2058e0830b8",
+    "zh:f8c55744913811937ef4dd43e7e308d62d6bb30acc89fc05f43297f2e7a11187",
+    "zh:fc46e96e63f4b7204f373f565d7e75d9b6a3033fd90a4f6afd5efe410f117eb0",
+  ]
+}
+
+provider "registry.terraform.io/hashicorp/null" {
+  version = "3.2.4"
+  hashes = [
+    "h1:hkf5w5B6q8e2A42ND2CjAvgvSN3puAosDmOJb3zCVQM=",
+    "zh:59f6b52ab4ff35739647f9509ee6d93d7c032985d9f8c6237d1f8a59471bbbe2",
+    "zh:78d5eefdd9e494defcb3c68d282b8f96630502cac21d1ea161f53cfe9bb483b3",
+    "zh:795c897119ff082133150121d39ff26cb5f89a730a2c8c26f3a9c1abf81a9c43",
+    "zh:7b9c7b16f118fbc2b05a983817b8ce2f86df125857966ad356353baf4bff5c0a",
+    "zh:85e33ab43e0e1726e5f97a874b8e24820b6565ff8076523cc2922ba671492991",
+    "zh:9d32ac3619cfc93eb3c4f423492a8e0f79db05fec58e449dee9b2d5873d5f69f",
+    "zh:9e15c3c9dd8e0d1e3731841d44c34571b6c97f5b95e8296a45318b94e5287a6e",
+    "zh:b4c2ab35d1b7696c30b64bf2c0f3a62329107bd1a9121ce70683dec58af19615",
+    "zh:c43723e8cc65bcdf5e0c92581dcbbdcbdcf18b8d2037406a5f2033b1e22de442",
+    "zh:ceb5495d9c31bfb299d246ab333f08c7fb0d67a4f82681fbf47f2a21c3e11ab5",
+    "zh:e171026b3659305c558d9804062762d168f50ba02b88b231d20ec99578a6233f",
+    "zh:ed0fe2acdb61330b01841fa790be00ec6beaac91d41f311fb8254f74eb6a711f",
+  ]
+}
