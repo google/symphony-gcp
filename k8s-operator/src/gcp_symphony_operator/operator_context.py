@@ -24,6 +24,7 @@ class OperatorContext:
         self.update_queue: Optional[aio_queue.Queue] = None
         self.stop_event: Optional[asyncio.Event] = None
         self.update_worker: Optional[StatusUpdateWorker] = None
+        self.status_check: Optional[bool] = None
         self._ready = False
         self._initialized = True
 
@@ -34,6 +35,13 @@ class OperatorContext:
                 "OperatorContext is creating status update queue and stop event"
             )
             self.update_queue, self.stop_event = create_status_update_queue(self.config)
+        # On first start, we should set status_check to True
+        # this will cause the update worker to get a list of any
+        # pods that are already running and update their parent GCPSR
+        if not self.status_check:
+            self.status_check = True
+        else:
+            self.status_check = False
         set_update_queue(self.update_queue)
         set_stop_event(self.stop_event)
 
@@ -43,7 +51,7 @@ class OperatorContext:
             raise RuntimeError("Queue not initialized. Call initialize_queue() first.")
 
         self.update_worker = StatusUpdateWorker(
-            self.config, self.update_queue, self.stop_event  # type: ignore
+            self.config, self.update_queue, self.stop_event, self.status_check  # type: ignore
         )
         await self.update_worker.start()
 

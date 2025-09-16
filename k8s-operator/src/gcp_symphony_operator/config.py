@@ -308,11 +308,11 @@ class Config:
             Config.DEFAULT_LOG_LEVEL,
         ).upper()
         self.pod_label_name_text = os.environ.get(
-            f"{self.env_var_prefix}POD_LABEL_NAME_TEXT",
+            f"{self.env_var_prefix}KUBERNETES_POD_LABEL_NAME_TEXT",
             Config.DEFAULT_KUBERNETES_POD_LABEL_NAME_TEXT
         )
         self.pod_label_value_text = os.environ.get(
-            f"{self.env_var_prefix}POD_LABEL_VALUE_TEXT",
+            f"{self.env_var_prefix}KUBERNETES_POD_LABEL_VALUE_TEXT",
             Config.DEFAULT_KUBERNETES_POD_LABEL_VALUE_TEXT,
         )
         self.cluster_role_name = os.environ.get(
