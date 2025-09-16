@@ -476,9 +476,9 @@ class StatusUpdateWorker:
         try:
             pod_list = await call_list_namespaced_pod(
                 namespace=self.config.default_namespaces[0],
-                # use pod_label_name_test and pod_label_value_text from config because
+                # use managed-by={config.operator_name} because
                 # we know this is always on a pod that is created by the operator
-                label_selector=f"{self.config.pod_label_name_text}={self.config.pod_label_value_text}"
+                label_selector=f"managed-by={self.config.operator_name}"
             )
             if pod_list is None or not pod_list.items:
                 self.config.logger.info("No existing pods found for status check.")
