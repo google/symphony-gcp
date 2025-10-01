@@ -44,6 +44,7 @@ CONFIG_VAR_LOGFILE = "LOGFILE"
 CONFIG_VAR_LOG_LEVEL = "LOG_LEVEL"
 CONFIG_VAR_PUBSUB_TIMEOUT_SECONDS = "PUBSUB_TIMEOUT"
 CONFIG_VAR_PUBSUB_TOPIC = "PUBSUB_TOPIC"
+CONFIG_VAR_PUBSUB_SUBSCRIPTION = "PUBSUB_SUBSCRIPTION"
 CONFIG_VAR_PUBSUB_LOCKFILE = "PUBSUB_LOCKFILE"
 CONFIG_VAR_PUBSUB_AUTOLAUNCH = "PUBSUB_AUTOLAUNCH"
 
@@ -144,6 +145,11 @@ class Config:
         self.pubsub_topic = hf_provider_conf.get(
             CONFIG_VAR_PUBSUB_TOPIC, DEFAULT_PUBSUB_TOPIC
         )
+        self.pubsub_subscription = (
+            hf_provider_conf.get(CONFIG_VAR_PUBSUB_SUBSCRIPTION)
+            or f"{self.pubsub_topic}-sub"
+        )
+
         self.pubsub_lockfile = hf_provider_conf.get(
             CONFIG_VAR_PUBSUB_LOCKFILE, DEFAULT_PUBSUB_LOCKFILE
         )

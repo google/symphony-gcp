@@ -1,13 +1,86 @@
 # GCP GCE provider installation
 Installing the IBM Symphony Host Factory GCP GCE provider generally follows the conventions established by the pre-installed Symphony Host Factory providers. 
 
+* [Setup the Google Cloud environment](#setup-the-google-cloud-environment)
 * [Setup the provider plugin](#setup-the-provider-plugin)
 * [Enable the provider plugin](#enable-the-provider-plugin)
 * [Setup a provider instance](#setup-the-provider-instance)
 * [Enable the provider instance](#enable-the-provider-instance)
 * [Enable the requestor(s) to use the provider instance](#enable-the-requestors-to-use-the-provider-instance)
 
+
+
+# Setup the Google Cloud environment 
+
+## Prerequisites
+
+- Create an Instance Group and Instance Template that meets the following requirements:
+  - New instances should be able to automatically launch the IBM Symphony services as a compute host
+  - The IBM Symphony Management Host has TCP connectivity to instances in the group
+- A service account that is able to manage this instance group and access the PubSub topic described below
+
+## Setup PubSub
+
+1. Setup temporary shell variables.
+   ```bash
+   export GCP_PROJECT=<the name of the GCP project>
+   export PUBSUB_TOPIC=hf-gce-vm-events
+   ```
+2. Create a pubsub topic.
+   ```bash
+   gcloud pubsub topics create $PUBSUB_TOPIC
+   ```
+3. Create a logging sink to export audit logs to PubSub
+   ```bash
+   gcloud logging sinks create ${PUBSUB_TOPIC}-sink \
+     pubsub.googleapis.com/projects/${GCP_PROJECT}/topics/${PUBSUB_TOPIC} \
+     --log-filter="
+       logName=\"projects/${GCP_PROJECT}/logs/cloudaudit.googleapis.com%2Factivity\"
+       resource.type=(\"gce_instance_group_manager\" OR \"gce_instance\")
+       protoPayload.methodName=(
+         \"v1.compute.instanceGroupManagers.createInstances\"
+         OR
+         \"v1.compute.instanceGroupManagers.deleteInstances\"
+         OR
+         \"v1.compute.instances.delete\"
+       )
+     " \
+     --description="Exports MIG VM create/delete audit logs to Pub/Sub"
+   ```
+
+   The command above is an example only. You should specify a more selective filter if you have other instance groups installed in this project.
+
+   The command output will have a message similar to:
+
+   ```bash
+   Created [<https://logging.googleapis.com/v2/projects/symphony-dev-1/sinks/hf-gce-vm-events-sink>].
+   Please remember to grant `serviceAccount:service-NNNNNNNNNN@gcp-sa-logging.iam.gserviceaccount.com` the Pub/Sub Publisher role on the topic.
+   More information about sinks can be found at <https://cloud.google.com/logging/docs/export/configure_export>
+   ```
+
+   Note the service account named above, and use it the following step below:
+4. Grant PubSub publisher role.
+   ```bash
+   gcloud pubsub topics add-iam-policy-binding $PUBSUB_TOPIC \
+     --member="serviceAccount:service-NNNNNNNNNN@gcp-sa-logging.iam.gserviceaccount.com" \
+     --role="roles/pubsub.publisher"
+   ```
+5. Create a subscription to receive the logs.
+   ```bash
+   gcloud pubsub subscriptions create ${PUBSUB_TOPIC}-sub \
+     --topic=${PUBSUB_TOPIC}
+   ```
+
+   Take note of the name of the subscription that was created here, e.g. `my-pubsub-topic-sub`
+
+**References:**
+
+- [Publish and receive messages in Pub/Sub](https://cloud.google.com/pubsub/docs/publish-receive-messages-client-library)
+
+ 
+
 # Setup the provider plugin 
+
 Suggested provider plugin directory name/location:
 ```
 $HF_TOP/1.2/providerplugins/gcpgce/
@@ -62,18 +135,32 @@ This directory tree and example files should be already present if using the [RP
 ## Create gcpgceinstprov_config.json
 Copy `gcpgceinstprov_config.json.dist` to `gcpgceinstprov_config.json`
 
-Only one value typically needs to be modified:
-* `GCP_PROJECT_ID`  - defines the Id of the GCP project
+The following configuration variables are supported. Variables that have no default must be specified in the configuration.
+
+| Variable Name           | Description                                                  | Default Value                                                |
+| ----------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `HF_DBDIR`              | The location where this provider should store its state database | Defined in HostFactory environment as `$HF_DBDIR`            |
+| `HF_TEMPLATES_FILENAME` | The name of the templates file                               | `gcpgceinstprov_templates.json`                              |
+| `GCP_CREDENTIALS_FILE`  | The location of the Google Cloud service account credentials file | (None)                                                       |
+| `GCP_PROJECT_ID`        | The ID of the Google Cloud project                           | (None)                                                       |
+| `GCP_INSTANCE_PREFIX`   | A string to prepend to all hosts created by this provider    | `sym-`                                                       |
+| `LOGFILE`               | The location of the log file that the provider should log to | A file with a generated name, located in the directory defined by the HostFactory environment variable `$HF_PROVIDER_LOGDIR` |
+| `LOG_LEVEL`             | The Python log level                                         | `WARNING`                                                    |
+| `PUBSUB_TIMEOUT`        | If the most recent PubSub event was longer ago than this duration, in seconds, the PubSub listener will disconnect. | `0`                                                          |
+| `PUBSUB_TOPIC`          | The name of the PubSub topic. This variable is for backwards compatibility only. | `hf-gce-vm-events`                                           |
+| `PUBSUB_SUBSCRIPTION`   | The name of the PubSub subscription to monitor for VM events. | `hf-gce-vm-events-sub`                                       |
+| `PUBSUB_LOCKFILE`       | The name of the file to indicate that the PubSub event listener is active | `/tmp/sym_hf_gcp_pubsub.lock`                                |
+| `PUBSUB_AUTOLAUNCH`     | If set to `true`, the provider will attempt to automatically launch the PubSub event listener. If `false`, you will need to launch the PubSub event listener using the method of your choice, via the command `hf-gce monitorEvents`. | `false`                                                      |
+
+
 
 ### Example file:
 ```
 {
   "GCP_PROJECT_ID": "<CHANGEME-GCP_PROJECT_ID>",
   "LOG_LEVEL":"INFO",
-  "LOG_MAX_FILE_SIZE": 10,
-  "LOG_MAX_ROTATE": 5,
-  "ACCEPT_PROPAGATED_LOG_SETTING": true,
 
+  "PUBSUB_SUBSCRIPTION": "<CHANGEME-GCP_PUBSUB_SUBSCRIPTION>",
   "PUBSUB_TIMEOUT": 100
 }
 ```
@@ -153,3 +240,12 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 "providers": ["gcpgceinst"],
 ...
 ```
+
+# Initialize the provider's state database
+
+Execute the following command:
+
+```bash
+/path/to/hg-gce initializeDB
+```
+
