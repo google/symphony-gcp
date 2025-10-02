@@ -79,7 +79,7 @@ The following configuration variables are supported in the gcpgkeinstprov_config
 | `GKE_CRD_NAMESPACE`*|`gcp-symphony`| Defines the kubernetes namespace in which all resources will be created
 | `GKE_CRD_GROUP`*| `accenture.com` | The resource group used to identify the GKE HF Operator custom resources
 | `GKE_CRD_VERSION`*| `v1` | The version used to identify GKE HF Operator custom resources
-| `GKE_CRD_KIND`*| `GCPSympohonyResource` | The name given to the custom resource definition that defines a request for compute resources (pods)
+| `GKE_CRD_KIND`*| `GCPSymphonyResource` | The name given to the custom resource definition that defines a request for compute resources (pods)
 | `GKE_CRD_SINGULAR`*| `gcp-symphony-resource` | Used in API calls when referring to a single GCPSymphonyResource custom resource instance.
 | `GKE_CRD_RETURN_REQUEST_KIND`*| `MachineReturnRequest` | The name given to the custom resource definition that defines a request to return compute resources (pods)
 | `GKE_CRD_RETURN_REQUEST_SINGULAR`*| `machine-return-request` | Used in API calls when referring to a single MachineReturnRequest custom resource instance
