@@ -62,27 +62,33 @@ This directory tree and example files should be already present if using the [RP
 ## Create gcpgkeinstprov_config.json
 Copy `gcpgkeinstprov_config.json.dist` to `gcpgkeinstprov_config.json`
 
-Only one value typically needs to be modified:
-* `KUBERNETES_SERVICE_HOST`  - defines the IP or DNS name of Kubernetes cluster
-
 `GKE_KUBECONFIG` - defines the path to a/the kubectl config file. Default is `kubeconfig` in the provider instance directory, but can be pathed to an alternative kubectl config file.
 
 ### Example file:
 ```
 {
-  "GKE_KUBECONFIG": "kubeconfig",
-  "GKE_CRD_NAMESPACE": "gcp-symphony",
-  "GKE_POD_OWNER_APIVERSION":"symphony.spectrumcomputing.ibm.com/v1",
-  "GKE_POD_OWNER_KIND":"SymphonyCluster",
-  "GKE_POD_OWNER_NAME":"SymCluster",
-  "KUBERNETES_SERVICE_HOST":"<CHANGEME_k8s_ip_or_name>",
-  "KUBERNETES_SERVICE_PORT": 443,
-  "LOG_LEVEL":"INFO",
-  "LOG_MAX_FILE_SIZE": 10,
-  "LOG_MAX_ROTATE": 5,
-  "ACCEPT_PROPAGATED_LOG_SETTING": true
+  "GKE_KUBECONFIG": "KUBECONFIG"
 }
 ```
+
+The following configuration variables are supported in the gcpgkeinstprov_config.json file.
+
+| Configuration Variable | Default Value | Description |
+|------------------------|---------------|-------------|
+| `GKE_KUBECONFIG`| | The filename with path of the configuration file used by the kubectl command.
+| `GKE_CRD_NAMESPACE`*|`gcp-symphony`| Defines the kubernetes namespace in which all resources will be created
+| `GKE_CRD_GROUP`*| `accenture.com` | The resource group used to identify the GKE HF Operator custom resources
+| `GKE_CRD_VERSION`*| `v1` | The version used to identify GKE HF Operator custom resources
+| `GKE_CRD_KIND`*| `GCPSymphonyResource` | The name given to the custom resource definition that defines a request for compute resources (pods)
+| `GKE_CRD_SINGULAR`*| `gcp-symphony-resource` | Used in API calls when referring to a single GCPSymphonyResource custom resource instance.
+| `GKE_CRD_RETURN_REQUEST_KIND`*| `MachineReturnRequest` | The name given to the custom resource definition that defines a request to return compute resources (pods)
+| `GKE_CRD_RETURN_REQUEST_SINGULAR`*| `machine-return-request` | Used in API calls when referring to a single MachineReturnRequest custom resource instance
+| `GKE_REQUEST_TIMEOUT`| `300` | In seconds, how long a request to the GKE control plane will wait for a response.
+| `LOG_LEVEL`| `WARNING` | Controls the level of log detail that the GKE Provider writes to the log file. Options are `CRITICAL`, `WARNING`, `ERROR`, `INFO`, `DEBUG`.
+
+***Note:** Changing any of the configurations items marked with an asterisk `*` will require syncing them with their counterparts in the kubernetes operator configuration. See [Operator CONFIG](../k8s-operator/docs/CONFIG.md) for details on related operator configuration.* **It is recommended to NOT change these values from the default.**
+
+
 ## Create gcpgkeinstprov_templates.json
 Copy `gcpgkeinstprov_templates.json.dist` to `gcpgkeinstprov_templates.json`
 
