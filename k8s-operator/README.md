@@ -18,6 +18,10 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ## <a id="change-log"></a>Change log
 
+### Version 0.2.6
+- Added initial pod status check on operator startup to ensure existing pods are accounted
+  for in status updates.
+
 ### Version 0.2.5
 - Exposed option to enable/disable preemption handling logic. Defaulted to false.
 - Exposed labels and taints variables to allow the user to specify a list of labels
