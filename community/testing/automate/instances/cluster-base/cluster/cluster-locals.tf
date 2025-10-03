@@ -5,6 +5,4 @@ locals {
     "us-central1-c",
     "us-central1-f",
   ]
-
-  compute_class = "test-cc"
 }

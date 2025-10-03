@@ -24,7 +24,12 @@ resource "google_container_cluster" "test-cluster" {
   }
 
   lifecycle {
-    ignore_changes = [min_master_version]
+    ignore_changes = [
+      # Ignore changes to minimal accepted version...
+      min_master_version,
+      # Ignore default node pool config changes since its deleted...
+      node_config 
+    ]
     replace_triggered_by = [ terraform_data.cluster_version_prefix ]
   }
 
@@ -40,7 +45,14 @@ resource "google_container_cluster" "test-cluster" {
 
   # This ensures a large control plane.
   remove_default_node_pool = true
-  initial_node_count       = var.scaled_control_plane ? 30 : 1
+  initial_node_count       = var.scaled_control_plane ? 500 : 1
+
+  # Sets the initial node config
+  # Use a small value for this in order to avoid reaching quotas...
+  node_config {
+    disk_size_gb = var.auto_provisioning_defaults.disk_size
+    disk_type = var.auto_provisioning_defaults.disk_type
+  }
 
   # ======================= Node Pool =======================
 
@@ -52,6 +64,7 @@ resource "google_container_cluster" "test-cluster" {
 
   # Settings applied by default to node pools if not overwriten
   node_pool_defaults {
+
     node_config_defaults {
 
       # This option uses the fluentbit maxthroughput daemonset, 
@@ -65,10 +78,16 @@ resource "google_container_cluster" "test-cluster" {
       gcfs_config {
         enabled = true
       }
+
+
     }
   }
 
   # ======================= Network =======================
+
+  # We do this in order to reduce the address space used 
+  # by pods on each node to 32, instead of 256 (110). 
+  default_max_pods_per_node = 32
 
   network = local.network.network_self_link
   subnetwork = local.network.subnets_self_links[
@@ -132,15 +151,17 @@ resource "google_container_cluster" "test-cluster" {
   cluster_autoscaling {
     enabled             = true
     autoscaling_profile = "OPTIMIZE_UTILIZATION"
+    # These limits are actually global to the cluster
+    # and not limited to autoscaling
     resource_limits {
       resource_type = "cpu"
       minimum       = 1
-      maximum       = 99999
+      maximum       = 150000 # Let's leave some margin for our 100k target.
     }
     resource_limits {
       resource_type = "memory"
       minimum       = 1
-      maximum       = 99999
+      maximum       = 2400000 # Lets use 16x1 ratio for a high margin.
     }
     auto_provisioning_defaults {
       # Enable auto repair, block auto upgrades
@@ -215,9 +236,9 @@ resource "google_container_cluster" "test-cluster" {
   # ======================= Addons =======================
 
   addons_config {
-    gcp_filestore_csi_driver_config {
-      enabled = true # Enable filestore to use as DNS for mounting
-    }
+    # gcp_filestore_csi_driver_config {
+    #   enabled = true # Enable filestore to use as DNS for mounting
+    # }
     gce_persistent_disk_csi_driver_config {
       enabled = true
     }

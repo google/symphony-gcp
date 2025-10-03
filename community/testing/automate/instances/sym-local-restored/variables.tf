@@ -193,7 +193,7 @@ variable "python_repository" {
 variable "network_from" {
   type = string
   default = "base-instances"
-  description = "Wether or not to bootstrap using the base or standard terraform projects."
+  description = "Wether or not to bootstrap using the base or standard terraform projects. Prefer cluster-network as other options are legacy."
 
   validation {
     condition = contains(["base-instances","cluster-network"], var.network_from)

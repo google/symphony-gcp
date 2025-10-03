@@ -130,10 +130,9 @@ Similar to the NFS Symphony cluster, but does not use a NFS server for failover.
 
 ### Orchestrator
 
-During the evolution of this project the necessity of an orchestrator appeared, i.e. a VM and/or (Kubernetes) cluster which is able to interact with the many possible (Symphony) clusters and VMs in order to remotely control and observe them. For this we developped the `automate/instances/orchestrator` terraform projects.
+During the evolution of this project the necessity of an orchestrator appeared, i.e. a VM and/or cloud run applications which are able to interact with the many possible (Symphony) clusters and VMs in order to remotely control and observe them. For this we developped the `automate/instances/orchestrator` terraform projects.
 
 The deployments of the orchestrator projets is not strictly necessary for basic testing, although not having it will require some modification of the bootstrap project.
-
 
 ### Bootstrap
 
@@ -179,14 +178,3 @@ In order to test the previous deployment / boostraping, one can use the Python H
 ### Observability
 
 If one properly configured the orchestrator bigquery tables and ingestors, one can use the `outils/BQExplorer` to explore available ingested data. 
-
-
-
-
-
-
-
-
-
-
-

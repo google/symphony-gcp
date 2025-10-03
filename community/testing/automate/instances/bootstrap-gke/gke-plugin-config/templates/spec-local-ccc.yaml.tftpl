@@ -1,0 +1,56 @@
+containers:
+  - name: hf-sym-compute-local
+    image: ${docker_registry}/sym-compute:rocky9-7.3.2
+    imagePullPolicy: IfNotPresent
+    env:
+      - name: SYM_MASTER
+        value: "$(hostname -f)"
+      - name: SYM_CLUSTER_NAME
+        value: "$(grep -A1 ClusterName $EGO_CONFDIR/ego.shared | tail -n1)"
+    securityContext:
+      privileged: true
+      # capabilities:
+      #   add: ["SYS_NICE"]
+    resources:
+      requests:
+        memory: "4Gi"
+        cpu: "1"
+        hugepages-2Mi: "2Mi"
+      limits:
+        hugepages-2Mi: "2Mi"
+    command: 
+      - /bin/bash
+      - -c
+      - |
+        echo $EGO_TOP
+        sed -i "s/^EGO_DYNAMIC_HOST_WAIT_TIME=.*/EGO_DYNAMIC_HOST_WAIT_TIME=60,120/" \$EGO_TOP/kernel/conf/ego.conf
+        sed -i "s/^EGO_RESOURCE_UPDATE_INTERVAL=.*/EGO_RESOURCE_UPDATE_INTERVAL=60/" \$EGO_TOP/kernel/conf/ego.conf
+        if grep EGO_MASTER_ANN_BUF_SIZE \$EGO_TOP/kernel/conf/ego.conf; then
+          sed -i "s/^EGO_MASTER_ANN_BUF_SIZE=.*/EGO_MASTER_ANN_BUF_SIZE=1048576/" \$EGO_TOP/kernel/conf/ego.conf
+        else
+          echo EGO_MASTER_ANN_BUF_SIZE=1048576 >> \$EGO_TOP/kernel/conf/ego.conf
+        fi
+        sed -i "s/^EGO_DYNAMIC_HOST_TIMEOUT=.*//" \$EGO_TOP/kernel/conf/ego.conf
+        sed -i "s/^EGO_ENABLE_RG_UPDATE_MEMBERSHIP=.*/EGO_ENABLE_RG_UPDATE_MEMBERSHIP=N/" \$EGO_TOP/kernel/conf/ego.conf
+        exec /opt/ibm/entrypoint.sh /opt/ibm/tail.sh
+nodeSelector:
+  cloud.google.com/compute-class: ${compute_class}
+# topologySpreadConstraints:
+# - maxSkew: 1
+#   topologyKey: kubernetes.io/hostname
+#   whenUnsatisfiable: DoNotSchedule
+#   nodeAffinityPolicy: Honor
+#   matchLabelKeys: ["symphony.request-id"]
+#   labelSelector:
+#     matchLabels:
+#       symphony.deployment: hf-service
+# affinity:
+#   podAntiAffinity:
+#     requiredDuringSchedulingIgnoredDuringExecution:
+#     - labelSelector:
+#         matchExpressions:
+#         - key: symphony.deployment
+#           operator: In
+#           values:
+#           - hf-service
+#       topologyKey: kubernetes.io/hostname

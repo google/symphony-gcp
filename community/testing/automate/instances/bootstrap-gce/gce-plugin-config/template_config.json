@@ -1,0 +1,28 @@
+{
+  "templates": [
+    {
+      "templateId": "template-gcp-01",
+      "maxNumber": 10,
+      "attributes": {
+        "type": [
+          "String",
+          "X86_64"
+        ],
+        "ncpus": [
+          "Numeric",
+          "1"
+        ],
+        "ncores": [
+          "Numeric",
+          "1"
+        ],
+        "nram": [
+          "Numeric",
+          "1024"
+        ]
+      },
+      "gcp_zone": "${DESIRED_ZONE}",
+      "gcp_instance_group": "${MIG_NAME}"
+    }
+  ]
+}

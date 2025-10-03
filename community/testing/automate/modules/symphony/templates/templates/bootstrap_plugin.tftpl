@@ -28,6 +28,7 @@ create_provider_plugin_scripts () {
     # Generate scripts in place...
 
     mkdir -p $GCP_GKE_SCRIPT_DIR
+    mkdir -p $GCP_GCE_SCRIPT_DIR
 
     scripts=(
         "getAvailableTemplates"
@@ -38,15 +39,21 @@ create_provider_plugin_scripts () {
     )
 
     cat <<-'EOT' > $GCP_GKE_SCRIPT_DIR/script.sh
-${provider_script}
+${gke_provider_script}
+EOT
+
+    cat <<-'EOT' > $GCP_GCE_SCRIPT_DIR/script.sh
+${gce_provider_script}
 EOT
 
     for script in "$${scripts[@]}"; do
         ln -s $GCP_GKE_SCRIPT_DIR/script.sh $GCP_GKE_SCRIPT_DIR/$script.sh
+        ln -s $GCP_GCE_SCRIPT_DIR/script.sh $GCP_GCE_SCRIPT_DIR/$script.sh
     done
 
     # Make sure scripts are executable
     chmod 755 -R $GCP_GKE_SCRIPT_DIR/*
+    chmod 755 -R $GCP_GCE_SCRIPT_DIR/*
 }
 
 # ============ Configure plugin ============
@@ -54,7 +61,11 @@ EOT
 create_plugin_config () {
     mkdir $GCP_GKE_CONF_DIR
     cat<<EOT > $GCP_GKE_CONF_DIR/gcpgkeinstprov_config.json
-${plugin_config}
+${gke_plugin_config}
+EOT
+    mkdir $GCP_GCE_CONF_DIR
+    cat<<EOT > $GCP_GCE_CONF_DIR/gcpgceinstprov_config.json
+${gce_plugin_config}
 EOT
 }
 
@@ -62,14 +73,18 @@ EOT
 
 create_template_config () {
     cat<<EOT > $GCP_GKE_CONF_DIR/gcpgkeinstprov_templates.json
-${plugin_template_config}
+${gke_plugin_template_config}
+EOT
+
+    cat<<EOT > $GCP_GCE_CONF_DIR/gcpgceinstprov_templates.json
+${gce_plugin_template_config}
 EOT
 }
 
 create_template () {
     mkdir $GCP_GKE_CONF_DIR/pod-specs && \
     cat<<EOT > $GCP_GKE_CONF_DIR/pod-specs/spec-001.yaml
-${plugin_template}
+${gke_plugin_template}
 EOT
 }
 
@@ -110,12 +125,12 @@ add_provider_plugin () {
 add_provider_to_requestors () {
     # Remove other providers and add the new provider to the admin requestor instance
     local TEMP_FILE=$(mktemp)
-    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="admin") | .providers) = ["gcpgkeinst"]' > $TEMP_FILE
+    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="admin") | .providers) = ["gcpgkeinst", "gcpgceinst"]' > $TEMP_FILE
     mv $TEMP_FILE $HF_REQUESTORS
 
     # Remove other providers and add the new provider to the symA requestor instance
     local TEMP_FILE=$(mktemp)
-    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="symAinst") | .providers) = ["gcpgkeinst"]' > $TEMP_FILE
+    cat $HF_REQUESTORS | jq '(.requestors[] | select(.name=="symAinst") | .providers) = ["gcpgkeinst", "gcpgceinst"]' > $TEMP_FILE
     mv $TEMP_FILE $HF_REQUESTORS
 }
 
@@ -176,6 +191,8 @@ bootstrap_plugin () {
     export HF_REQUESTORS=$HF_TOP/conf/requestors/hostRequestors.json
     export GCP_GKE_SCRIPT_DIR=$HF_TOP/$HF_VERSION/providerplugins/gcpgke/scripts
     export GCP_GKE_CONF_DIR=$HF_TOP/conf/providers/gcpgkeinst
+    export GCP_GCE_SCRIPT_DIR=$HF_TOP/$HF_VERSION/providerplugins/gcpgce/scripts
+    export GCP_GCE_CONF_DIR=$HF_TOP/conf/providers/gcpgceinst
     
     install_kubectl
     install_hf-cli

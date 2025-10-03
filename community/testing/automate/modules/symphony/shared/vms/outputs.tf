@@ -14,6 +14,14 @@ output "symphony_compute_vms_self_link" {
   value = google_compute_instance_from_template.symphony-compute[*].self_link
 }
 
+output "symphony_compute_template_self_link" {
+  value = module.symphony_compute_template.compute_template_self_link_unique
+}
+
+output "symphony_management_template_self_link" {
+  value = module.symphony_mgmt_template.mgmt_template_self_link_unique
+}
+
 output "nfs_disk_id" {
   value = module.nfs_server.nfs_disk_id
 }

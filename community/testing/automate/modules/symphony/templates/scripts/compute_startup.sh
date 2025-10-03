@@ -70,7 +70,7 @@ restore_compute () {
     if [[ $SHARED_FS_INSTALL == "Y" ]]; then
         update_nfs
     fi
-    patch_uid_gid # Why oh why :( ??????
+    patch_uid_gid # This should be eventually changed for a Google optimized solution.
     postinstall_compute
     join_compute
     run_as_egoadmin "egosh ego start"

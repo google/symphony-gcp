@@ -14,6 +14,14 @@ output "symphony_compute_vms_self_link" {
   value = module.symphony-shared.symphony_compute_vms_self_link
 }
 
+output "symphony_mgmt_template_self_link" {
+  value = module.symphony-shared.symphony_mgmt_template_self_link
+}
+
+output "symphony_compute_template_self_link" {
+  value = module.symphony-shared.symphony_compute_template_self_link
+}
+
 output "nfs_disk_id" {
   value = module.symphony-shared.nfs_disk_id
 }

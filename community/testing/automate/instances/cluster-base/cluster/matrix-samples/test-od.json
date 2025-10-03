@@ -1,0 +1,324 @@
+{
+    "cluster_subnet_group_index": 0,
+    "scaled_control_plane": true,
+    "auto_provisioning_defaults": {
+        "disk_type": "pd-ssd",
+        "disk_size": 20,
+        "logging_variant": "MAX_THROUGHPUT",
+        "management": {
+            "auto_repair": false,
+            "auto_upgrade": false
+        }
+    },
+    "base_pool_spec": {
+        "machine_type": "n2-standard-32",
+        "disk_type": "pd-ssd",
+        "disk_size": "200",
+        "preemptible": false,
+        "spot": false,
+        "initial_node_count": 1,
+        "logging_variant": "MAX_THROUGHPUT"
+    },
+    "compute_pools_spec": [
+        {
+            "name": "c3d-16",
+            "machine_type": "c3d-highcpu-16",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n2d-16",
+            "machine_type": "n2d-standard-16",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n4-16",
+            "machine_type": "n4-highcpu-16",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n1-16",
+            "machine_type": "n1-standard-16",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "c4-16",
+            "machine_type": "c4-highcpu-16",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "e2-16",
+            "machine_type": "e2-standard-16",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "c3-22",
+            "machine_type": "c3-highcpu-22",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n2-16",
+            "machine_type": "n2-standard-16",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-16",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "c3d-30",
+            "machine_type": "c3d-highcpu-30",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n2d-32",
+            "machine_type": "n2d-standard-32",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n4-32",
+            "machine_type": "n4-highcpu-32",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n1-32",
+            "machine_type": "n1-standard-32",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "c4-32",
+            "machine_type": "c4-highcpu-32",
+            "disk_type": "hyperdisk-balanced",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-hd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-10",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "e2-32",
+            "machine_type": "e2-standard-32",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        },
+        {
+            "name": "n2-32",
+            "machine_type": "n2-standard-32",
+            "disk_type": "pd-ssd",
+            "disk_size": 20,
+            "preemptible": false,
+            "spot": false,
+            "logging_variant": "MAX_THROUGHPUT",
+            "compute_class": "test-cc-ssd-32",
+            "secondary_boot_disks": [
+                {
+                    "disk_image": "global/images/sym-compute-20",
+                    "mode": "CONTAINER_IMAGE_CACHE"
+                }
+            ],
+            "management": {
+                "auto_repair": false,
+                "auto_upgrade": false
+            }
+        }
+    ]
+}

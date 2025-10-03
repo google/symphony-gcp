@@ -1,0 +1,6 @@
+{
+    "bootstrap_from": "cluster-base",
+    "target_symphony_project": "sym-local",
+    "target_symphony_workspace": "gce-0",
+    "run_id": "test-gce-0"
+}

@@ -120,7 +120,6 @@ class HostFactory(APIWrapper):
         """
         Wrapper function to iterate through API pages automatically and create a dataframe.
         """
-        cloud_hosts_counter = 0
         cloud_hosts = []
 
         cloud_hosts_page = self.get_cloud_hosts(
@@ -134,17 +133,16 @@ class HostFactory(APIWrapper):
 
         cloud_hosts_page = cloud_hosts_page.json()
 
-        records_count = cloud_hosts_page["records"]
+        total_pages = cloud_hosts_page["total"]
         cloud_hosts.extend(cloud_hosts_page["rows"])
-        cloud_hosts_counter += len(cloud_hosts_page["rows"])
-        current_page = 0
+        current_page = cloud_hosts_page["page"]
 
-        while cloud_hosts_counter != records_count:
+        while current_page <= total_pages:
             cloud_hosts_page = self.get_cloud_hosts(
                 params=HFCloudRequests(
                     requestId=requestId,
                     pageSize=pageSize,
-                    startIndex=(current_page + 1) * pageSize
+                    startIndex=(current_page * pageSize)
                 )
             )
             if not cloud_hosts_page.ok:
@@ -152,19 +150,21 @@ class HostFactory(APIWrapper):
             cloud_hosts_page = cloud_hosts_page.json()
             cloud_hosts.extend(cloud_hosts_page["rows"])
             current_page += 1
-            cloud_hosts_counter += len(cloud_hosts_page["rows"])
 
         df = pd.DataFrame.from_records(cloud_hosts)
 
         # Convert to timestamp object at UTC
-        df["launchTime"] = df["launchTime"].transform(
-            lambda x:
-                datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc),
-        )
-
-        df["releaseTime"] = df["releaseTime"].transform(
-            lambda x:
-                datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc),
-        )
+        if "launchTime" in df.columns:
+            df["launchTime"] = df["launchTime"].transform(
+                lambda x:
+                    datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc)
+                    if x is not None else x
+            )
+        if "releaseTime" in df.columns:
+            df["releaseTime"] = df["releaseTime"].transform(
+                lambda x:
+                    datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc)
+                    if x is not None else x
+            )
 
         return df
