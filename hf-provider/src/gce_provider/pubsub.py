@@ -59,16 +59,19 @@ def main():
     try:
         with LockManager(config.pubsub_lockfile):
             project_id = config.gcp_project_id or None
-            pubsub_timeout = None
-            pubsub_topic = config.pubsub_topic
-            subscription_id = f"{pubsub_topic}-sub"
+            pubsub_timeout = config.pubsub_timeout_seconds or None
+            subscription_id = config.pubsub_subscription
 
             subscriber = client_factory.pubsub_subscriber_client()
             # The `subscription_path` method creates a fully qualified identifier
             # in the form `projects/{project_id}/subscriptions/{subscription_id}`
-            subscription_path = subscriber.subscription_path(project_id, subscription_id)
+            subscription_path = subscriber.subscription_path(
+                project_id, subscription_id
+            )
 
-            streaming_pull_future = subscriber.subscribe(subscription_path, callback=callback)
+            streaming_pull_future = subscriber.subscribe(
+                subscription_path, callback=callback
+            )
             print(f"Listening for messages on {subscription_path}..\n")
 
             # Wrap subscriber in a 'with' block to automatically call close() when done.

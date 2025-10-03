@@ -1,6 +1,7 @@
 import sqlite3
 from typing import Optional
 
+from common.utils.path_utils import ensure_path_exists
 from gce_provider.config import Config, get_config
 
 
@@ -45,6 +46,8 @@ def main(config: Optional[Config] = None):
     """
 
     logger.info(f"Initializing the database at {config.db_path}")
+    ensure_path_exists(config.hf_db_dir)
+
     with sqlite3.connect(config.db_path) as conn:
         conn.executescript(schema)
     logger.info("Database initialization complete.")
