@@ -1,0 +1,10 @@
+apiVersion: node.gke.io/v1
+kind: GCPResourceAllowlist
+metadata:
+  name: gke-secondary-boot-disk-allowlist
+spec:
+  allowedResourcePatterns:
+  - projects/symphony-dev-2/global/images/sym-compute
+  - projects/symphony-dev-2/global/images/sym-compute-10
+  - projects/symphony-dev-2/global/images/sym-compute-20
+  - projects/symphony-dev-2/global/images/sym-compute-50

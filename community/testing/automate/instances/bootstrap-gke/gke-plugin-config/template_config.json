@@ -1,0 +1,48 @@
+{
+    "templates": [
+        {
+            "templateId": "cc-hd-32",
+            "maxNumber": 5001,
+            "attributes": {
+                "type": ["String", "X86_64"],
+                "ncpus": ["Numeric", "1"],
+                "ncores": ["Numeric", "1"],
+                "nram": ["Numeric", "3072"]
+            },
+            "podSpecYaml": "pod-specs/spec-local-cc-hd-32.yaml"
+        },
+        {
+            "templateId": "cc-ssd-16",
+            "maxNumber": 5001,
+            "attributes": {
+                "type": ["String", "X86_64"],
+                "ncpus": ["Numeric", "1"],
+                "ncores": ["Numeric", "1"],
+                "nram": ["Numeric", "3072"]
+            },
+            "podSpecYaml": "pod-specs/spec-local-cc-ssd-16.yaml"
+        },
+        {
+            "templateId": "cc-ssd-32",
+            "maxNumber": 5001,
+            "attributes": {
+                "type": ["String", "X86_64"],
+                "ncpus": ["Numeric", "1"],
+                "ncores": ["Numeric", "1"],
+                "nram": ["Numeric", "3072"]
+            },
+            "podSpecYaml": "pod-specs/spec-local-cc-ssd-32.yaml"
+        },
+        {
+            "templateId": "cc-hd-16",
+            "maxNumber": 5001,
+            "attributes": {
+                "type": ["String", "X86_64"],
+                "ncpus": ["Numeric", "1"],
+                "ncores": ["Numeric", "1"],
+                "nram": ["Numeric", "3072"]
+            },
+            "podSpecYaml": "pod-specs/spec-local-cc-hd-16.yaml"
+        }
+    ]
+}

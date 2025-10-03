@@ -1,4 +1,5 @@
 resource "google_container_node_pool" "base-pool" {
+  depends_on = [ google_container_cluster.test-cluster ]
   name = "base-pool-${local.module_suffix}-${var.cluster_subnet_group_index}"
 
   cluster = google_container_cluster.test-cluster.name
@@ -8,6 +9,9 @@ resource "google_container_node_pool" "base-pool" {
   node_locations = local.node_locations
 
   version = data.google_container_engine_versions.cluster-versions.latest_node_version
+
+  # We do this in order to except this to the default value
+  max_pods_per_node = 110
 
   lifecycle {
     ignore_changes = [ version ]
@@ -59,15 +63,15 @@ resource "google_container_node_pool" "base-pool" {
       "https://www.googleapis.com/auth/cloud-platform",
     ]
 
-    # taint {
-    #   key = "base-pool"
-    #   value = "true"
-    #   effect = "NO_SCHEDULE"
-    # }
+    taint {
+      key = "operator-pool"
+      value = "true"
+      effect = "NO_SCHEDULE"
+    }
 
     # To allow for the usage of nodeSelector
     labels = {
-      "node-pool" = "base-pool"
+      "node-pool" = "operator-pool"
     }
 
   }

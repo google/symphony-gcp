@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcp-symphony-operator
+  namespace: $GCP_HF_DEFAULT_NAMESPACES
+spec:
+  template:
+    metadata:
+      labels:
+        app: gcp-symphony-operator
+    spec:
+      containers:
+        - name: gcp-symphony-operator
+          image: us-docker.pkg.dev/symphony-dev-2/hf-gcp-testing/k8s-operator:latest
+          imagePullPolicy: Always
+          resources:
+              limits:
+                cpu: 4
+                memory: 16Gi
+              requests:
+                cpu: 4
+                memory: 16Gi
+          env:
+            - name: GCP_HF_ENABLE_GKE_PREEMPTION_HANDLING
+              value: "$GCP_HF_ENABLE_GKE_PREEMPTION_HANDLING"
+      tolerations:
+        - effect: NoSchedule
+          key: "operator-pool"
+          operator: "Equal"
+          value: "true"
+
+      # affinity:
+      #   nodeAffinity:
+      #     requiredDuringSchedulingIgnoredDuringExecution:
+      #       nodeSelectorTerms:
+      #         - matchExpressions:
+      #           - key: node-pool
+      #             operator: In
+      #             values: 
+      #             - base-pool
+      #             - generic-pool

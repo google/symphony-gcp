@@ -46,13 +46,15 @@ net.ipv4.tcp_tw_reuse = 1
 # Use with caution when working with load balancers.
 # Note that the tcp_tw_recycle parameter is particularly useful in environments where numerous short connections are open and left in TIME_WAIT state,
 # such as Web servers and load balancers. Reusing the sockets can be very effective in reducing server load.
-# DEVELOPPER NOTE: This actually might not work on GCP. 
+# DEVELOPPER NOTE: This actually might not work on GCP. It does not exist on RHEL 8. 
 # net.ipv4.tcp_tw_recycle = 1
 
 # Determines the time that must elapse before TCP/IP can release a closed connection and reuse its resources. 
 # During this TIME_WAIT state, reopening the connection to the client costs less than establishing a new connection. 
 # By reducing the value of this entry, TCP/IP can release closed connections faster, making more resources available for new connections.
 net.ipv4.tcp_fin_timeout = 30
+
+net.ipv4.tcp_max_tw_buckets = 3000
 
 # The maximum number of unique process identifiers your system can support, from the kernel side. 
 # We used this setting to increase the maximum supported process identifiers for the system.
@@ -83,21 +85,21 @@ net.core.netdev_max_backlog = 65536
 net.ipv4.tcp_max_syn_backlog = 40000
 
 # to increase the TCP maximum buffer size set using setsockopt()
-# net.core.rmem_max=16777216
-# net.core.wmem_max=16777216
-# net.core.rmem_default=5000000
-# net.core.wmem_default=5000000
+net.core.rmem_max=16777216
+net.core.wmem_max=16777216
+net.core.rmem_default=5000000
+net.core.wmem_default=5000000
 
 # DEVELOPPER NOTE: Let's be more conservative
-net.core.rmem_default=87380      # Linux default (~85KB)
-net.core.wmem_default=16384      # Linux default (16KB)
-net.core.rmem_max=16777216       # Allow tuning up when needed
-net.core.wmem_max=16777216       # Allow tuning up when needed
+# net.core.rmem_default=87380      # Linux default (~85KB)
+# net.core.wmem_default=16384      # Linux default (16KB)
+# net.core.rmem_max=16777216       # Allow tuning up when needed
+# net.core.wmem_max=16777216       # Allow tuning up when needed
 
 # To increase the threshold levels for ARP cache on-the-fly.
-# net.ipv4.neigh.default.gc_thresh1 = 8192
-# net.ipv4.neigh.default.gc_thresh2 = 8192    
-# net.ipv4.neigh.default.gc_thresh3 = 8192
+net.ipv4.neigh.default.gc_thresh1 = 8192
+net.ipv4.neigh.default.gc_thresh2 = 8192    
+net.ipv4.neigh.default.gc_thresh3 = 8192
 
 # Specifies how often to send TCP keepalive packets to keep a connection alive if it is currently unused.
 net.ipv4.tcp_keepalive_time=120
@@ -110,6 +112,7 @@ net.ipv4.tcp_keepalive_intvl=15
 
 # Increases Linux automatic tuning of TCP buffer limits to use (minimum, default, and maximum number of bytes).
 # Set the maximum to 16 MB for 1 GE, and 32 M or 54 M for 10 GE
+net.ipv4.tcp_rmem=4096 87380 16777216
 net.ipv4.tcp_wmem=4096 65536 16777216     
 
 EOF
@@ -130,9 +133,9 @@ EGO_DATA_MAXSIZE=100
 EGO_MAX_CONN=20000
 
 # Specified in bytes, controls the XDR buffer size during communication between master and slave LIMs.
-# This needs to be modified accross all hosts to...
+# This needs to be modified accross all hosts too...
 # Should be increased
-EGO_MASTER_ANN_BUF_SIZE=40960 
+EGO_MASTER_ANN_BUF_SIZE=1048576
 
 # Defines the message queue chunk size for SSM. A large chunk size will lead SIM and SSM’s connection be rejected by the operating system’s security policy.
 # SSM will flush all requests only when the message queue is NULL, or when the resource operation request size is equal or larger than the configured value. The default value is 100.
@@ -147,6 +150,11 @@ RESOURCE_OPERATION_INTERVAL=1
 EGO_UID_CACHE_DURATION=600
 EOF
     sed -i "s/^EGO_DYNAMIC_HOST_WAIT_TIME=.*/# Modified for large scale optimization\nEGO_DYNAMIC_HOST_WAIT_TIME=600 /" $EGO_CONFDIR/ego.conf
+
+# TODO Disable GUI
+# TODO Disable ExecProxy
+# TODO Disable plc and purger
+
 }
 
 update_cluster_config () {
@@ -261,8 +269,8 @@ install_mgmt () {
 postinstall_mgmt () {
     update_profile
 
-    # If shared filesystem and first time installation...
-    if [[ $SHARED_FS_INSTALL == "Y" && $IS_FIRST_INSTALL -eq 1 ]]; then
+    # If first time installation...
+    if [[ $IS_FIRST_INSTALL -eq 1 ]]; then
         bootstrap_private_key
     fi
 
@@ -412,7 +420,7 @@ restore_mgmt () {
         fi
     fi
     
-    patch_uid_gid # Why oh why :( ??????
+    patch_uid_gid # # This should be eventually changed for a Google optimized solution.
     postinstall_mgmt
     join_mgmt
     if [[ $SHARED_FS_INSTALL == "Y" && $IS_FIRST_INSTALL -eq 1 ]]; then

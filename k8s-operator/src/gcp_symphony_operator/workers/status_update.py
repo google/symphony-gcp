@@ -84,12 +84,16 @@ class StatusUpdateWorker:
     """
 
     def __init__(
-        self, config: Config, update_queue: aio_queue.Queue, stop_event: asyncio.Event
+        self, config: Config,
+        update_queue: aio_queue.Queue,
+        stop_event: asyncio.Event,
+        status_check: bool = False
     ) -> None:
         self.config = config
         self.update_queue = update_queue
         self.stop_event = stop_event
         self.worker_task: asyncio.Task | None = None
+        self.status_check: bool = status_check
 
     async def start(self: Self) -> None:
         """
@@ -127,6 +131,13 @@ class StatusUpdateWorker:
         """
         Main loop for the worker thread.
         """
+        if self.status_check:
+            self.config.logger.info(
+                "Performing initial status check for existing pods..."
+            )
+            # Enqueue initial status checks for existing pods
+            # This could be implemented as needed
+            self.status_check = await self._get_current_status()  # Reset after first run
         while not self.stop_event.is_set():
             try:
                 # Collect multiple updates in a batch
@@ -455,6 +466,47 @@ class StatusUpdateWorker:
                 self.config.logger.debug("Status update queue join was cancelled")
             self.config.logger.info("✅ Status update queue shutdown complete.")
 
+    async def _get_current_status(self) -> bool:
+        """
+        Function to get retrieve all pods that have been create, check their status,
+        enqueue events to the update_queue for each active pod found.
+        """
+        if self.config is None:
+            self.config = _get_config()
+        try:
+            pod_list = await call_list_namespaced_pod(
+                namespace=self.config.default_namespaces[0],
+                # use managed-by={config.operator_name} because
+                # we know this is always on a pod that is created by the operator
+                label_selector=f"managed-by={self.config.operator_name}"
+            )
+            if pod_list is None or not pod_list.items:
+                self.config.logger.info("No existing pods found for status check.")
+                return True # This is still a success
+            
+            for pod in pod_list.items:
+                if pod.metadata and pod.metadata.labels:
+                    if (
+                        pod.metadata.deletion_timestamp is None
+                        and "symphony.requestId" in pod.metadata.labels
+                    ):
+                        pod_status = await get_pod_status(pod)
+                        update_event = UpdateEvent(
+                            cr_name=pod.metadata.labels.get("app", ""),
+                            namespace=pod.metadata.namespace or self.config.default_namespaces[0],
+                            pod_name=pod.metadata.name or "",
+                            pod_status={"phase": pod_status},
+                            request_id=pod.metadata.labels.get("symphony.requestId", ""),
+                        )
+                        await enqueue_status_update(update_event)
+                        self.config.logger.info(
+                            f"Enqueued status update for existing pod {pod.metadata.name} with status {pod_status}"
+                        )
+            return True
+        except Exception as e:
+            self.config.logger.error(f"Error listing pods for status check: {e}")
+            return False
+        
 
 def create_status_update_queue(
     config: Config,

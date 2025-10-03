@@ -1,0 +1,62 @@
+apiVersion: cloud.google.com/v1
+kind: ComputeClass
+metadata:
+  name: test-cc-ssd-32
+spec:
+  activeMigration:
+    optimizeRulePriority: false
+  autoscalingPolicy:
+    consolidationDelayMinutes: 1
+    consolidationThreshold: 1
+  nodePoolAutoCreation:
+    enabled: false
+  priorities:
+    # SSD
+  - nodepools:
+    - e2-32-node-pool-test-0
+    - n2-32-node-pool-test-0
+    - n1-32-node-pool-test-0
+  - nodepools:
+    - n2d-32-node-pool-test-0
+  - machineFamily: e2
+    minCores: 32
+    minMemoryGb: 32
+    spot: true
+    storage:
+      bootDiskType: pd-ssd
+      secondaryBootDisks:
+      - diskImageName: sym-compute-20
+        mode: CONTAINER_IMAGE_CACHE
+  - machineFamily: n2
+    minCores: 32
+    minMemoryGb: 32
+    spot: true
+    storage:
+      bootDiskType: pd-ssd
+      secondaryBootDisks:
+      - diskImageName: sym-compute-20
+        mode: CONTAINER_IMAGE_CACHE
+  - machineFamily: n1
+    minCores: 32
+    minMemoryGb: 32
+    spot: true
+    storage:
+      bootDiskType: pd-ssd
+      secondaryBootDisks:
+      - diskImageName: sym-compute-20
+        mode: CONTAINER_IMAGE_CACHE
+  - machineFamily: n2d
+    minCores: 32
+    minMemoryGb: 32
+    spot: true
+    storage:
+      bootDiskType: pd-ssd
+      secondaryBootDisks:
+      - diskImageName: sym-compute-20
+        mode: CONTAINER_IMAGE_CACHE
+  priorityDefaults:
+    nodeSystemConfig:
+      linuxNodeConfig:
+        hugepageConfig:
+          hugepage_size2m: 1
+  whenUnsatisfiable: ScaleUpAnyway

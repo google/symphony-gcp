@@ -5,6 +5,7 @@ to perform operations on core objects and their statuses.
 """
 
 from functools import lru_cache
+from typing import Optional
 
 from gcp_symphony_operator.config import Config, get_config_sync
 from gcp_symphony_operator.k8s.clients import KubernetesClientManager
@@ -44,14 +45,17 @@ async def call_create_pod(pod_body: dict, namespace: str) -> V1Pod:
 
 @log_execution_time_with_lazy_logger(lambda: _get_config().logger)
 @retry_with_lazy_config(_get_config)
-async def call_list_namespaced_pod(namespace: str, label_selector: str) -> V1PodList:
+async def call_list_namespaced_pod(namespace: str, label_selector: Optional[str] = None) -> V1PodList:
     """Retryable function to get the list of pods in a namespace."""
     k8s_client = KubernetesClientManager(_get_config())
+    list_args = {}
+    if label_selector:
+        list_args["label_selector"] = label_selector
     async with k8s_client.get_core_v1_api() as core_v1:
         return await k8s_client._run_in_thread(
             core_v1.list_namespaced_pod,
             namespace=namespace,
-            label_selector=label_selector,
+            **list_args,
             _request_timeout=_get_config().kubernetes_client_timeout,
         )
 

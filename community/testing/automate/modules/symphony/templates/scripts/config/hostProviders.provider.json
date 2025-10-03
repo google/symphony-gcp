@@ -5,4 +5,12 @@
                 "confPath": "${HF_CONFDIR}/providers/gcpgkeinst/",
                 "workPath": "${HF_WORKDIR}/providers/gcpgkeinst/",
                 "logPath": "${HF_LOGDIR}/"
+},
+{
+                "name": "gcpgceinst",
+                "enabled": 1,
+                "plugin": "gcpgce",
+                "confPath": "${HF_CONFDIR}/providers/gcpgceinst/",
+                "workPath": "${HF_WORKDIR}/providers/gcpgceinst/",
+                "logPath": "${HF_LOGDIR}/"
 }

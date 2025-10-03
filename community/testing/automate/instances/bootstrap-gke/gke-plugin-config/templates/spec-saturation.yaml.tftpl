@@ -1,0 +1,14 @@
+containers:
+  - name: saturation
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    command: ["sleep", "infinity"]
+    resources:
+      requests:
+        cpu: "1m"       
+        memory: "4Mi"
+      limits:
+        memory: "16Mi"
+        cpu: "10m"
+nodeSelector:
+  cloud.google.com/compute-class: ${compute_class}

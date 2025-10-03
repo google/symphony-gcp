@@ -5,6 +5,18 @@
         "mode": "REQUIRED"
     },
     {
+        "name": "cluster",
+        "type": "STRING",
+        "mode": "REQUIRED",
+        "description": "Kubernetes cluster ID for deferred run id resolution"
+    },
+    {
+        "name": "namespace",
+        "type": "STRING",
+        "mode": "NULLABLE",
+        "description": "Kubernetes cluster ID for deferred run id resolution"
+    },
+    {
         "name": "source",
         "type": "STRING",
         "mode": "REQUIRED",
@@ -29,16 +41,10 @@
         "description": "Symphony request ID"
     },
     {
-        "name": "node_template",
+        "name": "container_name",
         "type": "STRING",
         "mode": "NULLABLE",
-        "description": "Symphony Node template ID (can also be inferred from node pool, thus from nodes names)"
-    },
-    {
-        "name": "cluster",
-        "type": "STRING",
-        "mode": "NULLABLE",
-        "description": "Kubernetes cluster ID for deferred run id resolution"
+        "description": "Container name for the event in question. Can be used to infer the Symphony template."
     },
     {
         "name": "node",
