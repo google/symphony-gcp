@@ -15,6 +15,7 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
 ## Prerequisites
 
 - Create an Instance Group and Instance Template that meets the following requirements:
+  - Autoscaling should be disabled, because scaling needs to be directly managed by the HostFactory provider 
   - New instances should be able to automatically launch the IBM Symphony services as a compute host
   - The IBM Symphony Management Host has TCP connectivity to instances in the group
 - A service account that is able to manage this instance group and access the PubSub topic described below
@@ -83,7 +84,7 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
 
 Suggested provider plugin directory name/location:
 ```
-$HF_TOP/1.2/providerplugins/gcpgce/
+$HF_TOP/$HF_VERSION/providerplugins/gcpgce/
 ```
 Install the hf-provider executable and scripts via [RPMS](#rpm-packages) or [Building from source](#building-from-source)
 
@@ -246,6 +247,6 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 Execute the following command:
 
 ```bash
-/path/to/hg-gce initializeDB
+/path/to/hf-gce initializeDB
 ```
 
