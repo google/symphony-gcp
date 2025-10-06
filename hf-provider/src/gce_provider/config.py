@@ -72,7 +72,7 @@ class Config:
 
     def __init__(self):
         """Check for required environment variables"""
-        required_env_vars = [ENV_HF_DBDIR, ENV_HF_PROVIDER_CONFDIR]
+        required_env_vars = [ENV_HF_PROVIDER_CONFDIR]
         missing_env_vars = list(filter(lambda x: os.environ.get(x) is None, required_env_vars))
         if len(missing_env_vars) > 0:
             raise RuntimeError(
@@ -87,7 +87,13 @@ class Config:
         """Load configuration values from environment"""
         self.hf_provider_name = HF_PROVIDER_NAME
         self.hf_provider_conf_dir: str = os.environ.get(ENV_HF_PROVIDER_CONFDIR)
-        self.hf_db_dir = os.environ.get(ENV_HF_DBDIR)
+        
+        """Load configuration values from hf_dbdir"""
+        db_dir = os.environ.get(ENV_HF_DBDIR)
+        if not db_dir:
+            db_dir = os.path.join(os.getcwd(), "database")
+            os.makedirs(db_dir, exist_ok=True)
+        self.hf_db_dir = db_dir
 
         """Load configuration values from provider config"""
         hf_provider_conf_path = os.path.join(
