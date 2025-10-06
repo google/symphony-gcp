@@ -76,7 +76,7 @@ class Config:
 
     def __init__(self):
         """Check for required environment variables"""
-        required_env_vars = [ENV_HF_DBDIR, ENV_HF_PROVIDER_CONFDIR]
+        required_env_vars = [ENV_HF_PROVIDER_CONFDIR]
         missing_env_vars = list(
             filter(lambda x: os.environ.get(x) is None, required_env_vars)
         )

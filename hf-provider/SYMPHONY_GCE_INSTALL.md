@@ -73,6 +73,12 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
    ```
 
    Take note of the name of the subscription that was created here, e.g. `my-pubsub-topic-sub`
+6. Ensure that your service account has the correct permissions to subscribe to the subscription, e.g.:
+   ```bash
+   gcloud pubsub subscriptions add-iam-policy-binding <my-pubsub-topic-sub> \
+    --member="serviceAccount:<my-service-account>@<my-project-id>.iam.gserviceaccount.com" \
+    --role="roles/pubsub.subscriber"
+   ```
 
 **References:**
 
@@ -243,10 +249,13 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 ```
 
 # Initialize the provider's state database
-
-Execute the following command:
+1. Ensure that you have configured `HF_DBDIR` in `gcpgceinstprov_config.json`. If you are using the default `HF_DBDIR` environment configured by HostFactory, you will still
+   need to export `HF_DBDIR=$EGO_TOP/hostfactory/db`, because that environment variable will not be set when you run the CLI manually.
+2. Execute the following commands:
 
 ```bash
+export HF_PROVIDER_CONFDIR=<path-to-your-provider-confdir, e.g. /opt/ibm/spectrumcomputing/hostfactory/conf/providers/gcpgceinst>
+
 /path/to/hf-gce initializeDB
 ```
 
