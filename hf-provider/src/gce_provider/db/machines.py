@@ -137,7 +137,7 @@ class MachineDao:
             cur = conn.cursor()
             cur.execute(
                 query,
-                (operation_id, MachineState.CREATED.value),
+                (operation_id, MachineState.INSERTED.value),
             )
             rows = cur.fetchall()
 
@@ -192,7 +192,8 @@ class MachineDao:
     def _handle_instances_created(
         self, message: SimpleNamespace
     ) -> Callable[[SimpleNamespace], None]:
-        """Update machine state to reflect that instances were created"""
+        """Update machine state to reflect that instances were created within the managed group.
+        Note, this does not necessarily mean they exist yet"""
         self.logger.info(
             f"Handling instance creation for operation {message.operation.id}"
         )
@@ -230,6 +231,39 @@ class MachineDao:
 
         self.logger.info(
             f"Finished handling instance creation for operation {message.operation.id}"
+        )
+
+    def _handle_instances_inserted(
+        self, message: SimpleNamespace
+    ) -> Callable[[SimpleNamespace], None]:
+        """Update machine state to reflect that instances were created"""
+        operation_id = message.operation.id
+
+        self.logger.info(f"Handling instance creation for operation {operation_id}")
+
+        # we convert to a list just in case in the future we need to support multiple values
+        resource_urls = [message.protoPayload.resourceName]
+        resources = [parse_resource_url(x) for x in resource_urls]
+        operation_id = message.operation.id
+        machine_names = [x.name for x in resources]
+        params = flatten([operation_id, machine_names])
+        machine_name_param = ",".join("?" for _ in machine_names)
+        with Transaction(self.config) as trans:
+            trans.execute(
+                [
+                    Statement(
+                        f"""
+                        UPDATE machines
+                        SET machine_state={MachineState.INSERTED.value},
+                            operation_id=?
+                        WHERE machine_name IN ({machine_name_param})""",
+                        params,
+                    )
+                ],
+            )
+
+        self.logger.info(
+            f"Finished handling instance insertion for operation {message.operation.id}"
         )
 
         # this callback can happen after the message is acknowledged
@@ -384,6 +418,10 @@ class MachineDao:
                 # check to see if instances have been created
                 if operation_type == "compute.instanceGroupManagers.createInstances":
                     return self._handle_instances_created(message)
+
+                # check to see if instances have been inserted
+                if operation_type == "insert":
+                    return self._handle_instances_inserted(message)
 
                 # check to see if instances have been deleted by the Instance Group Manager
                 elif operation_type == "compute.instanceGroupManagers.deleteInstances":

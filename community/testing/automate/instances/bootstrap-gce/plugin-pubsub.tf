@@ -21,6 +21,8 @@ resource "google_logging_project_sink" "plugin-sink" {
       OR
       "v1.compute.instanceGroupManagers.deleteInstances"
       OR
+      "v1.compute.instances.insert"
+      OR
       "v1.compute.instances.delete"
     )
     EOF

@@ -43,6 +43,8 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
          OR
          \"v1.compute.instanceGroupManagers.deleteInstances\"
          OR
+         \"v1.compute.instances.insert\"
+         OR
          \"v1.compute.instances.delete\"
        )
      " \
