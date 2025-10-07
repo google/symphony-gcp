@@ -239,7 +239,7 @@ class MachineDao:
         """Update machine state to reflect that instances were created"""
         operation_id = message.operation.id
 
-        self.logger.info(f"Handling instance creation for operation {operation_id}")
+        self.logger.info(f"Handling instance insertion for operation {operation_id}")
 
         # we convert to a list just in case in the future we need to support multiple values
         resource_urls = [message.protoPayload.resourceName]
