@@ -1,4 +1,6 @@
+import logging
 from functools import lru_cache
+from pathlib import Path
 from typing import Optional
 
 import google.cloud.compute_v1 as compute
@@ -17,19 +19,24 @@ def get_credentials(
     if config is None:
         config = get_config()
 
-    if config.gcp_credentials_file:
+    if config.gcp_credentials_file and Path.exists(config.gcp_credentials_file):
         credentials_file_path = normalize_path(
             config.hf_provider_conf_dir, config.gcp_credentials_file
         )
 
         try:
             credentials_json = load_json_file(credentials_file_path)
-            return service_account.Credentials.from_service_account_info(credentials_json)
+            return service_account.Credentials.from_service_account_info(
+                credentials_json
+            )
         except Exception:
             config.logger.error(
                 f"Unable to create service account credentials from file {credentials_file_path}"
             )
 
+    logging.warning(
+        "No credentials file defined, or file does not exist. Will rely on application default credentials."
+    )
     return None
 
 

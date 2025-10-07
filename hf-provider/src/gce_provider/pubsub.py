@@ -42,8 +42,8 @@ def launch_pubsub_daemon():
     """Launch pubsub as a process within Python"""
     config = get_config()
     logger = config.logger
-    logger.info("Launching pubsub daemon")
-    logger.info(f"pubsub process: {__file__}")
+    logger.info("Launching or refreshing pubsub daemon")
+    logger.debug(f"pubsub process: {__file__}")
     subprocess.Popen(
         [sys.executable, __file__],
         start_new_session=True,
@@ -56,6 +56,7 @@ def launch_pubsub_daemon():
 
 def main():
     config = get_config()
+    logger = config.logger
     try:
         with LockManager(config.pubsub_lockfile):
             project_id = config.gcp_project_id or None
@@ -72,17 +73,22 @@ def main():
             streaming_pull_future = subscriber.subscribe(
                 subscription_path, callback=callback
             )
-            print(f"Listening for messages on {subscription_path}..\n")
+            logger.info(f"Listening for messages on {subscription_path} ...\n")
+            if pubsub_timeout:
+                logger.info(f"Listener will timeout after {pubsub_timeout} seconds.\n")
 
             # Wrap subscriber in a 'with' block to automatically call close() when done.
             with subscriber:
                 try:
                     streaming_pull_future.result(pubsub_timeout)
                 except TimeoutError:
+                    logger.info(
+                        f"Pubsub timer reached timeout after {pubsub_timeout} seconds. Shutting down."
+                    )
                     streaming_pull_future.cancel()  # Trigger the shutdown.
                     streaming_pull_future.result()  # Block until the shutdown is complete.
     except LockManagerError as e:
-        print(f"pubsub process exits: {e}")
+        logger.info(f"pubsub process exits: {e}")
         sys.exit(1)
 
 
