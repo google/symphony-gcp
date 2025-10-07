@@ -1,41 +1,81 @@
+# pyproject.toml
+# ------------------------------
+# Build backend & packaging
+# ------------------------------
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+# ------------------------------
+# Project metadata (PEP 621)
+# ------------------------------
 [project]
 name = "google-symphony-hf"
-version = "0.2.2"
-description = "Default template for PDM package"
+version = "0.3.0"
+description = "Default template"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = "==3.9.*"
+
 authors = [
     { name = "Lineberry, Casey", email = "casey.lineberry@accenture.com" },
     { name = "Kim, Cory", email = "cory.y.kim@accenture.com" },
 ]
-readme = "README.md"
-license = { text = "Apache-2.0" }
-requires-python = "==3.9.*"
+
 dependencies = [
+    "importlib-metadata>=8.7.0",
     "kubernetes==32.0.1",
     "pydantic==2.11.4",
     "python-dotenv==1.1.0",
     "PyYAML==6.0.2",
-    "pytest >= 7.0.0",
-    "pytest-cov >= 3.0.0",
-    "typing-extensions >= 4.0.0",
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+    "typing-extensions>=4.0.0",
     "google-cloud-compute>=1.31.0",
     "google-cloud-pubsub>=2.30.0",
     "tenacity>=9.1.2",
     "google-auth>=2.40.3",
 ]
 
+# Optional extras (unchanged)
+[project.optional-dependencies]
+api = [
+    "pytest>=7.0.0",
+    "pytest-cov>=3.0.0",
+]
+
+# Console entry points
 [project.scripts]
 hf-gce = "gce_provider.__main__:main"
 hf-gke = "gke_provider.__main__:main"
-# for backward compatibility, will remove in future versions
+# backward compatibility; slated for removal later
 gcphf  = "gke_provider.__main__:main"
 
+# (Optional but nice)
+[project.urls]
+Homepage = "https://example.com/"
+Repository = "https://example.com/repo"
 
-[project.optional-dependencies]
-api = [
-    "pytest >= 7.0.0",
-    "pytest-cov >= 3.0.0",
-]
+# ------------------------------
+# Setuptools: src/ discovery & data files
+# ------------------------------
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["*"]
+namespaces = false
 
+# Include non-code files inside wheels/sdists (helpful for non-frozen runs)
+[tool.setuptools.package-data]
+gce_provider = ["**/*.yaml", "**/*.yml", "**/*.json", "**/*.txt"]
+gke_provider = ["**/*.yaml", "**/*.yml", "**/*.json", "**/*.txt"]
+
+# If you want to exclude tests from wheels:
+#[tool.setuptools.exclude-package-data]
+#* = ["tests/*", "test_*"]
+
+# ------------------------------
+# Dev tooling (unchanged)
+# ------------------------------
 [tool.black]
 line-length = 100
 
@@ -44,11 +84,3 @@ max-line-length = 100
 
 [tool.isort]
 profile = "black"
-
-[tool.pdm]
-package-dir = { "" = "src" }
-distribution = false
-
-[tool.pdm.scripts]
-hf-gce = { call = "gce_provider.__main__:main", working_dir = "src" }
-hf-gke = { call = "gke_provider.__main__:main", working_dir = "src" }
