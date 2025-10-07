@@ -8,14 +8,23 @@ alias tfw="terraform workspace"
 
 essh_generate_config () {
     # $1 is the target VM name.
+    # TODO: This becomes very slow when there are a lot of machines in the project.
     local TARGET_VM=$1
-    TARGET_IP=$(gcloud compute instances describe "$TARGET_VM" --format="value(networkInterfaces[0].networkIP)")
+    local TARGET_INFO
+    if [ $(basename $SHELL) == "zsh" ]; then
+      IFS="," read -rA TARGET_INFO <<< $(gcloud compute instances list --filter="name=$TARGET_VM" --format="csv(status,zone.basename(),networkInterfaces[0].networkIP)" | tail -n 1)
+      local TARGET_STATUS=${TARGET_INFO[1]}
+      local TARGET_ZONE=${TARGET_INFO[2]}
+      local TARGET_IP=${TARGET_INFO[3]}
+    else
+      IFS="," read -ra TARGET_INFO <<< $(gcloud compute instances list --filter="name=$TARGET_VM" --format="csv(status,zone.basename(),networkInterfaces[0].networkIP)" | tail -n 1)
+      local TARGET_STATUS=${TARGET_INFO[0]}
+      local TARGET_ZONE=${TARGET_INFO[1]}
+      local TARGET_IP=${TARGET_INFO[2]}
+    fi
     [[ -z "$TARGET_IP" ]] && echo "ERROR: IP not found" && return 1
-    local TARGET_STATUS
-    TARGET_STATUS=$(gcloud compute instances describe "$TARGET_VM" --format="value(status)")
     [[ "$TARGET_STATUS" != "RUNNING" ]] && echo "ERROR: status is $TARGET_STATUS" && return 1
     local SSHCONF=$(mktemp)
-    TARGET_ZONE=$(gcloud compute instances list --filter="name=('${TARGET_VM}')" --format="value(zone.basename())")
     cat > "$SSHCONF" <<EOF
 Host $TARGET_VM
     HostName $TARGET_IP

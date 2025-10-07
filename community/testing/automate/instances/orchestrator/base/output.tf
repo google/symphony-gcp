@@ -18,14 +18,6 @@ output "orchestrator-sa-id" {
   value = google_service_account.orchestrator.id
 }
 
-output "cluster-name" {
-  value = google_container_cluster.orchestrator.name
-}
-
-output "cluster-location" {
-  value = google_container_cluster.orchestrator.location
-}
-
 output "orchestrator-hostname" {
   value = google_compute_instance.orchestrator.hostname
 }

@@ -44,12 +44,18 @@ resource "google_compute_instance_template" "symphony_mgmt_template" {
     plugin_bootstrap_functions = templatefile(
       "${path.module}/../templates/bootstrap_plugin.tftpl", {
         python_repository                  = var.python_repository
-        plugin_config                      = file("${path.module}/../scripts/config/gcpgkeinstprov_config.json")
-        plugin_template_config             = file("${path.module}/../scripts/config/gcpgkeinstprov_templates.json")
-        plugin_template                    = file("${path.module}/../scripts/config/templates/spec-001.yaml")
+        
+        gke_plugin_config                      = file("${path.module}/../scripts/config/gcpgkeinstprov_config.json")
+        gke_plugin_template_config             = file("${path.module}/../scripts/config/gcpgkeinstprov_templates.json")
+        gke_plugin_template                    = file("${path.module}/../scripts/config/templates/spec-001.yaml")
+        gke_provider_script                    = file("${path.module}/../scripts/config/gke_script.sh")
+        
+        gce_plugin_config                      = file("${path.module}/../scripts/config/gcpgceinstprov_config.json")
+        gce_plugin_template_config             = file("${path.module}/../scripts/config/gcpgceinstprov_templates.json")
+        gce_provider_script                    = file("${path.module}/../scripts/config/gce_script.sh")
+
         hostproviders-provider             = file("${path.module}/../scripts/config/hostProviders.provider.json")
         hostproviderplugins-providerplugin = file("${path.module}/../scripts/config/hostProviderPlugins.providerplugin.json")
-        provider_script                    = file("${path.module}/../scripts/config/script.sh")
       }
     )
 

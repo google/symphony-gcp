@@ -1,0 +1,26 @@
+apiVersion: cloud.google.com/v1
+kind: ComputeClass
+metadata:
+  name: test-cc-hd-16
+spec:
+  activeMigration:
+    optimizeRulePriority: false
+  autoscalingPolicy:
+    consolidationDelayMinutes: 1
+    consolidationThreshold: 1
+  nodePoolAutoCreation:
+    enabled: false
+  priorities:
+    # HD
+  - nodepools:
+    - n4-16-node-pool-test-0
+    - c3-22-node-pool-test-0
+    - c4-16-node-pool-test-0
+  - nodepools:
+    - c3d-16-node-pool-test-0
+  priorityDefaults:
+    nodeSystemConfig:
+      linuxNodeConfig:
+        hugepageConfig:
+          hugepage_size2m: 1
+  whenUnsatisfiable: ScaleUpAnyway

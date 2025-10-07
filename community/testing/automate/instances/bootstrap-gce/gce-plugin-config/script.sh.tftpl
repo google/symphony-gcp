@@ -1,0 +1,26 @@
+#!/bin/env bash
+
+SCRIPT_FILE=$(basename $0)
+IFS="." read -ra SCRIPT <<< "$SCRIPT_FILE"
+SCRIPT=$${SCRIPT[0]}
+
+inJson=$2
+inJsonContent=$(cat $inJson)
+
+TIMESTAMP=$(date -Iseconds)
+RUN=${run_id}
+HOSTNAME=$(hostname -f) 
+INTERMEDIARY_LOG=$HF_TOP/log/observability.hf-gcp.$HOSTNAME
+
+(
+    echo $TIMESTAMP/$SCRIPT/in $inJsonContent 2> >(tee -a $INTERMEDIARY_LOG >/dev/null 2>&1) >&2
+) </dev/null >/dev/null 2>&1 & disown
+
+outJsonContent=$(hf-gce $SCRIPT -f $inJson)
+TIMESTAMP=$(date -Iseconds)
+
+(
+    echo $TIMESTAMP/$SCRIPT/out $outJsonContent 2> >(tee -a $INTERMEDIARY_LOG >/dev/null 2>&1) >&2
+) </dev/null >/dev/null 2>&1 & disown
+
+echo $outJsonContent

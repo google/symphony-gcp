@@ -3,6 +3,7 @@
 # E2, N4, N2 , N2D, N1, C4 , C3 , C3D, T2D, M1, C2 , C2D, A2
 
 resource "google_container_node_pool" "test-pool" {
+  depends_on = [ google_container_cluster.test-cluster ]
   for_each = {for pool in var.compute_pools_spec: pool.name => pool }
   name = "${each.key}-node-pool-${local.module_suffix}-${var.cluster_subnet_group_index}"
 
@@ -64,6 +65,9 @@ resource "google_container_node_pool" "test-pool" {
     # Because Symphony supports mostly V1 
     linux_node_config {
       cgroup_mode = "CGROUP_MODE_V1"
+      hugepages_config {
+        hugepage_size_2m = 1
+      }
     }
 
     image_type = var.image_type
@@ -80,12 +84,12 @@ resource "google_container_node_pool" "test-pool" {
 
     # To allow for the usage of CCC
     labels = {
-      "cloud.google.com/compute-class" = local.compute_class
+      "cloud.google.com/compute-class" = each.value.compute_class
     }
 
     taint {
       key = "cloud.google.com/compute-class"
-      value = local.compute_class
+      value = each.value.compute_class
       effect = "NO_SCHEDULE"
     }
 

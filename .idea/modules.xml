@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/hf-provider/.venv/.venv.iml" filepath="$PROJECT_DIR$/hf-provider/.venv/.venv.iml" />
+      <module fileurl="file://$PROJECT_DIR$/community/community.iml" filepath="$PROJECT_DIR$/community/community.iml" />
+      <module fileurl="file://$PROJECT_DIR$/docs/docs.iml" filepath="$PROJECT_DIR$/docs/docs.iml" />
       <module fileurl="file://$PROJECT_DIR$/google-symphony-hf.iml" filepath="$PROJECT_DIR$/google-symphony-hf.iml" />
       <module fileurl="file://$PROJECT_DIR$/hf-provider/hf-provider.iml" filepath="$PROJECT_DIR$/hf-provider/hf-provider.iml" />
       <module fileurl="file://$PROJECT_DIR$/k8s-operator/k8s-operator.iml" filepath="$PROJECT_DIR$/k8s-operator/k8s-operator.iml" />

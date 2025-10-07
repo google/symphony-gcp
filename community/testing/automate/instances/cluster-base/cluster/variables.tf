@@ -42,6 +42,21 @@ variable "scaled_control_plane" {
   default     = true
 }
 
+variable "default_node_pool" {
+  type = object({
+    disk_type = string,
+    disk_size = number
+  })
+  description = <<EOF
+  The default node pool configuration to be used by the nodes which will scale the control plane.
+  Does not make sense configuring if scale_control_plane=false.
+  EOF
+  default = {
+    disk_size = 50
+    disk_type = "pd-standard"
+  }
+}
+
 variable "cluster_subnet_group_index" {
   type        = number
   description = "The cluster subnet group to use for the cluster network configuration"
@@ -92,6 +107,7 @@ variable "compute_pools_spec" {
       preemptible     = bool,
       spot            = bool,
       logging_variant = string,
+      compute_class = string,
       secondary_boot_disks = list(object({
         disk_image = string
         mode       = string

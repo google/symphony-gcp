@@ -67,7 +67,8 @@ The installed CLI executables can be moved to any location for execution, provid
 
 # Running from Python
 
-1. Ensure your environment variables are set properly. Importantly, you will want to ensure that `KUBECONFIG` and `HF_PROVIDER_CONFDIR` are set properly.
+1. Configure the environment for [GCE](./SYMPHONY_GCE_INSTALL.md) or [GKE](./SYMPHONY_GKE_INSTALL.md), depending on which provider you plan to use.
+2. Ensure your environment variables are set properly. Importantly, you will want to ensure that `KUBECONFIG` and `HF_PROVIDER_CONFDIR` are set properly.
    - For the GKE Provider, you should specify:
      ```bash
      # This should already be exported if you have sourced the IBM Symphony environment variables.
@@ -89,15 +90,12 @@ The installed CLI executables can be moved to any location for execution, provid
      # This will be exported by HostFactory when executing the scripts, but you will need to export it manually to run the
      # script manually. You may need to modify the path depending on your environment.
      export HF_PROVIDER_CONFDIR=$HF_TOP/conf/providers/gcpgceinst
-     
-     export HF_DBDIR=$HF_TOP/db
      ```
 
         Notes:
 
         - This script has been tested with Python 3.9. Later versions of Python should be compatible.
         - You will need to have the provider configuration and host template configuration files configured in the `$HF_PROVIDER_CONFDIR` directory. Example files can be found in `hf-provider/tests/resources/`
-
 
 2. Set the working directory to the root of this module.
 

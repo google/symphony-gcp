@@ -1,0 +1,45 @@
+#!/bin/env bash
+
+SCRIPT_FILE=$(basename $0)
+IFS="." read -ra SCRIPT <<< "$SCRIPT_FILE"
+SCRIPT=$${SCRIPT[0]}
+
+inJson=$2
+inJsonContent=$(cat $inJson)
+
+TARGET=${logs_ingertor_url}
+TIMESTAMP=$(date -Iseconds)
+RUN=${run_id}
+CLUSTER=${cluster}
+HOSTNAME=$(hostname -f) 
+INTERMEDIARY_LOG=$HF_TOP/log/observability.hf-gke.$HOSTNAME
+
+(
+    curl -X PUT "$TARGET/$CLUSTER/$RUN/$HOSTNAME/$SCRIPT/in/$TIMESTAMP" \
+        -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+        -H "Content-Type: application/json" \
+        -d @$inJson -s 2> >(tee -a $INTERMEDIARY_LOG >/dev/null 2>&1) >&2
+
+    echo $TIMESTAMP/$SCRIPT/in $inJsonContent 2> >(tee -a $INTERMEDIARY_LOG >/dev/null 2>&1) >&2
+) </dev/null >/dev/null 2>&1 & disown
+
+outJsonContent=$(hf-gke $SCRIPT -f $inJson)
+TIMESTAMP=$(date -Iseconds)
+
+# Spawn curl calls in a detached subshell
+(
+    # Create temporary file to store data
+    outJson=$(mktemp 2>/dev/null)
+    echo $outJsonContent > $outJson 2>/dev/null
+    curl -X PUT "$TARGET/$CLUSTER/$RUN/$HOSTNAME/$SCRIPT/out/$TIMESTAMP" \
+        -H "Authorization: Bearer $(gcloud auth print-identity-token)" \
+        -H "Content-Type: application/json" \
+        -d @$outJson -s 2> >(tee -a $INTERMEDIARY_LOG >/dev/null 2>&1) >&2
+
+    echo $TIMESTAMP/$SCRIPT/out $outJsonContent 2> >(tee -a $INTERMEDIARY_LOG >/dev/null 2>&1) >&2
+    # Remove temporary file
+    rm $outJson 2>&1 >/dev/null
+
+) </dev/null >/dev/null 2>&1 & disown
+
+echo $outJsonContent
