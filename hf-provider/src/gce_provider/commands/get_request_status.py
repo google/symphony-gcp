@@ -45,7 +45,9 @@ def get_request_status(request: HFRequestStatus, config: Optional[Config] = None
 
     for request_item in request_list:
         request_id = request_item["requestId"]
-        machines: list[HfMachineStatus] = MachineDao(config).get_machines_for_request(request_id)
+        machines: list[HfMachineStatus] = MachineDao(config).get_machines_for_request(
+            request_id
+        )
 
         status_helper = (
             RequestMachineStatusEvaluator
@@ -64,8 +66,6 @@ def get_request_status(request: HFRequestStatus, config: Optional[Config] = None
             )
         )
 
-    result = HFRequestStatusResponse(
-        requests=(request_responses if len(request_responses) > 1 else request_responses[0])
-    )
+    result = HFRequestStatusResponse(requests=request_responses)
 
     return result
