@@ -119,7 +119,8 @@ class MachineDao:
         pass
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=1, max=8), stop=stop_after_attempt(10)
+        wait=wait_exponential(multiplier=1, min=1, max=60),
+        stop=stop_after_attempt(1000),
     )
     def _update_instance_ips(self, message: SimpleNamespace) -> None:
         operation_id = message.operation.id
