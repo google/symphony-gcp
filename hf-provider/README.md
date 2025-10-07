@@ -49,10 +49,10 @@ uv pip install .
 uv pip install pyinstaller
 
 # create the hf-gce CLI for GCE clusters
-uv run pyinstaller --onefile src/gce_provider/__main__.py --name hf-gce
+uv run pyinstaller hf-gce.spec
 
 # create the hf-gke CLI for GKE clusters
-uv run pyinstaller --onefile src/gke_provider/__main__.py --name hf-gke
+uv run pyinstaller hf-gke.spec
 
 # example command
 # Note: you will expect to see an error message if certain environment variables are not exported in your environment. 
