@@ -1,8 +1,47 @@
+import errno
 import inspect
 import logging
 import os
 from pathlib import Path
 from typing import Optional
+
+
+def ensure_path_exists(directory_path: str, mode: int = 0o777) -> bool:
+    """
+    Create a directory with path validation and robust error handling.
+
+    Args:
+        directory_path (str): Path to the directory to create.
+        mode (int): Permissions for the directory (default: 0o777).
+
+    Returns:
+        bool: True if the directory exists or was created successfully, False otherwise.
+    """
+    if not directory_path or not isinstance(directory_path, str):
+        logging.error("Invalid directory path: Must be a non-empty string")
+        return False
+
+    try:
+        os.makedirs(directory_path, mode=mode, exist_ok=True)
+        return True
+    except OSError as e:
+        if e.errno == errno.EACCES:
+            logging.error(
+                f"Permission denied: Cannot create directory '{directory_path}'"
+            )
+        elif e.errno == errno.ENOSPC:
+            logging.error(
+                f"No space left on device: Cannot create directory '{directory_path}'"
+            )
+        elif e.errno == errno.ENOENT:
+            logging.error(
+                f"Invalid path or parent directory does not exist: '{directory_path}'"
+            )
+        else:
+            logging.error(
+                f"Unexpected error creating directory '{directory_path}': {e}"
+            )
+        return False
 
 
 def normalize_path(base_path: str, relative_path: str) -> str:
@@ -63,7 +102,9 @@ def resolve_caller_dir(logger: Optional[logging.Logger] = None) -> Optional[str]
         stack = inspect.stack()
         if len(stack) < 2:
             if logger:
-                logger.warning("resolve_caller_dir: Not enough frames in the call stack.")
+                logger.warning(
+                    "resolve_caller_dir: Not enough frames in the call stack."
+                )
             return None
 
         caller_frame = stack[1]
@@ -71,7 +112,9 @@ def resolve_caller_dir(logger: Optional[logging.Logger] = None) -> Optional[str]
 
         if caller_module is None:
             if logger:
-                logger.warning("resolve_caller_dir: Could not determine caller's module.")
+                logger.warning(
+                    "resolve_caller_dir: Could not determine caller's module."
+                )
             return None
 
         if not hasattr(caller_module, "__file__") or caller_module.__file__ is None:
@@ -88,5 +131,7 @@ def resolve_caller_dir(logger: Optional[logging.Logger] = None) -> Optional[str]
 
     except Exception as e:
         if logger:
-            logger.exception(f"resolve_caller_dir: Error resolving caller directory: {e}")
+            logger.exception(
+                f"resolve_caller_dir: Error resolving caller directory: {e}"
+            )
         return None
