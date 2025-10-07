@@ -18,7 +18,7 @@ class RequestStatus(Enum):
 class MachineResult(Enum):
     executing = "executing"
     fail = "fail"
-    succeeded = "succeeded"
+    succeeded = "succeed"
 
 
 class MachineStatus(Enum):

@@ -54,7 +54,9 @@ class HFRequestMachinesResponse(HFResponseWithMessage, HFResponseWithRequestId):
 
 class HFRequestReturnMachines(BaseModel):
     class Machine(BaseModel):
-        name: str = Field(..., description="Host name of the machine that must be returned")
+        name: str = Field(
+            ..., description="Host name of the machine that must be returned"
+        )
 
     machines: Union[list[Machine], Machine] = Field(
         ...,
@@ -108,7 +110,9 @@ class HFRequestStatusResponse(HFResponseWithMessage):
                     "shutting-down, stopping."
                 ),
             )
-            privateIpAddress: str = Field(..., description="private IP address of the machine")
+            privateIpAddress: Optional[str] = Field(
+                default=None, description="private IP address of the machine"
+            )
             publicIpAddress: Optional[str] = Field(
                 default=None, description="public IP address of the machine"
             )
@@ -141,7 +145,9 @@ class HFReturnRequests(BaseModel):
 
 class HFReturnRequestsResponse(HFResponseWithMessage):
     class Request(BaseModel):
-        machine: str = Field(..., description="Host name of the machine that must be returned")
+        machine: str = Field(
+            ..., description="Host name of the machine that must be returned"
+        )
         gracePeriod: int = Field(
             default=0,
             description=(
@@ -184,7 +190,10 @@ class HFRequest(BaseModel):
         has_status = values.get("requestStatus") is not None
         has_return_requests = values.get("returnRequests") is not None
 
-        if sum([has_machines, has_return_machines, has_status, has_return_requests]) != 1:
+        if (
+            sum([has_machines, has_return_machines, has_status, has_return_requests])
+            != 1
+        ):
             raise ValueError(
                 "Exactly one of requestMachines, requestReturnMachines, "
                 "requestStatus, or returnRequests must be present."

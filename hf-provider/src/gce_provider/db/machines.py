@@ -118,7 +118,9 @@ class MachineDao:
 
         pass
 
-    @retry(wait=wait_exponential(multiplier=1, min=1, max=8), stop=stop_after_attempt(10))
+    @retry(
+        wait=wait_exponential(multiplier=1, min=1, max=8), stop=stop_after_attempt(10)
+    )
     def _update_instance_ips(self, message: SimpleNamespace) -> None:
         operation_id = message.operation.id
         self.logger.info(f"Updating instance IPs for operation {operation_id}")
@@ -140,15 +142,21 @@ class MachineDao:
             rows = cur.fetchall()
 
             machines_needing_ip = [
-                ResourceIdentifier(project=self.config.gcp_project_id, zone=zone, name=machine_name)
+                ResourceIdentifier(
+                    project=self.config.gcp_project_id, zone=zone, name=machine_name
+                )
                 for machine_name, zone in rows
             ]
 
-        self.logger.debug(f"We are missing IP address for {len(machines_needing_ip)} machines.")
+        self.logger.debug(
+            f"We are missing IP address for {len(machines_needing_ip)} machines."
+        )
 
         # get the IP addresses for each machine
         instances = fetch_instances(machines_needing_ip)
-        params = [_generate_instance_creation_params(instance) for instance in instances]
+        params = [
+            _generate_instance_creation_params(instance) for instance in instances
+        ]
 
         query = (
             "UPDATE machines "
@@ -177,13 +185,17 @@ class MachineDao:
                 self.logger.debug(msg)
                 raise MachineDao.RetryRequired(msg)
 
-        self.logger.info(f"Successfully updated IP address for operation {operation_id}")
+        self.logger.info(
+            f"Successfully updated IP address for operation {operation_id}"
+        )
 
     def _handle_instances_created(
         self, message: SimpleNamespace
     ) -> Callable[[SimpleNamespace], None]:
         """Update machine state to reflect that instances were created"""
-        self.logger.info(f"Handling instance creation for operation {message.operation.id}")
+        self.logger.info(
+            f"Handling instance creation for operation {message.operation.id}"
+        )
 
         request = message.protoPayload.request
         machine_names = [x.name for x in request.instances]
@@ -203,9 +215,18 @@ class MachineDao:
             )
 
         # update the labels for the instances
-        if len(failed_instances := set_instance_labels(request.instances, zone, self.config)) > 0:
-            self.logger.warning("Failed to set labels for instance(s): "
-                                f"{', '.join(failed_instances)}")
+        if (
+            len(
+                failed_instances := set_instance_labels(
+                    request.instances, zone, self.config
+                )
+            )
+            > 0
+        ):
+            self.logger.warning(
+                "Failed to set labels for instance(s): "
+                f"{', '.join(failed_instances)}"
+            )
 
         self.logger.info(
             f"Finished handling instance creation for operation {message.operation.id}"
@@ -216,7 +237,9 @@ class MachineDao:
 
     def _handle_group_instances_deleted(self, message: SimpleNamespace) -> None:
         """Update machine state to reflect that group instances were deleted"""
-        self.logger.info(f"Handling instance deletion for operation {message.operation.id}")
+        self.logger.info(
+            f"Handling instance deletion for operation {message.operation.id}"
+        )
 
         request = message.protoPayload.request
         resources = [parse_resource_url(x) for x in request.instances]
@@ -243,7 +266,9 @@ class MachineDao:
 
     def _handle_instance_deleted(self, message: SimpleNamespace) -> None:
         """Update machine state to reflect that some instance was deleted"""
-        self.logger.info(f"Handling instance deletion for operation {message.operation.id}")
+        self.logger.info(
+            f"Handling instance deletion for operation {message.operation.id}"
+        )
 
         # we convert to a list just in case in the future we need to support multiple values
         resource_urls = [message.protoPayload.resourceName]
@@ -278,7 +303,9 @@ class MachineDao:
 
         # this function is written prospectively based on published documentation,
         # but needs to be tested
-        self.logger.info(f"Handling instance deletion for operation {message.operation.id}")
+        self.logger.info(
+            f"Handling instance deletion for operation {message.operation.id}"
+        )
 
         # we convert to a list just in case in the future we need to support multiple values
         resource_urls = [message.protoPayload.resourceName]
@@ -374,7 +401,9 @@ class MachineDao:
 
                 # no match
                 else:
-                    self.logger.debug(f"Ignoring unhandled operation type {operation_type}")
+                    self.logger.debug(
+                        f"Ignoring unhandled operation type {operation_type}"
+                    )
             else:
                 self.logger.debug("Ignoring message with no response entity")
 
@@ -388,7 +417,6 @@ class MachineDao:
                 SELECT *
                 FROM machines
                 WHERE (request_id=:request_id OR return_request_id=:request_id)
-                AND internal_ip IS NOT NULL
                 """
 
         with sqlite3.connect(
@@ -428,7 +456,9 @@ class MachineDao:
             )
             rows = cur.fetchall()
             columns = [col[0] for col in cur.description]
-            machines: list[HfMachine] = [HfMachine(**dict(zip(columns, row))) for row in rows]
+            machines: list[HfMachine] = [
+                HfMachine(**dict(zip(columns, row))) for row in rows
+            ]
             return machines
 
     def get_deleted_or_preempted_machines(
@@ -446,8 +476,11 @@ class MachineDao:
             detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
         ) as conn:
             cur = conn.cursor()
-            cur.execute(query, (MachineState.PREEMPTED.value, MachineState.DELETED.value))
+            cur.execute(
+                query, (MachineState.PREEMPTED.value, MachineState.DELETED.value)
+            )
             rows = cur.fetchall()
             return [
-                HFReturnRequestsResponse.Request(machine=row[0], gracePeriod=row[1]) for row in rows
+                HFReturnRequestsResponse.Request(machine=row[0], gracePeriod=row[1])
+                for row in rows
             ]
