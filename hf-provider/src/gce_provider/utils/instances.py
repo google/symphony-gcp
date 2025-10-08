@@ -36,7 +36,11 @@ def set_instance_labels(
     instance_names = [
         inst.name
         for inst in instances
-        if (inst.preservedState and inst.preservedState.metadatas)
+        if (
+            hasattr(inst, "preservedState")
+            and hasattr(inst.preservedState, "metadatas")
+            and inst.preservedState.metadatas
+        )
     ]
 
     for name in instance_names:
