@@ -296,7 +296,7 @@ class MachineDao:
                 [
                     Statement(
                         "UPDATE MACHINES SET "
-                        f"machine_state={MachineState.DELETED.value} "
+                        f"machine_state={MachineState.DELETE_REQUESTED.value} "
                         f"WHERE machine_name IN ({machine_name_param})",
                         machine_names,
                     )
