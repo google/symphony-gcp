@@ -57,10 +57,19 @@ def launch_pubsub_daemon():
 def main():
     config = get_config()
     logger = config.logger
+
+    # If we are auto-launching, we can timeout the listener because HostFactory will repeatedly call the script.
+    # If this script is being manually launched, we do not want to set up a timeout because the sys admin
+    # will want to control this on their own.
+
+    if not config.pubsub_auto_launch:
+        pubsub_timeout = None
+    else:
+        pubsub_timeout = config.pubsub_timeout_seconds or None
+
     try:
         with LockManager(config.pubsub_lockfile):
             project_id = config.gcp_project_id or None
-            pubsub_timeout = config.pubsub_timeout_seconds or None
             subscription_id = config.pubsub_subscription
 
             subscriber = client_factory.pubsub_subscriber_client()
