@@ -32,7 +32,7 @@ DEFAULT_DB_FILENAME = DEFAULT_HF_PROVIDER_NAME
 DEFAULT_GCP_CREDENTIALS_FILE = None
 DEFAULT_PUBSUB_TIMEOUT_SECONDS = "0"
 DEFAULT_PUBSUB_TOPIC = "hf-gce-vm-events"
-DEFAULT_PUBSUB_SUBSCRIPTION = "hf-gce-vm-events"
+DEFAULT_PUBSUB_SUBSCRIPTION = "hf-gce-vm-events-sub"
 DEFAULT_PUBSUB_LOCKFILE = "/tmp/sym_hf_gcp_pubsub.lock"
 DEFAULT_PUBSUB_AUTOLAUNCH = False
 
@@ -134,6 +134,17 @@ class Config:
         self.hf_db_dir = hf_provider_conf.get(
             CONFIG_VAR_HF_DBDIR, os.environ.get(ENV_HF_DBDIR)
         )
+        if self.hf_db_dir is None:
+            raise RuntimeError(
+                (
+                    "Please specify the location of the database. This can be set by"
+                    f" setting {CONFIG_VAR_HF_DBDIR} in the configuration file {hf_provider_conf_path}."
+                    f" Alternatively, you can set the environment variable {ENV_HF_DBDIR}. Please be aware"
+                    " that if you choose to set the environment variable, HostFactory must also be configured"
+                    " to provide that value at runtime."
+                )
+            )
+
         self.db_name = os.environ.get(ENV_PLUGIN_DB_FILENAME, DEFAULT_DB_FILENAME)
         self.db_path = path_utils.normalize_path(self.hf_db_dir, self.db_name)
 

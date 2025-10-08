@@ -96,6 +96,11 @@ def cmd_get_available_templates(
     :param payload: optional payload
     :return: the templates JSON
     """
+    
+    # Initialize the database to avoid the need to explicitly declare $HF_DBDIR,
+    # thereby simplifying the installation process.
+    initialize_db(config)
+
     config.logger.info(f"cmd_get_available_templates; payload={payload}")
     config.logger.info(f"hf_provider_conf_dir: {config.hf_provider_conf_dir}")
     if not config.hf_provider_conf_dir or not os.path.isdir(
