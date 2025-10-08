@@ -43,13 +43,16 @@ class RequestReturnMachineStatusEvaluator:
         """Evaluate the HF machine.result based on the state in the DB"""
         machine_state = machine.machine_state
 
-        if machine_state == MachineState.INSERTED.value and machine.internal_ip is None:
-            return MachineResult.fail
+        if (
+            machine_state == MachineState.INSERTED.value
+            and machine.internal_ip is not None
+        ):
+            return MachineResult.succeeded
 
         if machine_state <= MachineState.INSERTED.value:
             return MachineResult.executing
 
-        return MachineResult.succeeded
+        return MachineResult.fail
 
     @classmethod
     def evaluate_machine_status(cls, machine: HfMachineStatus) -> MachineStatus:

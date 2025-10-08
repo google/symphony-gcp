@@ -138,7 +138,7 @@ class MachineDao:
             cur = conn.cursor()
             cur.execute(
                 query,
-                (operation_id, MachineState.INSERTED.value),
+                (operation_id, MachineState.CREATED.value),
             )
             rows = cur.fetchall()
 
@@ -233,6 +233,8 @@ class MachineDao:
         self.logger.info(
             f"Finished handling instance creation for operation {message.operation.id}"
         )
+        # this callback can happen after the message is acknowledged
+        return self._update_instance_ips
 
     def _handle_instances_inserted(
         self, message: SimpleNamespace
@@ -245,9 +247,7 @@ class MachineDao:
         # we convert to a list just in case in the future we need to support multiple values
         resource_urls = [message.protoPayload.resourceName]
         resources = [parse_resource_url(x) for x in resource_urls]
-        operation_id = message.operation.id
         machine_names = [x.name for x in resources]
-        params = flatten([operation_id, machine_names])
         machine_name_param = ",".join("?" for _ in machine_names)
         with Transaction(self.config) as trans:
             trans.execute(
@@ -255,10 +255,9 @@ class MachineDao:
                     Statement(
                         f"""
                         UPDATE machines
-                        SET machine_state={MachineState.INSERTED.value},
-                            operation_id=?
+                        SET machine_state={MachineState.INSERTED.value}
                         WHERE machine_name IN ({machine_name_param})""",
-                        params,
+                        machine_names,
                     )
                 ],
             )
@@ -266,9 +265,6 @@ class MachineDao:
         self.logger.info(
             f"Finished handling instance insertion for operation {message.operation.id}"
         )
-
-        # this callback can happen after the message is acknowledged
-        return self._update_instance_ips
 
     def _handle_group_instances_deleted(self, message: SimpleNamespace) -> None:
         """Update machine state to reflect that group instances were deleted"""
