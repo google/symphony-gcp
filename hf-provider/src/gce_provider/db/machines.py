@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing import Any, Callable, Optional
 
 import google.cloud.compute_v1 as compute
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, wait_random
 
 from common.model.models import HFReturnRequestsResponse
 from common.utils.list_utils import flatten
@@ -119,7 +119,8 @@ class MachineDao:
         pass
 
     @retry(
-        wait=wait_exponential(multiplier=1, min=1, max=8), stop=stop_after_attempt(10)
+        wait=wait_exponential(multiplier=1, min=1, max=60),
+        stop=stop_after_attempt(1000),
     )
     def _update_instance_ips(self, message: SimpleNamespace) -> None:
         operation_id = message.operation.id
@@ -192,15 +193,14 @@ class MachineDao:
     def _handle_instances_created(
         self, message: SimpleNamespace
     ) -> Callable[[SimpleNamespace], None]:
-        """Update machine state to reflect that instances were created"""
+        """Update machine state to reflect that instances were created within the managed group.
+        Note, this does not necessarily mean they exist yet"""
         self.logger.info(
             f"Handling instance creation for operation {message.operation.id}"
         )
 
         request = message.protoPayload.request
         machine_names = [x.name for x in request.instances]
-        # strip the gcp zone from the url provided by the client message
-        zone = message.protoPayload.response.zone.split("/")[-1]
         machine_name_param = ",".join("?" for _ in machine_names)
         with Transaction(self.config) as trans:
             trans.execute(
@@ -213,6 +213,19 @@ class MachineDao:
                     )
                 ],
             )
+
+        self.logger.info(
+            f"Finished handling instance creation for operation {message.operation.id}"
+        )
+        # this callback can happen after the message is acknowledged
+        return self._handle_instances_created_callback
+
+    def _handle_instances_created_callback(self, message: SimpleNamespace):
+        request = message.protoPayload.request
+        # strip the gcp zone from the url provided by the client message
+        zone = message.protoPayload.response.zone.split("/")[-1]
+
+        self._update_instance_ips(message)
 
         # update the labels for the instances
         if (
@@ -229,11 +242,43 @@ class MachineDao:
             )
 
         self.logger.info(
-            f"Finished handling instance creation for operation {message.operation.id}"
+            f"Finished handling instance creation callback for operation {message.operation.id}"
         )
 
-        # this callback can happen after the message is acknowledged
-        return self._update_instance_ips
+    # @retry(
+    #     wait=wait_random(min=1, max=10),
+    #     stop=stop_after_attempt(100),
+    # )
+    def _handle_instances_inserted(
+        self, message: SimpleNamespace
+    ) -> Callable[[SimpleNamespace], None]:
+        """Update machine state to reflect that instances were created"""
+        operation_id = message.operation.id
+
+        self.logger.info(f"Handling instance insertion for operation {operation_id}")
+
+        # we convert to a list just in case in the future we need to support multiple values
+        resource_urls = [message.protoPayload.resourceName]
+        resources = [parse_resource_url(x) for x in resource_urls]
+        machine_names = [x.name for x in resources]
+        machine_name_param = ",".join("?" for _ in machine_names)
+        with Transaction(self.config) as trans:
+            trans.execute(
+                [
+                    Statement(
+                        f"""
+                        UPDATE machines
+                        SET machine_state={MachineState.INSERTED.value}
+                        WHERE machine_name IN ({machine_name_param})
+                        AND machine_state<{MachineState.INSERTED.value}""",
+                        machine_names,
+                    )
+                ],
+            )
+
+        self.logger.info(
+            f"Finished handling instance insertion for operation {message.operation.id}"
+        )
 
     def _handle_group_instances_deleted(self, message: SimpleNamespace) -> None:
         """Update machine state to reflect that group instances were deleted"""
@@ -251,7 +296,7 @@ class MachineDao:
                 [
                     Statement(
                         "UPDATE MACHINES SET "
-                        f"machine_state={MachineState.DELETED.value} "
+                        f"machine_state={MachineState.DELETE_REQUESTED.value} "
                         f"WHERE machine_name IN ({machine_name_param})",
                         machine_names,
                     )
@@ -384,6 +429,10 @@ class MachineDao:
                 # check to see if instances have been created
                 if operation_type == "compute.instanceGroupManagers.createInstances":
                     return self._handle_instances_created(message)
+
+                # check to see if instances have been inserted
+                if operation_type == "insert":
+                    return self._handle_instances_inserted(message)
 
                 # check to see if instances have been deleted by the Instance Group Manager
                 elif operation_type == "compute.instanceGroupManagers.deleteInstances":

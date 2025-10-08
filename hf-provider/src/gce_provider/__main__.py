@@ -18,6 +18,7 @@ from common.utils.file_utils import load_json_file
 from common.utils.path_utils import (
     normalize_path,
 )
+from common.utils.version import get_version
 from gce_provider.commands.get_request_status import get_request_status
 from gce_provider.commands.get_return_requests import get_return_requests
 from gce_provider.commands.request_machines import request_machines
@@ -26,7 +27,6 @@ from gce_provider.config import Config, get_config
 from gce_provider.db.initialize import main as initialize_db
 from gce_provider.model.models import HFGceRequestMachines
 from gce_provider.pubsub import launch_pubsub_daemon, main as monitor_events
-
 
 #   1. Before running this module,
 #      set up ADC as described in https://cloud.google.com/docs/authentication/external/set-up-adc
@@ -103,9 +103,13 @@ def cmd_get_available_templates(
 
     config.logger.info(f"cmd_get_available_templates; payload={payload}")
     config.logger.info(f"hf_provider_conf_dir: {config.hf_provider_conf_dir}")
-    if not config.hf_provider_conf_dir or not os.path.isdir(config.hf_provider_conf_dir):
+    if not config.hf_provider_conf_dir or not os.path.isdir(
+        config.hf_provider_conf_dir
+    ):
         raise ValueError(f"Invalid directory path: {config.hf_provider_conf_dir}")
-    templates_path = os.path.join(str(config.hf_provider_conf_dir), config.hf_templates_filename)
+    templates_path = os.path.join(
+        str(config.hf_provider_conf_dir), config.hf_templates_filename
+    )
     config.logger.info(f"templates_path: {templates_path}")
 
     try:
@@ -213,7 +217,9 @@ def dispatch_command(command: str, config: Config, payload: Optional[dict]):
     :param payload: The JSON payload
     :return: The command's response
     """
-    config.logger.info(f"DISPATCHING|command: {command}; payload: {json.dumps(payload)}")
+    config.logger.info(
+        f"DISPATCHING|command: {command}; payload: {json.dumps(payload)}"
+    )
 
     cmd = valid_commands.get(command)
     if cmd:
@@ -242,11 +248,17 @@ def parse_args() -> tuple[str, Any]:
     Parse the args from the script
     :return: the command and payload
     """
-    parser = argparse.ArgumentParser(prog="hf-gce", description="GCP HostFactory Provider for GCE")
+    parser = argparse.ArgumentParser(
+        prog="hf-gce", description="GCP HostFactory Provider for GCE"
+    )
 
     parser.add_argument("command", choices=valid_commands)
     parser.add_argument("json", nargs="?")
     parser.add_argument("-f", "--json-file")
+
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"%(prog)s {get_version()}"
+    )
 
     args = parser.parse_args()
 

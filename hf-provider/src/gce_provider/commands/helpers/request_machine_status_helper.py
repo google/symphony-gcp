@@ -40,10 +40,13 @@ class RequestMachineStatusEvaluator:
         """Evaluate the HF machine.result based on the state in the DB"""
         machine_state = machine.machine_state
 
-        if machine_state == MachineState.CREATED.value and machine.internal_ip is not None:
+        if (
+            machine_state == MachineState.INSERTED.value
+            and machine.internal_ip is not None
+        ):
             return MachineResult.succeeded
 
-        if machine_state <= MachineState.CREATED.value:
+        if machine_state <= MachineState.INSERTED.value:
             return MachineResult.executing
 
         return MachineResult.fail
@@ -52,7 +55,10 @@ class RequestMachineStatusEvaluator:
     def evaluate_machine_status(cls, machine: HfMachineStatus):
         machine_state = machine.machine_state
 
-        if machine_state == MachineState.CREATED.value and machine.internal_ip is not None:
+        if (
+            machine_state == MachineState.INSERTED.value
+            and machine.internal_ip is not None
+        ):
             return MachineStatus.running
 
         if machine_state == MachineState.DELETED.value:

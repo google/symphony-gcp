@@ -49,10 +49,10 @@ uv pip install .
 uv pip install pyinstaller
 
 # create the hf-gce CLI for GCE clusters
-PYTHONPATH=src pyinstaller --onefile src/gce_provider/__main__.py --name hf-gce --paths .venv/lib/python3.9/site-packages
+uv run pyinstaller hf-gce.spec
 
 # create the hf-gke CLI for GKE clusters
-PYTHONPATH=src pyinstaller --onefile src/gke_provider/__main__.py --name hf-gke --paths .venv/lib/python3.9/site-packages
+uv run pyinstaller hf-gke.spec
 
 # example command
 # Note: you will expect to see an error message if certain environment variables are not exported in your environment. 
@@ -106,23 +106,23 @@ The installed CLI executables can be moved to any location for execution, provid
 5. Execute the CLI using:
    ```bash
    # GCE provider
-   PYTHONPATH=src python -m gce_provider --help
+   uv run hf-gce --help
    
    # GKE provider
-   PYTHONPATH=src python -m gke_provider --help
+   uv run hf-gke --help
    ```
    This should give you a list of available commands.
 
 6. For the following commands: `requestMachines`, `requestReturnMachines`, `getRequestStatus`, and `getReturnRequests`, you should include a JSON payload either as a string argument, or using `--json-file [payload file]`. Examples:
        
    ```bash
-   PYTHONPATH=src python -m gke_provider getRequestStatus '{"machines": {"name": "foo"}}'
+   uv run hf-gke getRequestStatus '{"machines": {"name": "foo"}}'
    ```
 
      or
 
      ```bash
-     PYTHONPATH=src python -m gke_provider requestMachines --json-file ./test/resources/request-machines/request-machines-001.json
+     uv run hf-gke requestMachines --json-file ./test/resources/request-machines/request-machines-001.json
      ```
 
      The `--json-file` can be an absolute or relative path.

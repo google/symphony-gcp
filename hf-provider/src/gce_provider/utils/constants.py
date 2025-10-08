@@ -5,7 +5,9 @@ class MachineState(Enum):
     REQUESTED = 100
     LOGGED = 101
     CREATED = 200
+    INSERTED = 250
     PREEMPTED = 300
+    DELETE_REQUESTED = 350
     DELETED = 400
 
 

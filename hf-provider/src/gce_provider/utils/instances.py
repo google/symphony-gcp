@@ -33,7 +33,15 @@ def set_instance_labels(
 
     # Batch fetch all instances to avoid N+1 queries
     instance_map = {}
-    instance_names = [inst.name for inst in instances if inst.preservedState.metadatas]
+    instance_names = [
+        inst.name
+        for inst in instances
+        if (
+            hasattr(inst, "preservedState")
+            and hasattr(inst.preservedState, "metadatas")
+            and inst.preservedState.metadatas
+        )
+    ]
 
     for name in instance_names:
         try:

@@ -13,6 +13,7 @@ from common.utils.path_utils import (
     resolve_caller_dir,
 )
 from common.utils.profiling import log_execution_time
+from common.utils.version import get_version
 from gke_provider.commands.get_request_machine_status import get_request_machine_status
 from gke_provider.commands.get_return_requests import get_return_requests
 from gke_provider.commands.request_machines import request_machines
@@ -57,7 +58,9 @@ def cmd_get_available_templates(
     """
     config.logger.info(f"cmd_get_available_templates; payload={payload}")
     config.logger.info(f"hf_provider_conf_dir: {config.hf_provider_conf_dir}")
-    if not config.hf_provider_conf_dir or not os.path.isdir(config.hf_provider_conf_dir):
+    if not config.hf_provider_conf_dir or not os.path.isdir(
+        config.hf_provider_conf_dir
+    ):
         raise ValueError(f"Invalid directory path: {config.hf_provider_conf_dir}")
     templates_path = os.path.join(str(config.hf_provider_conf_dir), TEMPLATES_FILENAME)
     config.logger.info(f"templates_path: {templates_path}")
@@ -98,7 +101,9 @@ def cmd_request_machines(payload: Optional[dict] = None) -> Optional[dict]:
         if template.get(template_key) == template_id:
             # get the podspec
             podspec_yaml = template.get("podSpecYaml")
-            config.logger.info(f"config.hf_provider_conf_dir: {config.hf_provider_conf_dir}")
+            config.logger.info(
+                f"config.hf_provider_conf_dir: {config.hf_provider_conf_dir}"
+            )
             config.logger.info(f"config.podspec_yaml: {podspec_yaml}")
             config.logger.info(
                 f"normalized path: {normalize_path(config.hf_provider_conf_dir, podspec_yaml)}"
@@ -107,7 +112,9 @@ def cmd_request_machines(payload: Optional[dict] = None) -> Optional[dict]:
             try:
                 podspec = load_yaml_file(podspec_path)
             except Exception as e:
-                config.logger.error(f"Error while loading podspec at {podspec_path}: {e}")
+                config.logger.error(
+                    f"Error while loading podspec at {podspec_path}: {e}"
+                )
                 podspec = None
 
             if podspec is None:
@@ -210,7 +217,9 @@ def dispatch_command(command: str, payload: Optional[dict]):
     :param payload: The JSON payload
     :return: The command's response
     """
-    config.logger.info(f"DISPATCHING|command: {command}; payload: {json.dumps(payload)}")
+    config.logger.info(
+        f"DISPATCHING|command: {command}; payload: {json.dumps(payload)}"
+    )
 
     cmd = valid_commands.get(command)
     if cmd:
@@ -234,11 +243,17 @@ def parse_args() -> tuple[str, Any]:
     Parse the args from the script
     :return: the command and payload
     """
-    parser = argparse.ArgumentParser(prog="gcphf", description="GCP HostFactory Provider for GKE")
+    parser = argparse.ArgumentParser(
+        prog="gcphf", description="GCP HostFactory Provider for GKE"
+    )
 
     parser.add_argument("command", choices=valid_commands)
     parser.add_argument("json", nargs="?")
     parser.add_argument("-f", "--json-file")
+
+    parser.add_argument(
+        "-v", "--version", action="version", version=f"%(prog)s {get_version()}"
+    )
 
     args = parser.parse_args()
     config.logger.debug(f"command is: {args.command}")
