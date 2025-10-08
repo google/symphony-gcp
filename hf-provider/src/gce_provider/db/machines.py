@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing import Any, Callable, Optional
 
 import google.cloud.compute_v1 as compute
-from tenacity import retry, stop_after_attempt, wait_exponential
+from tenacity import retry, stop_after_attempt, wait_exponential, wait_random
 
 from common.model.models import HFReturnRequestsResponse
 from common.utils.list_utils import flatten
@@ -201,8 +201,6 @@ class MachineDao:
 
         request = message.protoPayload.request
         machine_names = [x.name for x in request.instances]
-        # strip the gcp zone from the url provided by the client message
-        zone = message.protoPayload.response.zone.split("/")[-1]
         machine_name_param = ",".join("?" for _ in machine_names)
         with Transaction(self.config) as trans:
             trans.execute(
@@ -215,6 +213,19 @@ class MachineDao:
                     )
                 ],
             )
+
+        self.logger.info(
+            f"Finished handling instance creation for operation {message.operation.id}"
+        )
+        # this callback can happen after the message is acknowledged
+        return self._handle_instances_created_callback
+
+    def _handle_instances_created_callback(self, message: SimpleNamespace):
+        request = message.protoPayload.request
+        # strip the gcp zone from the url provided by the client message
+        zone = message.protoPayload.response.zone.split("/")[-1]
+
+        self._update_instance_ips(message)
 
         # update the labels for the instances
         if (
@@ -231,11 +242,13 @@ class MachineDao:
             )
 
         self.logger.info(
-            f"Finished handling instance creation for operation {message.operation.id}"
+            f"Finished handling instance creation callback for operation {message.operation.id}"
         )
-        # this callback can happen after the message is acknowledged
-        return self._update_instance_ips
 
+    # @retry(
+    #     wait=wait_random(min=1, max=10),
+    #     stop=stop_after_attempt(100),
+    # )
     def _handle_instances_inserted(
         self, message: SimpleNamespace
     ) -> Callable[[SimpleNamespace], None]:
@@ -256,7 +269,8 @@ class MachineDao:
                         f"""
                         UPDATE machines
                         SET machine_state={MachineState.INSERTED.value}
-                        WHERE machine_name IN ({machine_name_param})""",
+                        WHERE machine_name IN ({machine_name_param})
+                        AND machine_state<{MachineState.INSERTED.value}""",
                         machine_names,
                     )
                 ],
