@@ -496,9 +496,9 @@ class MachineDao:
         """
         ok, details = self._quick_check()
         if not ok:
-            raise RuntimeError(
-                "DB quick check failed: " + "; ".join(f"{i}={j}" for i, j in details.items() if j not in (True, "ok"))
-            )
+            err = "DB quick check failed: " + "; ".join(f"{i}={j}" for i, j in details.items() if j not in (True, "ok"))
+            self.logger.error(err)
+            raise RuntimeError(err)
         
     def _quick_check(self) -> Tuple[bool, Dict[str, Any]]:
         """
@@ -530,6 +530,7 @@ class MachineDao:
                 cur.execute("PRAGMA busy_timeout=2000")
 
                 # Step 1: Verify Table Existence
+                self.logger.debug("Step 1: Verify Table Existence")
                 cur.execute(
                     "SELECT name FROM sqlite_master WHERE type='table' AND name='machines'"
                 )
@@ -539,15 +540,18 @@ class MachineDao:
                     return (False, details)
                 
                 # Step 2: Check writable permission (Ensure file is writable)
+                self.logger.debug("Step 2: Check writable permission (Ensure file is writable)")
                 try:
                     cur.execute("BEGIN IMMEDIATE")
                     details["writable"] = True
                     conn.rollback()
                 except sqlite3.OperationalError as e:
                     details["integrity"] = f"Not Writable: {e}"
+                    self.logger.error(details["integrity"])
                     return (False, details)
                 
                 # Step 3: Integrity Check
+                self.logger.debug("Step 3: Integrity Check")
                 try:
                     cur.execute("PRAGMA quick_check")
                     row = cur.fetchone()
@@ -556,9 +560,11 @@ class MachineDao:
                         return (False, details)
                 except sqlite3.DatabaseError as e:
                     details["integrity"] = f"Quick Check Error: {e}"
+                    self.logger.error(details["integrity"])
                     return (False, details)
                 
                 # Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)
+                self.logger.debug("Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)")
                 try:
                     # Check Insert
                     cur.execute("SAVEPOINT check_tx")
@@ -571,8 +577,10 @@ class MachineDao:
                     details["delete_ok"] =  (cur.rowcount == 1)
                 except sqlite3.IntegrityError:
                     details["needs_required_values"] = True
+                    self.logger.error("Integrity Error")
                 except sqlite3.OperationalError as e:
                     details["integrity"] = f"Insert/Delete Operational Error: {e}"
+                    self.logger.error(details["integrity"])
                     conn.execute("ROLLBACK TO check_tx")
                     conn.execute("RELEASE check_tx")
                     return (False, details)
@@ -582,9 +590,10 @@ class MachineDao:
                         conn.execute("RELEASE check_tx")
                     except sqlite3.OperationalError:
                         pass
-                
+                self.logger.debug("[DONE] - DB is healthy")
                 return (True, details) # means db is healthy :)
 
         except sqlite3.Error as e:
             details["integrity"] = f"Connection Error: {e}"
+            self.logger.error(details["integrity"])
             return (False, details)
