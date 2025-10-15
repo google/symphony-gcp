@@ -1,5 +1,5 @@
 locals {
-  plugin_pubsub_topic = "hf-gce-vm-events"
+  plugin_pubsub_topic = "hf-gce-vm-events-${local.module_suffix}"
 }
 
 resource "google_pubsub_topic" "plugin-pubsub" {
@@ -21,9 +21,9 @@ resource "google_logging_project_sink" "plugin-sink" {
       OR
       "v1.compute.instanceGroupManagers.deleteInstances"
       OR
-      "v1.compute.instances.insert"
-      OR
       "v1.compute.instances.delete"
+      OR
+      "v1.compute.instances.insert"
     )
     EOF
 }

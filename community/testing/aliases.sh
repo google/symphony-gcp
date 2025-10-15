@@ -11,7 +11,8 @@ essh_generate_config () {
     # TODO: This becomes very slow when there are a lot of machines in the project.
     local TARGET_VM=$1
     local TARGET_INFO
-    if [ $(basename $SHELL) == "zsh" ]; then
+    oldIFS=$IFS
+    if [[ $(basename $SHELL)=="zsh" ]]; then
       IFS="," read -rA TARGET_INFO <<< $(gcloud compute instances list --filter="name=$TARGET_VM" --format="csv(status,zone.basename(),networkInterfaces[0].networkIP)" | tail -n 1)
       local TARGET_STATUS=${TARGET_INFO[1]}
       local TARGET_ZONE=${TARGET_INFO[2]}
@@ -22,6 +23,7 @@ essh_generate_config () {
       local TARGET_ZONE=${TARGET_INFO[1]}
       local TARGET_IP=${TARGET_INFO[2]}
     fi
+    IFS=$oldIFS
     [[ -z "$TARGET_IP" ]] && echo "ERROR: IP not found" && return 1
     [[ "$TARGET_STATUS" != "RUNNING" ]] && echo "ERROR: status is $TARGET_STATUS" && return 1
     local SSHCONF=$(mktemp)

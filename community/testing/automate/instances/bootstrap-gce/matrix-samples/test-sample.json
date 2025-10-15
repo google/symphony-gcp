@@ -1,6 +1,92 @@
 {
     "bootstrap_from": "cluster-base",
-    "target_symphony_project": "sym-local",
+    "target_symphony_project": "sym-local-restored",
     "target_symphony_workspace": "gce-0",
-    "run_id": "test-gce-0"
+    "run_id": "test-gce-bigscale-0",
+    "compute_templates": [
+        {
+            "name": "e2-standard-16-us-central1-a",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-a",
+            "machine_type": "e2-standard-16"
+        },
+        {
+            "name": "e2-standard-32-us-central1-a",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-a",
+            "machine_type": "e2-standard-32"
+        },
+        {
+            "name": "n4-standard-16-us-central1-a",
+            "disk_size": 30,
+            "disk_type": "hyperdisk-balanced",
+            "zone": "us-central1-a",
+            "machine_type": "n4-standard-16"
+        },
+        {
+            "name": "e2-standard-16-us-central1-b",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-b",
+            "machine_type": "e2-standard-16"
+        },
+        {
+            "name": "e2-standard-32-us-central1-b",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-b",
+            "machine_type": "e2-standard-32"
+        },
+        {
+            "name": "n4-standard-16-us-central1-b",
+            "disk_size": 30,
+            "disk_type": "hyperdisk-balanced",
+            "zone": "us-central1-b",
+            "machine_type": "n4-standard-16"
+        },
+        {
+            "name": "e2-standard-16-us-central1-c",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-c",
+            "machine_type": "e2-standard-16"
+        },
+        {
+            "name": "e2-standard-32-us-central1-c",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-c",
+            "machine_type": "e2-standard-32"
+        },
+        {
+            "name": "n4-standard-16-us-central1-c",
+            "disk_size": 30,
+            "disk_type": "hyperdisk-balanced",
+            "zone": "us-central1-c",
+            "machine_type": "n4-standard-16"
+        },
+        {
+            "name": "e2-standard-16-us-central1-f",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-f",
+            "machine_type": "e2-standard-16"
+        },
+        {
+            "name": "e2-standard-32-us-central1-f",
+            "disk_size": 30,
+            "disk_type": "pd-ssd",
+            "zone": "us-central1-f",
+            "machine_type": "e2-standard-32"
+        },
+        {
+            "name": "n4-standard-16-us-central1-f",
+            "disk_size": 30,
+            "disk_type": "hyperdisk-balanced",
+            "zone": "us-central1-f",
+            "machine_type": "n4-standard-16"
+        }
+    ]
 }
