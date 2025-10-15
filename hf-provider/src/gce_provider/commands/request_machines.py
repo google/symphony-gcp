@@ -52,6 +52,11 @@ def request_machines(
     ]
 
     try:
+        # Create MachineDao instance and
+        # Run the fast and raises RuntimeError if something went wrong
+        dao = MachineDao(config)
+        dao.check_or_raise()
+
         client = client_factory.instance_group_managers_client()
         request = compute.CreateInstancesInstanceGroupManagerRequest(
             project=config.gcp_project_id,
@@ -65,7 +70,7 @@ def request_machines(
         result = client.create_instances(request=request)
         logger.debug(f"Submitted request {request_id}")
 
-        MachineDao(config).store_request_machines(result.name, request)
+        dao.store_request_machines(result.name, request)
         return HFRequestMachinesResponse(requestId=request_id)
     except Exception as e:
         logger.error(
