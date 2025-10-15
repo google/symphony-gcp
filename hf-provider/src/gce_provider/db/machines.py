@@ -3,7 +3,7 @@ from types import SimpleNamespace
 from typing import Any, Callable, Optional
 
 import google.cloud.compute_v1 as compute
-from tenacity import retry, stop_after_attempt, wait_exponential, wait_random
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from common.model.models import HFReturnRequestsResponse
 from common.utils.list_utils import flatten
@@ -245,10 +245,6 @@ class MachineDao:
             f"Finished handling instance creation callback for operation {message.operation.id}"
         )
 
-    @retry(
-        wait=wait_random(min=1, max=3),
-        stop=stop_after_attempt(100),
-    )
     def _handle_instances_inserted(
         self, message: SimpleNamespace
     ) -> Callable[[SimpleNamespace], None]:

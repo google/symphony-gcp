@@ -32,21 +32,21 @@ def request_machines(
     instance_prefix = config.gcp_instance_prefix
     request_id = generate_unique_id()
 
-    logger.info(f"Received request to provision {count} machines with prefix {instance_prefix}")
+    logger.info(
+        f"Received request to provision {count} machines with prefix {instance_prefix}"
+    )
 
     # Prepare labels for the instances
     labels = {
-       "symphony-deployment": f"{config.hf_provider_name}-hostfactory",
-       "symphony-requestId": request_id,
-       config.instance_label_name_text: config.instance_label_value_text
+        "symphony-deployment": f"{config.hf_provider_name}-hostfactory",
+        "symphony-requestId": request_id,
+        config.instance_label_name_text: config.instance_label_value_text,
     }
 
     instances = [
         compute.PerInstanceConfig(
             name=f"{instance_prefix}{generate_unique_id()}",
-            preserved_state=compute.PreservedState(
-                metadata=labels
-            )
+            preserved_state=compute.PreservedState(metadata=labels),
         )
         for _ in range(count)
     ]
@@ -68,5 +68,7 @@ def request_machines(
         MachineDao(config).store_request_machines(result.name, request)
         return HFRequestMachinesResponse(requestId=request_id)
     except Exception as e:
-        logger.error(f"Error creating GCPSymphonyResource: {e}")
+        logger.error(
+            f"Error creating compute.CreateInstancesInstanceGroupManagerRequest: {e}"
+        )
         raise e
