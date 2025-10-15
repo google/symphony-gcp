@@ -577,7 +577,6 @@ class MachineDao:
                     details["delete_ok"] =  (cur.rowcount == 1)
                 except sqlite3.IntegrityError:
                     details["needs_required_values"] = True
-                    self.logger.error("Integrity Error")
                 except sqlite3.OperationalError as e:
                     details["integrity"] = f"Insert/Delete Operational Error: {e}"
                     self.logger.error(details["integrity"])
