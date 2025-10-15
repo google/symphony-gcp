@@ -58,10 +58,9 @@ patch_uid_gid () {
     INPUT_VARIABLES=(CLUSTERADMIN CLUSTER_ADMIN_GID CLUSTER_ADMIN_UID)
     check_all_set "${INPUT_VARIABLES[@]}"
 
-    cat <<EOF
-Patching clusteradmin UID/GID...
-This is not a good solution but it is currently the only solution found for using a custom NFS server.
-This may not be required when using a GCP NFS server or local Symphony deployments.
+    echo "Patching clusteradmin UID/GID..."
+    echo "This is not a good solution but it is currently the only solution found for using a custom NFS server."
+    echo "This may not be required when using a GCP NFS server or local Symphony deployments."
 EOF
     CURRENT_GID=$(id -g $CLUSTERADMIN)
     if [[ $CURRENT_GID != $CLUSTER_ADMIN_GID ]]; then

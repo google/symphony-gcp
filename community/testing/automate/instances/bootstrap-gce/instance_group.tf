@@ -18,26 +18,66 @@ data "google_compute_instance" "master" {
 # More inteligently, if Symphony allows it, one could create a webhook (maybe as cloud run functions)
 # in the event of failover to execute the master stateful metadata modification. 
 
-resource "google_compute_instance_group_manager" "hf-compute-manager" {
-  name = "hf-sym-compute"
+data "google_compute_instance_template" "default_compute_template" {
+  self_link_unique = data.terraform_remote_state.symphony.outputs.symphony_compute_template_self_link
+}
 
-  base_instance_name = "hf-sym-compute"
-  zone = var.zone
+module "symphony_compute_templates" {
+  for_each = {for x in var.compute_templates: x.name => x }
+  source = "../../modules/symphony/templates/compute"
+  module_suffix = "${local.module_suffix}-${each.value.name}"
+
+  project_id = var.project_id
+  region = var.region
+
+  # Service Account
+  service_account_mail = data.google_compute_instance_template.default_compute_template.service_account[0].email
+  
+  # Network
+  subnet_self_link = data.google_compute_instance_template.default_compute_template.network_interface[0].subnetwork
+
+  # Config
+  configuration_variables = data.terraform_remote_state.symphony.outputs.symphony_template_configuration_vars
+  install_only = false
+
+  # Templates
+  symphony_compute_template = {
+    disk = {
+      size = each.value.disk_size
+      type = each.value.disk_type
+      source_image = data.google_compute_instance_template.default_compute_template.disk[0].source_image
+    }
+    machine_type = each.value.machine_type
+  }
+
+  # Restore Images
+  restore_compute_disk = true
+
+  common_labels = data.google_compute_instance_template.default_compute_template.labels
+
+  public_key = var.public_key
+}
+
+
+resource "google_compute_instance_group_manager" "hf-compute-manager" {
+  for_each = {for x in var.compute_templates: x.name => x }
+  name = "sym-comp-${local.module_suffix}-${each.value.name}"
+
+  base_instance_name = "sym-comp-${local.module_suffix}-${each.value.name}"
+  zone = each.value.zone
 
   version {
-    instance_template = data.terraform_remote_state.symphony.outputs.symphony_compute_template_self_link
+    instance_template = module.symphony_compute_templates[each.key].compute_template_self_link_unique
   }
 
   all_instances_config {
     metadata = local.metadata
     labels = {
       tf-workspace = local.module_suffix
-      tf-project   = "sym-shared"
+      tf-project   = "bootstrap-gce"
       resource-type = "hf-sym-compute"
     }
   }
-
-  target_size = 1
 
   lifecycle {
     ignore_changes = [ target_size ]

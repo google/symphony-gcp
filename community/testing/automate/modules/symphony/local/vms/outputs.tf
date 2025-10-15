@@ -21,3 +21,7 @@ output "symphony_compute_template_self_link" {
 output "symphony_mgmt_template_self_link" {
   value = module.symphony_mgmt_template.mgmt_template_self_link_unique
 }
+
+output "symphony_template_configuration_vars" {
+  value = local.common_vars
+}
