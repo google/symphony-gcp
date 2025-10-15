@@ -52,7 +52,7 @@ variable "symphony_mgmt_template" {
     machine_type = "n2-standard-2"
     disk = {
       source_image = "rhel-cloud/rhel-8"
-      type         = "pd_standard"
+      type         = "pd-standard"
       size         = 30
     }
   }

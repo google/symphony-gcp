@@ -36,5 +36,8 @@ output "nfs_server_self_link" {
 
 output "nfs_server_internal_ip" {
   value = module.symphony-shared.nfs_server_internal_ip
+}
 
+output "symphony_template_configuration_vars" {
+  value =  module.symphony-shared.symphony_template_configuration_vars
 }

@@ -62,7 +62,7 @@ variable "symphony_mgmt_template" {
   default = {
     machine_type = "n2-standard-2"
     disk = {
-      type         = "pd_standard"
+      type         = "pd-standard"
       size         = 30
   }
 }
@@ -86,7 +86,7 @@ variable "symphony_compute_template" {
   default = {
     machine_type = "n2-standard-2"
     disk = {
-      type         = "pd_standard"
+      type         = "pd-standard"
       size         = 30
   }
 }
@@ -193,7 +193,7 @@ variable "python_repository" {
 variable "network_from" {
   type = string
   default = "base-instances"
-  description = "Wether or not to bootstrap using the base or standard terraform projects. Prefer cluster-network as other options are legacy."
+  description = "Wether or not to bootstrap using the base or standard terraform projects."
 
   validation {
     condition = contains(["base-instances","cluster-network"], var.network_from)
@@ -201,6 +201,7 @@ variable "network_from" {
   }
 }
 
+# TODO: Rename this to subnet index
 variable "cluster_index" {
   type = number
   description = "The cluster index to bootstrap if using 'cluster-base'. Not required if using 'cluster-standard'."

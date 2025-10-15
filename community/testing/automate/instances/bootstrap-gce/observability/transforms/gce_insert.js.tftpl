@@ -1,0 +1,28 @@
+function filter(message, metadata) {
+  if (!message.data) return null;
+
+  const log = JSON.parse(message.data);
+
+  const filtered = {
+    time: log.timestamp,
+    cluster: "NA/GCE",
+    namespace: null,
+    source: "log",
+    run: "${run_id}",
+    event: "gce:insert",
+    sym_request: null,
+    container_name: null,
+    pod: null,
+    node: null,
+    acn: null,
+    detail: JSON.stringify({
+        request: log.protoPayload.request,
+        labels: log.resource.labels
+    })
+  };
+
+  return {
+    data: JSON.stringify(filtered),
+    attributes: message.attributes
+  };
+}
