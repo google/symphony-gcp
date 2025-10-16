@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 # ------------------------------
 [project]
 name = "google-symphony-hf"
-version = "0.3.2"
+version = "0.3.3"
 description = "Default template"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -47,6 +47,7 @@ api = [
 # Console entry points
 [project.scripts]
 hf-gce = "gce_provider.__main__:main"
+hf-pubsub = "gce_provider.pubsub:main"
 hf-gke = "gke_provider.__main__:main"
 # backward compatibility; slated for removal later
 gcphf  = "gke_provider.__main__:main"

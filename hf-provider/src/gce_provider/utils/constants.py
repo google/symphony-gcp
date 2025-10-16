@@ -28,3 +28,7 @@ class MachineStatus(Enum):
     stopped = "stopped"
     terminated = "terminated"
     shutting_down = "shutting-down"
+
+
+class CommandNames(Enum):
+    MONITOR_EVENTS = "monitorEvents"

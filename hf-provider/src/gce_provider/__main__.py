@@ -27,6 +27,8 @@ from gce_provider.config import Config, get_config
 from gce_provider.db.initialize import main as initialize_db
 from gce_provider.model.models import HFGceRequestMachines
 from gce_provider.pubsub import launch_pubsub_daemon, main as monitor_events
+from gce_provider.utils.constants import CommandNames
+
 
 #   1. Before running this module,
 #      set up ADC as described in https://cloud.google.com/docs/authentication/external/set-up-adc
@@ -51,7 +53,9 @@ valid_commands = ValidCommands(
         "getAvailableTemplates": lambda config, payload: cmd_get_available_templates(
             config, payload
         ),
-        "monitorEvents": lambda config, payload: cmd_monitor_events(config, payload),
+        CommandNames.MONITOR_EVENTS.value: lambda config, payload: cmd_monitor_events(
+            config, payload
+        ),
         "requestMachines": lambda config, payload: cmd_request_machines(
             config, payload
         ),
@@ -96,7 +100,7 @@ def cmd_get_available_templates(
     :param payload: optional payload
     :return: the templates JSON
     """
-    
+
     # Initialize the database to avoid the need to explicitly declare $HF_DBDIR,
     # thereby simplifying the installation process.
     initialize_db(config)
@@ -223,6 +227,11 @@ def dispatch_command(command: str, config: Config, payload: Optional[dict]):
 
     cmd = valid_commands.get(command)
     if cmd:
+        # make sure pubsub is launched so that we can process any incoming events as a result of the command
+        config.logger.info(f"I have cmd {cmd}")
+        if command != CommandNames.MONITOR_EVENTS.value and config.pubsub_auto_launch:
+            launch_pubsub_daemon()
+
         result = cmd(config, payload)
         config.logger.info(f"DISPATCHED|command: {command}; result: {result}")
         if isinstance(result, NullOutput):
@@ -283,8 +292,6 @@ def main():
         (command, payload) = parse_args()
         config = get_config()
         dispatch_command(command, config, payload)
-        if config.pubsub_auto_launch:
-            launch_pubsub_daemon()
         sys.exit(0)
     except Exception as e:
         print(f"Error: {e}")

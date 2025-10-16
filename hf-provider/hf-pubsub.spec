@@ -30,7 +30,6 @@ HIDDENIMPORTS = []
 HIDDENIMPORTS += collect_submodules("gce_provider")
 # common dynamic import offenders:
 HIDDENIMPORTS += collect_submodules("google")
-HIDDENIMPORTS += collect_submodules("kubernetes")
 
 DATAS = []
 # bundle package data from your code as needed
@@ -38,7 +37,7 @@ DATAS += collect_data_files(
     "gce_provider",
     includes=["**/*.yaml", "**/*.yml", "**/*.json", "**/*.txt"],
 )
-DATAS += [(certifi.where(), "certifi")]   # bundle cacert.pem under certifi/
+DATAS += [(certifi.where(), "certifi")]  # bundle cacert.pem under certifi/
 
 # If you prefer to read pyproject.toml at runtime instead of env injection,
 # uncomment the next line to bundle it, and handle _MEIPASS in your code:
@@ -46,7 +45,7 @@ DATAS += [(certifi.where(), "certifi")]   # bundle cacert.pem under certifi/
 
 # ---- 4) Analysis / Build
 a = Analysis(
-    ["src/gce_provider/__main__.py"],
+    ["src/gce_provider/pubsub.py"],
     pathex=PATHEX,
     binaries=[],
     datas=DATAS,
@@ -67,14 +66,14 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="hf-gce",
+    name="hf-pubsub",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,           # safer default; flip to True if you use UPX
+    upx=False,  # safer default; flip to True if you use UPX
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=True,        # CLI tool; keep console
+    console=True,  # CLI tool; keep console
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
