@@ -49,13 +49,13 @@ uv pip install .
 uv pip install pyinstaller
 
 # create the hf-gce CLI for GCE clusters
-uv run pyinstaller hf-gce.spec
+uv run pyinstaller hf-gce.spec --clean
 
 # create the hf-monitor CLI to monitor GCE VM events
-uv run pyinstaller hf-monitor.spec
+uv run pyinstaller hf-monitor.spec --clean
 
 # create the hf-gke CLI for GKE clusters
-uv run pyinstaller hf-gke.spec
+uv run pyinstaller hf-gke.spec --clean
 
 # example command
 # Note: you will expect to see an error message if certain environment variables are not exported in your environment. 
