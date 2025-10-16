@@ -66,6 +66,7 @@ dist/hf-gke --help
 
 The installed CLI executables can be moved to any location for execution, provided that the OS can support the version of Python used to build them. Both executables have been tested with Python 3.9.6.
 
+If you are using the GCE connector, make sure that you have installed both `hf-gce` and `hf-monitor` in the same directory.
 
 
 # Running from Python
