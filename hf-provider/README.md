@@ -51,6 +51,9 @@ uv pip install pyinstaller
 # create the hf-gce CLI for GCE clusters
 uv run pyinstaller hf-gce.spec
 
+# create the hf-monitor CLI to monitor GCE VM events
+uv run pyinstaller hf-monitor.spec
+
 # create the hf-gke CLI for GKE clusters
 uv run pyinstaller hf-gke.spec
 

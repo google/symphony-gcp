@@ -110,6 +110,7 @@ Using either method should result with a matching provider plugin directory:
 ```
 ├── bin
 │   ├── hf-gce
+│   ├── hf-monitor
 │   └── README.md
 └── scripts
     ├── getAvailableTemplates.sh

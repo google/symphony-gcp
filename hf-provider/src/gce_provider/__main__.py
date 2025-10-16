@@ -2,6 +2,7 @@ import argparse
 import json
 import os
 import sys
+from argparse import Namespace
 from typing import Any, Callable, Optional
 
 from pydantic import BaseModel
@@ -229,8 +230,6 @@ def dispatch_command(command: str, config: Config, payload: Optional[dict]):
     if cmd:
         # make sure pubsub is launched so that we can process any incoming events as a result of the command
         config.logger.info(f"I have cmd {cmd}")
-        if command != CommandNames.MONITOR_EVENTS.value and config.pubsub_auto_launch:
-            launch_pubsub_daemon()
 
         result = cmd(config, payload)
         config.logger.info(f"DISPATCHED|command: {command}; result: {result}")
@@ -252,7 +251,7 @@ def dispatch_command(command: str, config: Config, payload: Optional[dict]):
         raise Exception(f"Invalid command: {cmd}")
 
 
-def parse_args() -> tuple[str, Any]:
+def parse_args() -> Namespace:
     """
     Parse the args from the script
     :return: the command and payload
@@ -266,11 +265,25 @@ def parse_args() -> tuple[str, Any]:
     parser.add_argument("-f", "--json-file")
 
     parser.add_argument(
+        "-m",
+        "--monitor",
+        action="store_true",
+        help="Also launch a daemon that monitors VM events",
+    )
+    parser.add_argument(
         "-v", "--version", action="version", version=f"%(prog)s {get_version()}"
     )
 
     args = parser.parse_args()
+    return args
 
+
+def extract_payload(args) -> Optional[dict]:
+    """
+    Extract the payload specified in args, either as a filename to be loaded, or a CLI argument to be parsed
+    :param args:
+    :return:
+    """
     payload = None
     if args.json is not None:
         try:
@@ -284,14 +297,21 @@ def parse_args() -> tuple[str, Any]:
         except Exception as e:
             raise ValueError(f"Error while loading json payload at {json_path}") from e
 
-    return args.command, payload
+    return payload
 
 
 def main():
     try:
-        (command, payload) = parse_args()
+        args = parse_args()
+        payload = extract_payload(args)
         config = get_config()
-        dispatch_command(command, config, payload)
+        dispatch_command(args.command, config, payload)
+
+        if args.command != CommandNames.MONITOR_EVENTS.value and (
+            args.monitor or config.pubsub_auto_launch
+        ):
+            launch_pubsub_daemon()
+
         sys.exit(0)
     except Exception as e:
         print(f"Error: {e}")

@@ -47,7 +47,7 @@ api = [
 # Console entry points
 [project.scripts]
 hf-gce = "gce_provider.__main__:main"
-hf-pubsub = "gce_provider.pubsub:main"
+hf-monitor = "gce_provider.pubsub:main"
 hf-gke = "gke_provider.__main__:main"
 # backward compatibility; slated for removal later
 gcphf  = "gke_provider.__main__:main"

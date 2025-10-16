@@ -66,7 +66,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="hf-pubsub",
+    name="hf-monitor",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

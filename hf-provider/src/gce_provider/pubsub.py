@@ -46,25 +46,32 @@ def launch_pubsub_daemon():
     logger.info("Launching or refreshing pubsub daemon")
 
     if getattr(sys, "frozen", False):
-        # When running in a PyInstaller bundle, we need to invoke the hf-pubsub binary. This should be in the same
+        # When running in a PyInstaller bundle, we need to invoke the hf-monitor binary. This should be in the same
         # directory as the `hf-gce` binary.
         exe_dir = os.path.dirname(sys.argv[0])
-        pubsub_exe = os.path.join(exe_dir, "hf-pubsub")
-        target = pubsub_exe
-        logger.info(f"frozen launch target: {target}")
+        pubsub_exe = os.path.join(exe_dir, "hf-monitor")
+
+        if os.path.exists(pubsub_exe):
+            target = pubsub_exe
+            logger.info(f"frozen launch target: {target}")
+        else:
+            target = None
+            logger.error(f"No pubsub executable found at {pubsub_exe}")
     else:
         # Running in source / uv
         target = [sys.executable, __file__]
 
-    logger.debug(f"Launching pubsub process: {target}")
+    if target != None:
+        logger.debug(f"Launching pubsub process: {target}")
 
-    subprocess.Popen(
-        target if isinstance(target, list) else [target],
-        start_new_session=True,
-        stdout=None,  # inherit parent stdout
-        stderr=None,  # inherit parent stderr
-        stdin=subprocess.DEVNULL,  # squash any input
-    )
+        subprocess.Popen(
+            target if isinstance(target, list) else [target],
+            start_new_session=True,
+            # avoid any shared resources with the parent
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,  # squash any input
+        )
 
 
 def main():
