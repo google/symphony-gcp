@@ -49,10 +49,13 @@ uv pip install .
 uv pip install pyinstaller
 
 # create the hf-gce CLI for GCE clusters
-uv run pyinstaller hf-gce.spec
+uv run pyinstaller hf-gce.spec --clean
+
+# create the hf-monitor CLI to monitor GCE VM events
+uv run pyinstaller hf-monitor.spec --clean
 
 # create the hf-gke CLI for GKE clusters
-uv run pyinstaller hf-gke.spec
+uv run pyinstaller hf-gke.spec --clean
 
 # example command
 # Note: you will expect to see an error message if certain environment variables are not exported in your environment. 
@@ -63,6 +66,7 @@ dist/hf-gke --help
 
 The installed CLI executables can be moved to any location for execution, provided that the OS can support the version of Python used to build them. Both executables have been tested with Python 3.9.6.
 
+If you are using the GCE connector, make sure that you have installed both `hf-gce` and `hf-monitor` in the same directory.
 
 
 # Running from Python
