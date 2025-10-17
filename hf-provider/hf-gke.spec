@@ -27,7 +27,6 @@ HIDDENIMPORTS = []
 # your package
 HIDDENIMPORTS += collect_submodules("gke_provider")
 # common dynamic import offenders:
-HIDDENIMPORTS += collect_submodules("google")
 HIDDENIMPORTS += collect_submodules("kubernetes")
 
 DATAS = []
@@ -78,20 +77,3 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
-
-# ---- 5) (Optional) Windows file version resource
-# If you want the EXE "File Properties -> Details" to show VERSION,
-# generate a version resource file and pass it via EXE(..., version=...).
-# Example (uncomment and adjust if you need it):
-#
-# VERSION_FILE = build_dir / "hf_gke_version.txt"
-# VERSION_FILE.write_text(
-#     "[Version]\n"
-#     f"FileVersion={VERSION}\n"
-#     f"ProductVersion={VERSION}\n"
-#     "FileDescription=hf-gke\n"
-#     "CompanyName=\n"
-#     "LegalCopyright=\n",
-#     encoding="utf-8",
-# )
-# exe.version = str(VERSION_FILE)

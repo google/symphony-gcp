@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 from concurrent.futures import TimeoutError
@@ -11,6 +12,7 @@ from gce_provider.db.machines import MachineDao
 from gce_provider.utils import client_factory
 from gce_provider.utils.model_utils import to_simple_namespace
 from gce_provider.utils.process_lock import LockManager, LockManagerError
+
 
 # Documentation at https://cloud.google.com/pubsub/docs/publish-receive-messages-client-library
 
@@ -39,19 +41,37 @@ def callback(message: pubsub.subscriber.message.Message) -> None:
 
 
 def launch_pubsub_daemon():
-    """Launch pubsub as a process within Python"""
     config = get_config()
     logger = config.logger
     logger.info("Launching or refreshing pubsub daemon")
-    logger.debug(f"pubsub process: {__file__}")
-    subprocess.Popen(
-        [sys.executable, __file__],
-        start_new_session=True,
-        # avoid any shared resources with the parent
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-        stdin=subprocess.DEVNULL,
-    )
+
+    if getattr(sys, "frozen", False):
+        # When running in a PyInstaller bundle, we need to invoke the hf-monitor binary. This should be in the same
+        # directory as the `hf-gce` binary.
+        exe_dir = os.path.dirname(sys.argv[0])
+        pubsub_exe = os.path.join(exe_dir, "hf-monitor")
+
+        if os.path.exists(pubsub_exe):
+            target = pubsub_exe
+            logger.info(f"frozen launch target: {target}")
+        else:
+            target = None
+            logger.error(f"No pubsub executable found at {pubsub_exe}")
+    else:
+        # Running in source / uv
+        target = [sys.executable, __file__]
+
+    if target != None:
+        logger.debug(f"Launching pubsub process: {target}")
+
+        subprocess.Popen(
+            target if isinstance(target, list) else [target],
+            start_new_session=True,
+            # avoid any shared resources with the parent
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,  # squash any input
+        )
 
 
 def main():

@@ -7,7 +7,7 @@ resource "google_compute_instance_template" "symphony_mgmt_template" {
 
   disk {
     source_image = var.symphony_mgmt_template.disk.source_image
-    type         = var.symphony_mgmt_template.disk.type
+    disk_type     = var.symphony_mgmt_template.disk.type
     disk_size_gb = var.symphony_mgmt_template.disk.size
     auto_delete  = true
     boot         = true

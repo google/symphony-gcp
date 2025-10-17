@@ -106,7 +106,7 @@ variable "symphony_mgmt_template" {
   default = {
     machine_type = "n2-standard-2"
     disk = {
-      type         = "pd_standard"
+      type         = "pd-standard"
       size         = 30
   }
 }
@@ -130,7 +130,7 @@ variable "symphony_compute_template" {
   default = {
     machine_type = "n2-standard-2"
     disk = {
-      type         = "pd_standard"
+      type         = "pd-standard"
       size         = 30
   }
 }

@@ -1,6 +1,6 @@
 import sqlite3
 from types import SimpleNamespace
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Dict, Tuple
 
 import google.cloud.compute_v1 as compute
 from tenacity import retry, stop_after_attempt, wait_exponential, wait_random
@@ -245,10 +245,6 @@ class MachineDao:
             f"Finished handling instance creation callback for operation {message.operation.id}"
         )
 
-    # @retry(
-    #     wait=wait_random(min=1, max=10),
-    #     stop=stop_after_attempt(100),
-    # )
     def _handle_instances_inserted(
         self, message: SimpleNamespace
     ) -> Callable[[SimpleNamespace], None]:
@@ -533,3 +529,125 @@ class MachineDao:
                 HFReturnRequestsResponse.Request(machine=row[0], gracePeriod=row[1])
                 for row in rows
             ]
+
+    def check_or_raise(self) -> None:
+        """
+        Fast pre-flight check:
+            - DB reachable and writable
+            - Table exists
+            - DB integrity quick check passes
+            - Insert/Delete capability sanity (within a rollback)
+        Raisess a RuntimeError with a short message if something looks wrong
+        """
+        ok, details = self._quick_check()
+        if not ok:
+            err = "DB quick check failed: " + "; ".join(
+                f"{i}={j}" for i, j in details.items() if j not in (True, "ok")
+            )
+            self.logger.error(err)
+            raise RuntimeError(err)
+
+    def _quick_check(self) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Return (ok, details) where the details include:
+            - table_exists (boolean)
+            - writable (boolean)
+            - integrity (ok or error text)
+            - insert_ok (boolean) # False if schema required values
+            - delete_ok (boolean) # True when insert_ok is True
+            - needs_required_values (boolean)
+        We just used SAVEPOINT/ROLLBACK and never commit any changes
+        """
+
+        details: Dict[str, Any] = {
+            "table_exists": False,
+            "writable": False,
+            "integrity": "unknown",
+            "insert_ok": False,
+            "delete_ok": False,
+            "needs_required_values": False,
+        }
+
+        try:
+            with sqlite3.connect(
+                self.config.db_path,
+                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+            ) as conn:
+                cur = conn.cursor()
+                cur.execute("PRAGMA busy_timeout=2000")
+
+                # Step 1: Verify Table Existence
+                self.logger.debug("Step 1: Verify Table Existence")
+                cur.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND name='machines'"
+                )
+                details["table_exists"] = cur.fetchone() is not None
+                if not details["table_exists"]:
+                    details["integrity"] = "machines table missing"
+                    return (False, details)
+
+                # Step 2: Check writable permission (Ensure file is writable)
+                self.logger.debug(
+                    "Step 2: Check writable permission (Ensure file is writable)"
+                )
+                try:
+                    cur.execute("BEGIN IMMEDIATE")
+                    details["writable"] = True
+                    conn.rollback()
+                except sqlite3.OperationalError as e:
+                    details["integrity"] = f"Not Writable: {e}"
+                    self.logger.error(details["integrity"])
+                    return (False, details)
+
+                # Step 3: Integrity Check
+                self.logger.debug("Step 3: Integrity Check")
+                try:
+                    cur.execute("PRAGMA quick_check")
+                    row = cur.fetchone()
+                    details["integrity"] = (
+                        "ok"
+                        if (row and row[0] == "ok")
+                        else (row[0] if row else "unknown")
+                    )
+                    if details["integrity"] != "ok":
+                        return (False, details)
+                except sqlite3.DatabaseError as e:
+                    details["integrity"] = f"Quick Check Error: {e}"
+                    self.logger.error(details["integrity"])
+                    return (False, details)
+
+                # Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)
+                self.logger.debug(
+                    "Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)"
+                )
+                try:
+                    # Check Insert
+                    cur.execute("SAVEPOINT check_tx")
+                    cur.execute("INSERT INTO machines DEFAULT VALUES")
+                    rowId = cur.lastrowid
+                    details["insert_ok"] = True
+
+                    # Check Delete
+                    cur.execute("DELETE FROM machines WHERE rowid = ?", (rowId,))
+                    details["delete_ok"] = cur.rowcount == 1
+                except sqlite3.IntegrityError:
+                    details["needs_required_values"] = True
+                except sqlite3.OperationalError as e:
+                    details["integrity"] = f"Insert/Delete Operational Error: {e}"
+                    self.logger.error(details["integrity"])
+                    conn.execute("ROLLBACK TO check_tx")
+                    conn.execute("RELEASE check_tx")
+                    return (False, details)
+                finally:
+                    try:
+                        conn.execute("ROLLBACK TO check_tx")
+                        conn.execute("RELEASE check_tx")
+                    except sqlite3.OperationalError:
+                        pass
+                self.logger.debug("[DONE] - DB is healthy")
+                return (True, details)  # means db is healthy :)
+
+        except sqlite3.Error as e:
+            details["integrity"] = f"Connection Error: {e}"
+            self.logger.error(details["integrity"])
+            return (False, details)

@@ -45,3 +45,7 @@ output "nfs_disk_capacity" {
 output "nfs_disk_mount_point" {
   value = module.nfs_server.nfs_disk_mount_point
 }
+
+output "symphony_template_configuration_vars" {
+  value = local.common_vars
+}

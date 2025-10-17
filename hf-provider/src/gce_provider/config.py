@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from functools import lru_cache
 
 from dotenv import load_dotenv
@@ -64,7 +65,10 @@ ENV_PLUGIN_DB_FILENAME = prepend_env_var("DB_FILENAME")
 ENV_PLUGIN_CONFIG_FILENAME = prepend_env_var("CONFIG_FILENAME")
 
 HF_PROVIDER_NAME = os.environ.get(ENV_HF_PROVIDER_NAME, DEFAULT_HF_PROVIDER_NAME)
-HF_PROVIDER_LOGDIR = os.environ.get(ENV_HF_PROVIDER_LOGDIR)
+HF_PROVIDER_LOGDIR = os.environ.get(
+    ENV_HF_PROVIDER_LOGDIR,
+    os.path.dirname(sys.argv[0]),  # default to directory of the binary
+)
 EGOSC_INSTANCE_HOST = os.environ.get(ENV_EGOSC_INSTANCE_HOST)
 HF_PROVIDER_LOGFILE = (
     os.path.join(
@@ -111,6 +115,19 @@ class Config:
             raise Exception(
                 f"Error: Please configure the plugin via the file {hf_provider_conf_path}"
             )
+
+        # configure logging. This should occur before any log entries are emitted
+        self.hf_provider_log_file = hf_provider_conf.get(
+            CONFIG_VAR_LOGFILE, HF_PROVIDER_LOGFILE
+        )
+        self.log_level = hf_provider_conf.get(CONFIG_VAR_LOG_LEVEL, DEFAULT_LOG_LEVEL)
+
+        logging.basicConfig(
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            filename=self.hf_provider_log_file,
+            level=self.log_level.upper() if self.log_level else DEFAULT_LOG_LEVEL,
+        )
+        self.logger = logging.getLogger(__name__)
 
         # determine the instance label value text, defaulting to hostname
         self.instance_label_name_text = "symphony_gce_connector"

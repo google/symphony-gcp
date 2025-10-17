@@ -74,3 +74,30 @@ variable "run_id" {
   description = "The run id to tag the resources with."
   default = null
 }
+
+# ============================== Access ==============================
+
+variable "public_key" {
+  type        = string
+  description = "The public SSH key to be used for access."
+  sensitive   = true
+}
+
+# ============================== Access ==============================
+
+variable "compute_templates" {
+  type = list(object({
+    name = string
+    disk_size = number
+    disk_type = string
+    zone = string
+    machine_type = string
+  }))
+  default = [ {
+    name = "e2-4"
+    disk_size = 50
+    disk_type = "pd-standard"
+    zone = "us-central1-a"
+    machine_type = "e2-standard-4"
+  } ]
+}

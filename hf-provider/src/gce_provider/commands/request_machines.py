@@ -32,26 +32,31 @@ def request_machines(
     instance_prefix = config.gcp_instance_prefix
     request_id = generate_unique_id()
 
-    logger.info(f"Received request to provision {count} machines with prefix {instance_prefix}")
+    logger.info(
+        f"Received request to provision {count} machines with prefix {instance_prefix}"
+    )
 
     # Prepare labels for the instances
     labels = {
-       "symphony-deployment": f"{config.hf_provider_name}-hostfactory",
-       "symphony-requestId": request_id,
-       config.instance_label_name_text: config.instance_label_value_text
+        "symphony-deployment": f"{config.hf_provider_name}-hostfactory",
+        "symphony-requestId": request_id,
+        config.instance_label_name_text: config.instance_label_value_text,
     }
 
     instances = [
         compute.PerInstanceConfig(
             name=f"{instance_prefix}{generate_unique_id()}",
-            preserved_state=compute.PreservedState(
-                metadata=labels
-            )
+            preserved_state=compute.PreservedState(metadata=labels),
         )
         for _ in range(count)
     ]
 
     try:
+        # Create MachineDao instance and
+        # Run the fast and raises RuntimeError if something went wrong
+        dao = MachineDao(config)
+        dao.check_or_raise()
+
         client = client_factory.instance_group_managers_client()
         request = compute.CreateInstancesInstanceGroupManagerRequest(
             project=config.gcp_project_id,
@@ -65,8 +70,10 @@ def request_machines(
         result = client.create_instances(request=request)
         logger.debug(f"Submitted request {request_id}")
 
-        MachineDao(config).store_request_machines(result.name, request)
+        dao.store_request_machines(result.name, request)
         return HFRequestMachinesResponse(requestId=request_id)
     except Exception as e:
-        logger.error(f"Error creating GCPSymphonyResource: {e}")
+        logger.error(
+            f"Error creating compute.CreateInstancesInstanceGroupManagerRequest: {e}"
+        )
         raise e

@@ -13,8 +13,11 @@ resource "null_resource" "update-configuration-files" {
     triggers = {
         plugin_config = filesha256(local.plugin_config)
         template_config = filesha256(local.template_config)
+        # TODO: Add template variables to triggers
+        # templates = var.compute_templates
         plugin_script_tpl = filesha256(local.plugin_script_tpl)
         run_id = local.run_id
+
     }  
     provisioner "local-exec" {
 
@@ -74,17 +77,48 @@ locals {
     cat <<EOF > $GCP_GCE_CONF_DIR/gcpgceinstprov_config.json
     ${templatefile(local.plugin_config, {
       GCP_PROJECT_ID=var.project_id,
-      PUBSUB_TOPIC=google_pubsub_topic.plugin-pubsub.name
+      PUBSUB_SUBSCRIPTION=google_pubsub_subscription.plugin-pubsub-subscription.name
     })}
     EOF
 
     echo "Upgrading plugin template config file..."
     cat <<EOF > $GCP_GCE_CONF_DIR/gcpgceinstprov_templates.json
-    ${templatefile(local.template_config, {
-      DESIRED_ZONE=google_compute_instance_group_manager.hf-compute-manager.zone,
-      MIG_NAME=google_compute_instance_group_manager.hf-compute-manager.name
-    })}
+    ${file(local.template_config)}
     EOF
+
+    # TODO: In a production environment the ncpus and other attributes should also be 
+    # in the template
+    TEMP_FILE=$(mktemp)
+    %{ for name, mig in google_compute_instance_group_manager.hf-compute-manager}
+    cat $GCP_GCE_CONF_DIR/gcpgceinstprov_templates.json | jq -r --from-file <(cat <<EOF
+    .templates +=[{
+      "templateId": "${name}",
+      "maxNumber": 99999,
+      "attributes": {
+        "type": [
+          "String",
+          "X86_64"
+        ],
+        "ncpus": [
+          "Numeric",
+          "1"
+        ],
+        "ncores": [
+          "Numeric",
+          "1"
+        ],
+        "nram": [
+          "Numeric",
+          "1024"
+        ]
+      },
+      "gcp_zone": "${mig.zone}",
+      "gcp_instance_group": "${mig.name}"
+    }]
+    EOF
+    ) > $TEMP_FILE
+    cp $TEMP_FILE $GCP_GCE_CONF_DIR/gcpgceinstprov_templates.json
+    %{ endfor }
 
     echo "Upgrading plugin script..."
     cat <<'EOF' > $GCP_GCE_SCRIPT_DIR/script.sh
@@ -92,12 +126,6 @@ locals {
       run_id = var.run_id
     })}
     EOF
-
-    echo "Initializing database..."
-    export HF_DBDIR=$HF_TOP/db
-    export HF_PROVIDER_CONFDIR=$HF_TOP/conf/providers/gcpgceinst
-    [[ ! -d $HF_DBDIR ]] && mkdir -p $HF_DBDIR
-    [[ ! -f $HF_DBDIR/gcp-symphony ]] && hf-gce initializeDB
 
     echo "Upgrading google-symphony-hf..."
     if python3.12 --version >/dev/null 2>&1; then
@@ -112,6 +140,13 @@ locals {
       --index=https://oauth2accesstoken:$(gcloud auth print-access-token)@${var.python_repository}/simple google-symphony-hf \
       --upgrade
 
+    echo "Initializing database..."
+    export HF_DBDIR=$HF_TOP/db
+    export HF_PROVIDER_CONFDIR=$HF_TOP/conf/providers/gcpgceinst
+    [[ ! -d $HF_DBDIR ]] && mkdir -p $HF_DBDIR
+    [[ ! -f $HF_DBDIR/gcp-symphony ]] && hf-gce initializeDB
+
+    # Start Symphony
     max_attempts=10
     attempt=1
     while true; do

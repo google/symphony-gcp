@@ -185,3 +185,6 @@ cython_debug/
 /k8s-operator/scratch/
 kubeconfig
 /hf-provider/data/
+
+# db
+/database
