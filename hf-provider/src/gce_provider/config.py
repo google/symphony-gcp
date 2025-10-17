@@ -8,6 +8,7 @@ from socket import gethostname
 
 import common.utils.path_utils as path_utils
 from common.utils.file_utils import load_json_file
+from logging.handlers import RotatingFileHandler
 
 # Load environment variables from .env file (if it exists)
 load_dotenv()
@@ -25,6 +26,8 @@ ENV_HF_PROVIDER_NAME = "HF_PROVIDER_NAME"
 
 # Default configuration values
 DEFAULT_LOG_LEVEL = "WARNING"
+DEFAULT_LOG_MAX_FILE_SIZE = "10" # 10 MB
+DEFAULT_LOG_MAX_ROTATE = "5"
 DEFAULT_INSTANCE_PREFIX = "sym-"
 DEFAULT_HF_PROVIDER_NAME = "gcp-symphony"
 DEFAULT_HF_TEMPLATES_FILENAME = "gcpgceinstprov_templates.json"
@@ -44,6 +47,8 @@ CONFIG_VAR_GCP_PROJECT_ID = "GCP_PROJECT_ID"
 CONFIG_VAR_GCP_INSTANCE_PREFIX = "GCP_INSTANCE_PREFIX"
 CONFIG_VAR_LOGFILE = "LOGFILE"
 CONFIG_VAR_LOG_LEVEL = "LOG_LEVEL"
+CONFIG_VAR_LOG_MAX_FILE_SIZE = "LOG_MAX_FILE_SIZE"
+CONFIG_VAR_LOG_MAX_ROTATE = "LOG_MAX_ROTATE"
 CONFIG_VAR_PUBSUB_TIMEOUT_SECONDS = "PUBSUB_TIMEOUT"
 CONFIG_VAR_PUBSUB_TOPIC = "PUBSUB_TOPIC"
 CONFIG_VAR_PUBSUB_SUBSCRIPTION = "PUBSUB_SUBSCRIPTION"
@@ -188,6 +193,35 @@ class Config:
                 CONFIG_VAR_PUBSUB_AUTOLAUNCH, DEFAULT_PUBSUB_AUTOLAUNCH
             )
         )
+
+        # configure logging
+        self.hf_provider_log_file = hf_provider_conf.get(
+            CONFIG_VAR_LOGFILE, HF_PROVIDER_LOGFILE
+        )
+        self.log_level = hf_provider_conf.get(CONFIG_VAR_LOG_LEVEL, DEFAULT_LOG_LEVEL)
+
+        # Create rotating handler (append by default)
+        handler = RotatingFileHandler(
+            filename=str(self.hf_provider_log_file),
+            maxBytes=int(
+                hf_provider_conf.get(CONFIG_VAR_LOG_MAX_FILE_SIZE, DEFAULT_LOG_MAX_FILE_SIZE)
+            ) * 1024 * 1024,  # nth MB in bytes
+            backupCount=hf_provider_conf.get(
+                CONFIG_VAR_LOG_MAX_ROTATE, DEFAULT_LOG_MAX_ROTATE
+            )
+        )
+        formatter = logging.Formatter(
+            "%(asctime)s - %(levelname)s - %(message)s",
+        )
+        handler.setFormatter(formatter)
+
+        logging.basicConfig(
+            format="%(asctime)s - %(levelname)s - %(message)s",
+            filename=self.hf_provider_log_file,
+            level=self.log_level.upper() if self.log_level else DEFAULT_LOG_LEVEL,
+        )
+        self.logger = logging.getLogger(__name__)
+        self.logger.addHandler(handler)
 
         # iterate over the class attributes and log them
         if self.log_level.upper() == "DEBUG":
