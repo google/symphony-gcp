@@ -33,6 +33,7 @@ DEFAULT_HF_PROVIDER_NAME = "gcp-symphony"
 DEFAULT_HF_TEMPLATES_FILENAME = "gcpgceinstprov_templates.json"
 DEFAULT_CONFIG_FILENAME = "gcpgceinstprov_config.json"
 DEFAULT_DB_FILENAME = DEFAULT_HF_PROVIDER_NAME
+DEFAULT_SHF_DB_FILENAME = "hf.db" # Symphony HostFactory default DB filename
 DEFAULT_GCP_CREDENTIALS_FILE = None
 DEFAULT_PUBSUB_TIMEOUT_SECONDS = "600"
 DEFAULT_PUBSUB_TOPIC = "hf-gce-vm-events"
@@ -41,6 +42,9 @@ DEFAULT_PUBSUB_LOCKFILE = "/tmp/sym_hf_gcp_pubsub.lock"
 DEFAULT_PUBSUB_AUTOLAUNCH = True
 
 CONFIG_VAR_HF_DBDIR = "HF_DBDIR"
+CONFIG_VAR_DB_FILENAME = "DB_FILENAME" 
+CONFIG_VAR_SHF_DBDIR = "SHF_DBDIR" # Symphony HostFactory DB directory
+CONFIG_VAR_SHF_DB_FILENAME = "SHF_DB_FILENAME" # Symphony HostFactory DB filename
 CONFIG_VAR_HF_TEMPLATES_FILENAME = "HF_TEMPLATES_FILENAME"
 CONFIG_VAR_GCP_CREDENTIALS_FILE = "GCP_CREDENTIALS_FILE"
 CONFIG_VAR_GCP_PROJECT_ID = "GCP_PROJECT_ID"
@@ -62,6 +66,7 @@ def prepend_env_var(var: str) -> str:
 
 # Environment vars to configure this plugin
 ENV_PLUGIN_DB_FILENAME = prepend_env_var("DB_FILENAME")
+ENV_PLUGIN_SHF_DB_FILENAME = prepend_env_var("SHF_DB_FILENAME") # Symphony HostFactory DB filename
 ENV_PLUGIN_CONFIG_FILENAME = prepend_env_var("CONFIG_FILENAME")
 
 HF_PROVIDER_NAME = os.environ.get(ENV_HF_PROVIDER_NAME, DEFAULT_HF_PROVIDER_NAME)
@@ -166,11 +171,29 @@ class Config:
                     " to provide that value at runtime."
                 )
             )
-
-        self.db_name = os.environ.get(ENV_PLUGIN_DB_FILENAME, DEFAULT_DB_FILENAME)
+        # Made db_filename available inside the config JSON as well
+        # Configure database settings
+        # First check environment variable, then config file, finally use default
+        self.db_name = os.environ.get(ENV_PLUGIN_DB_FILENAME, 
+            hf_provider_conf.get(CONFIG_VAR_DB_FILENAME, DEFAULT_DB_FILENAME)
+        )
         self.db_path = path_utils.normalize_path(self.hf_db_dir, self.db_name)
 
-        # configure pubsub
+        # Configure Symphony Host Factory database settings
+        # Use the same directory as the main DB if not specified
+        self.shf_db_dir = hf_provider_conf.get(
+            CONFIG_VAR_SHF_DBDIR, self.hf_db_dir
+        )
+        # Set Symphony HF database name with fallback chain:
+        # 1. Environment variable
+        # 2. Configuration file
+        # 3. Default value
+        self.shf_db_name = os.environ.get(ENV_PLUGIN_SHF_DB_FILENAME, 
+            hf_provider_conf.get(CONFIG_VAR_SHF_DB_FILENAME, DEFAULT_SHF_DB_FILENAME)
+        )
+        self.shf_db_path = path_utils.normalize_path(self.shf_db_dir, self.shf_db_name)
+
+        # Configure Google Cloud Pub/Sub settings
         self.pubsub_timeout_seconds = int(
             hf_provider_conf.get(
                 CONFIG_VAR_PUBSUB_TIMEOUT_SECONDS, DEFAULT_PUBSUB_TIMEOUT_SECONDS
