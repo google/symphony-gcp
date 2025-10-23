@@ -145,8 +145,8 @@ class SymphonyCleaner:
             params = [[x for x in batch]]
 
             try:
-                # with Transaction(self.config) as trans:
-                #     trans.executemany([Statement(query, params)])
+                with Transaction(self.config) as trans:
+                    trans.executemany([Statement(query, params)])
                 total_deleted += len(batch)
             except Exception:
                 self.logger.exception("Batch delete failed (rolled back automatically)")
