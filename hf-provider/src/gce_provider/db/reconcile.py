@@ -7,7 +7,6 @@ from gce_provider.utils.constants import MachineState
 
 # ---------- Configuration ----------
 HF_PROVIDER_NAME = "gcpgceinst"
-MACHINE_TARGET_STATES = (MachineState.DELETED.value,) # DELETED= (400,)
 DELETE_BATCH_SIZE = 500
 SQLITE_MAX_VARS = 900
 
@@ -74,48 +73,13 @@ class SymphonyCleaner:
     def __init__(
         self,
         config: Config,
-        machine_states: Iterable[str] = MACHINE_TARGET_STATES,
         batch_size: int = DELETE_BATCH_SIZE,
     ) -> None:
         if config is None:
             config = get_config()
         self.config = config
         self.logger = config.logger
-
-        self.machine_states = tuple(machine_states)
         self.batch_size = batch_size
-
-    def _uids_from_in(self, conn: sqlite3.Connection, column: str, values: Set[str]) -> Set[int]:
-        """Fetch match rows with DELETED machine state and delete_grace_period = 0"""
-        if not values:
-            return set()
-        ph = ",".join("?" for _ in values)
-        status_ph = ",".join("?" for _ in self.machine_states)
-        # WHERE:
-        # - request_id in <request-ids> and 
-        # - machine_state in (MachineState.DELETED.value) and 
-        # - delete_grace_period = 0
-        sql = (
-            f"SELECT machine_name FROM machines "
-            f"WHERE {column} IN ({ph}) "
-            f"AND machine_state IN ({status_ph}) "
-            f"AND delete_grace_period = 0"
-        )
-        params = tuple(values) + tuple(self.machine_states)
-        cur = conn.cursor()
-        cur.execute(sql, params)
-        return {row["machine_name"] for row in cur.fetchall()}
-
-    def find_matched(self, id_sets: Dict[str, Set[str]]) -> Set[int]:
-        """Find machines that match any HF identifier."""
-        conn = sqlite_connect_readonly(self.config.db_path)
-        try:
-            matched: Set[int] = set()
-            matched.update(self._uids_from_in(conn, "request_id", id_sets.get("cloud_request_ids", set())))
-            self.logger.info("Symphony: matched %d machine rows present in HF", len(matched))
-            return matched
-        finally:
-            conn.close()
 
     def find_orphans(self, id_sets: Dict[str, Set[str]]) -> Set[str]:
         """
@@ -181,8 +145,8 @@ class SymphonyCleaner:
             params = [[x for x in batch]]
 
             try:
-                with Transaction(self.config) as trans:
-                    trans.executemany([Statement(query, params)])
+                # with Transaction(self.config) as trans:
+                #     trans.executemany([Statement(query, params)])
                 total_deleted += len(batch)
             except Exception:
                 self.logger.exception("Batch delete failed (rolled back automatically)")
@@ -204,12 +168,9 @@ def main():
 
     # Reconcile and delete
     cleaner = SymphonyCleaner(config)
-    matched = cleaner.find_matched(id_sets)
-    orphans = cleaner.find_orphans(id_sets)
-    to_delete = matched.union(orphans)
+    to_delete = cleaner.find_orphans(id_sets)
 
-    logger.info("Combined deletion set size: %d (matched=%d, orphans=%d)",
-                len(to_delete), len(matched), len(orphans))
+    logger.info("Combined deletion set size: %d)", len(to_delete))
 
     if to_delete:
         deleted_count = cleaner.delete_by_uids(to_delete)
