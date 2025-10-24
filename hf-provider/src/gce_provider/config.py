@@ -33,6 +33,7 @@ DEFAULT_HF_PROVIDER_NAME = "gcp-symphony"
 DEFAULT_HF_TEMPLATES_FILENAME = "gcpgceinstprov_templates.json"
 DEFAULT_CONFIG_FILENAME = "gcpgceinstprov_config.json"
 DEFAULT_DB_FILENAME = DEFAULT_HF_PROVIDER_NAME
+DEFAULT_DB_RETURN_VM_TTL = "30" # 30 days
 DEFAULT_SHF_DB_FILENAME = "hf.db" # Symphony HostFactory default DB filename
 DEFAULT_GCP_CREDENTIALS_FILE = None
 DEFAULT_PUBSUB_TIMEOUT_SECONDS = "600"
@@ -43,6 +44,7 @@ DEFAULT_PUBSUB_AUTOLAUNCH = True
 
 CONFIG_VAR_HF_DBDIR = "HF_DBDIR"
 CONFIG_VAR_DB_FILENAME = "DB_FILENAME" 
+CONFIG_VAR_DB_RETURN_VM_TTL = "DB_RETURN_VM_TTL"
 CONFIG_VAR_SHF_DBDIR = "SHF_DBDIR" # Symphony HostFactory DB directory
 CONFIG_VAR_SHF_DB_FILENAME = "SHF_DB_FILENAME" # Symphony HostFactory DB filename
 CONFIG_VAR_HF_TEMPLATES_FILENAME = "HF_TEMPLATES_FILENAME"
@@ -192,6 +194,13 @@ class Config:
             hf_provider_conf.get(CONFIG_VAR_SHF_DB_FILENAME, DEFAULT_SHF_DB_FILENAME)
         )
         self.shf_db_path = path_utils.normalize_path(self.shf_db_dir, self.shf_db_name)
+
+        # Reconciliation settings
+        self.db_return_vm_ttl = int(
+            hf_provider_conf.get(
+                CONFIG_VAR_DB_RETURN_VM_TTL, DEFAULT_DB_RETURN_VM_TTL
+            )
+        )
 
         # Configure Google Cloud Pub/Sub settings
         self.pubsub_timeout_seconds = int(

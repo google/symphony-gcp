@@ -326,7 +326,8 @@ class MachineDao:
                         UPDATE machines
                         SET machine_state={MachineState.DELETED.value},
                             delete_operation_id=?,
-                            delete_grace_period=0
+                            delete_grace_period=0,
+                            return_ttl=DATETIME(CURRENT_TIMESTAMP, '+{self.config.db_return_vm_ttl} days')
                         WHERE machine_name IN ({machine_name_param})""",
                         params,
                     )
@@ -613,7 +614,7 @@ class MachineDao:
                         return (False, details)
                 except sqlite3.DatabaseError as e:
                     details["integrity"] = f"Quick Check Error: {e}"
-                    self.logger.error(details["integrity"])
+                    # self.logger.error(details["integrity"])
                     return (False, details)
 
                 # Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)
