@@ -26,6 +26,7 @@ from gce_provider.commands.request_machines import request_machines
 from gce_provider.commands.request_return_machines import request_return_machines
 from gce_provider.config import Config, get_config
 from gce_provider.db.initialize import main as initialize_db
+from gce_provider.db.machines import MachineDao
 from gce_provider.model.models import HFGceRequestMachines
 from gce_provider.pubsub import launch_pubsub_daemon, main as monitor_events
 from gce_provider.utils.constants import CommandNames
@@ -57,6 +58,7 @@ valid_commands = ValidCommands(
         CommandNames.MONITOR_EVENTS.value: lambda config, payload: cmd_monitor_events(
             config, payload
         ),
+        "purgeMachines": lambda config, payload: cmd_purge_machines(config, payload),
         "requestMachines": lambda config, payload: cmd_request_machines(
             config, payload
         ),
@@ -90,6 +92,10 @@ def cmd_monitor_events(_: Config, __: Optional[dict]) -> Optional[BaseModel]:
     monitor_events()
     return NullOutput()
 
+def cmd_purge_machines(config: Config, __:Optional[dict] = None) -> Optional[BaseModel]:
+    """Reconcile the database"""
+    MachineDao(config).purge_expired_returned_machines()
+    return NullOutput()
 
 def cmd_get_available_templates(
     config: Config,

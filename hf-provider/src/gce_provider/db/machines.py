@@ -303,6 +303,11 @@ class MachineDao:
             f"Finished handling instance deletion for operation {message.operation.id}"
         )
 
+        # Check if scheduler purge command is disabled
+        if not self.config.scheduler_use_purge_cmd:
+            # Check for possible cleanup of expired returned machines
+            self.purge_expired_returned_machines()
+
         return None
 
     def _handle_instance_deleted(self, message: SimpleNamespace) -> None:
@@ -336,6 +341,11 @@ class MachineDao:
         self.logger.info(
             f"Finished handling instance deletion for operation {message.operation.id}"
         )
+
+        # Check if scheduler purge command is disabled
+        if not self.config.scheduler_use_purge_cmd:
+            # Check for possible cleanup of expired returned machines
+            self.purge_expired_returned_machines()
 
         return None
 
@@ -613,7 +623,7 @@ class MachineDao:
                         return (False, details)
                 except sqlite3.DatabaseError as e:
                     details["integrity"] = f"Quick Check Error: {e}"
-                    self.logger.error(details["integrity"])
+                    # self.logger.error(details["integrity"])
                     return (False, details)
 
                 # Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)
@@ -651,3 +661,41 @@ class MachineDao:
             details["integrity"] = f"Connection Error: {e}"
             self.logger.error(details["integrity"])
             return (False, details)
+        
+    def purge_expired_returned_machines(self) -> int:
+        """Delete machine rows where return_ttl has expired."""
+
+        selectQuery = f"""
+            SELECT machine_name
+            FROM machines
+            WHERE machine_state IN ({MachineState.DELETED.value}, {MachineState.DELETE_REQUESTED.value})
+                AND delete_grace_period = 0
+            AND DATETIME(updated_at, '+{self.config.return_vm_ttl} days') <= CURRENT_TIMESTAMP
+        """
+
+        with sqlite3.connect(
+            self.config.db_path,
+            detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+        ) as conn:
+            cur = conn.cursor()
+            cur.execute(selectQuery)
+            candidate_for_deletion = [row[0] for row in cur.fetchall()]
+
+        if not candidate_for_deletion:
+            self.logger.debug("No expired returned machines found for cleanup.")
+            return 0
+
+        deleted_count = len(candidate_for_deletion)
+
+        placeholders = ", ".join(["?"] * deleted_count)
+        deleteQuery = f"DELETE FROM machines WHERE machine_name IN ({placeholders})"
+
+        with Transaction(self.config) as trans:
+            trans.execute(
+                [
+                    Statement(deleteQuery, candidate_for_deletion)
+                ]
+            )
+
+        self.logger.info(f"Successfully cleaned up {deleted_count} expired returned machines.")
+        return deleted_count
