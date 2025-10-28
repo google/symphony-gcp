@@ -24,8 +24,9 @@ The RPM package's default `prefix` is `/opt/ibm/spectrumcomputing`. Use the rpm 
 After building the cli executable, install it to the `bin` directory.
 
 ## Result
-Using either method should result with a matching provider plugin directory:
+Using either method should result with a matching provider plugin directory :
 ```
+$HF_TOP/$HF_VERSION/providerplugins/gcpgke
 ├── bin
 │   ├── hf-gke
 │   └── README.md
@@ -67,7 +68,7 @@ Copy `gcpgkeinstprov_config.json.dist` to `gcpgkeinstprov_config.json`
 ### Example file:
 ```
 {
-  "GKE_KUBECONFIG": "KUBECONFIG"
+  "GKE_KUBECONFIG": "kubeconfig"
 }
 ```
 
@@ -125,7 +126,7 @@ Modify to suit, with the understanding that template attributes should be aligne
 }
 ```
 ## kubeconfig
-The default `gcpgkeinstprov_config.json` specifies a standard kubectl config file for the kubernetes cluster named `kubeconfig` within this provider instance directory. If following this default, ensure `kubeconfig` is a valid kubctl config file for your kubernetes cluster.
+The default `gcpgkeinstprov_config.json` specifies a standard kubectl config file for the kubernetes cluster named `kubeconfig` within this provider instance directory. If following this default, ensure `kubeconfig` is a valid kubctl config file for your kubernetes cluster. 
 
 ## pod-specs/pod-spec.yaml
 Copy `pod-spec.yaml.dist` to `pod-spec.yaml`
@@ -158,6 +159,7 @@ containers:
 
 ## Resulting provider instance directory should match:
 ```
+$HF_TOP/conf/providers/gcpgkeinst/
 ├── gcpgkeinstprov_config.json
 ├── gcpgkeinstprov_templates.json
 ├── kubeconfig
