@@ -303,10 +303,10 @@ class MachineDao:
             f"Finished handling instance deletion for operation {message.operation.id}"
         )
 
-        # Check if scheduler purge command is disabled
-        if not self.config.scheduler_use_purge_cmd:
+        # Check if auto trim command is enabled
+        if self.config.auto_run_trim_db:
             # Check for possible cleanup of expired returned machines
-            self.purge_expired_returned_machines()
+            self.remove_expired_returned_machines()
 
         return None
 
@@ -342,10 +342,10 @@ class MachineDao:
             f"Finished handling instance deletion for operation {message.operation.id}"
         )
 
-        # Check if scheduler purge command is disabled
-        if not self.config.scheduler_use_purge_cmd:
+        # Check if auto trim command is enabled
+        if self.config.auto_run_trim_db:
             # Check for possible cleanup of expired returned machines
-            self.purge_expired_returned_machines()
+            self.remove_expired_returned_machines()
 
         return None
 
@@ -662,7 +662,7 @@ class MachineDao:
             self.logger.error(details["integrity"])
             return (False, details)
         
-    def purge_expired_returned_machines(self) -> int:
+    def remove_expired_returned_machines(self) -> int:
         """Delete machine rows where return_ttl has expired."""
 
         selectQuery = f"""
@@ -670,7 +670,7 @@ class MachineDao:
             FROM machines
             WHERE machine_state IN ({MachineState.DELETED.value}, {MachineState.DELETE_REQUESTED.value})
                 AND delete_grace_period = 0
-            AND DATETIME(updated_at, '+{self.config.return_vm_ttl} days') <= CURRENT_TIMESTAMP
+            AND DATETIME(updated_at, '+{self.config.returned_vm_ttl} days') <= CURRENT_TIMESTAMP
         """
 
         with sqlite3.connect(

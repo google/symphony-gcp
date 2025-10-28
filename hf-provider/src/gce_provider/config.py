@@ -33,8 +33,8 @@ DEFAULT_HF_PROVIDER_NAME = "gcp-symphony"
 DEFAULT_HF_TEMPLATES_FILENAME = "gcpgceinstprov_templates.json"
 DEFAULT_CONFIG_FILENAME = "gcpgceinstprov_config.json"
 DEFAULT_DB_FILENAME = DEFAULT_HF_PROVIDER_NAME
-DEFAULT_SCHEDULER_USE_PURGE_CMD = False
-DEFAULT_RETURN_VM_TTL = "30" # 30 days
+DEFAULT_AUTO_RUN_TRIM_DB_CMD = True
+DEFAULT_RETURNED_VM_TTL = "30" # 30 days
 DEFAULT_GCP_CREDENTIALS_FILE = None
 DEFAULT_PUBSUB_TIMEOUT_SECONDS = "600"
 DEFAULT_PUBSUB_TOPIC = "hf-gce-vm-events"
@@ -44,8 +44,8 @@ DEFAULT_PUBSUB_AUTOLAUNCH = True
 
 CONFIG_VAR_HF_DBDIR = "HF_DBDIR"
 CONFIG_VAR_DB_FILENAME = "DB_FILENAME" 
-CONFIG_VAR_SCHEDULER_USE_PURGE_CMD = "SCHEDULER_USE_PURGE_CMD"
-CONFIG_VAR_RETURN_VM_TTL = "RETURN_VM_TTL"
+CONFIG_VAR_AUTO_RUN_TRIM_DB_CMD = "AUTO_RUN_TRIM_DB_CMD"
+CONFIG_VAR_RETURNED_VM_TTL = "RETURNED_VM_TTL"
 CONFIG_VAR_HF_TEMPLATES_FILENAME = "HF_TEMPLATES_FILENAME"
 CONFIG_VAR_GCP_CREDENTIALS_FILE = "GCP_CREDENTIALS_FILE"
 CONFIG_VAR_GCP_PROJECT_ID = "GCP_PROJECT_ID"
@@ -179,15 +179,15 @@ class Config:
         )
         self.db_path = path_utils.normalize_path(self.hf_db_dir, self.db_name)
 
-        # Scheduler Purge Flag and TTL settings
-        self.scheduler_use_purge_cmd: bool = bool(
+        # Trim and TTL settings
+        self.auto_run_trim_db: bool = bool(
             hf_provider_conf.get(
-                CONFIG_VAR_SCHEDULER_USE_PURGE_CMD, DEFAULT_SCHEDULER_USE_PURGE_CMD
+                CONFIG_VAR_AUTO_RUN_TRIM_DB_CMD, DEFAULT_AUTO_RUN_TRIM_DB_CMD
             )
         )
-        self.return_vm_ttl = int(
+        self.returned_vm_ttl = int(
             hf_provider_conf.get(
-                CONFIG_VAR_RETURN_VM_TTL, DEFAULT_RETURN_VM_TTL
+                CONFIG_VAR_RETURNED_VM_TTL, DEFAULT_RETURNED_VM_TTL
             )
         )
 

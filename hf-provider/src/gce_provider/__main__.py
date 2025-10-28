@@ -58,7 +58,7 @@ valid_commands = ValidCommands(
         CommandNames.MONITOR_EVENTS.value: lambda config, payload: cmd_monitor_events(
             config, payload
         ),
-        "purgeMachines": lambda config, payload: cmd_purge_machines(config, payload),
+        "trimDB": lambda config, payload: cmd_trim_db(config, payload),
         "requestMachines": lambda config, payload: cmd_request_machines(
             config, payload
         ),
@@ -92,9 +92,9 @@ def cmd_monitor_events(_: Config, __: Optional[dict]) -> Optional[BaseModel]:
     monitor_events()
     return NullOutput()
 
-def cmd_purge_machines(config: Config, __:Optional[dict] = None) -> Optional[BaseModel]:
-    """Reconcile the database"""
-    MachineDao(config).purge_expired_returned_machines()
+def cmd_trim_db(config: Config, __:Optional[dict] = None) -> Optional[BaseModel]:
+    """Trim the database"""
+    MachineDao(config).remove_expired_returned_machines()
     return NullOutput()
 
 def cmd_get_available_templates(
