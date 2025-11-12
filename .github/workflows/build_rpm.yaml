@@ -11,7 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["8", "9"]
+        version: ["8", "9", "10"]
+        include:
+          - python_pkg: python39
+            version: 8
+          - python_pkg: python39
+            version: 9
+          - python_pkg: python3
+            version: 10
     container:
       image: rockylinux/rockylinux:${{ matrix.version }}
     steps:
@@ -19,13 +26,14 @@ jobs:
 
     - name: install required rpm packages
       run: |
-           dnf install -y python3.9  python3-pip rpm-build
+           dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs
            alternatives --set python3 /usr/bin/python3.9 || true
 
     - name: build clis
       run: |
            cd hf-provider
-           pip3 install uv
+           curl -LsSf https://astral.sh/uv/install.sh | sh
+           source $HOME/.local/bin/env
            uv venv
            source .venv/bin/activate
            uv pip install -r pyproject.toml
