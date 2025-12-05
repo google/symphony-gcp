@@ -21,7 +21,7 @@ This guide helps system administrators and support teams understand and troubles
   - [Stuck in Pending Phase](#stuck-in-pending-phase)
   - [Pods Not Returning](#pods-not-returning)
   - [High Failed Machine Count](#high-failed-machine-count)
-  - [Pods Not deleting](#pods-not-deleting)
+  - [Pods Not Deleting](#pods-not-deleting)
   - [GCPSymphonyResource in WaitingCleanup state](#gcpsr-waiting-cleanup)
 
 ## <a id="resource-type-overview"></a>Resource Types Overview
@@ -254,11 +254,11 @@ kubectl describe mrr <mrr-name> -n gcp-symphony
 
 **Investigation:**
 - Check `machineEvents` in MRR status for specific error messages.
-- Check for node failure events or control plane performace issues.
+- Check for node failure events or control plane performance issues.
 
 
-### <a id="pods-not-deleting"></a>Pods Not deleting
-**Symptoms:** Deleted pods are stuck ub a terminating or error state
+### <a id="pods-not-deleting"></a>Pods Not Deleting
+**Symptoms:** Deleted pods are stuck in a terminating or error state
 **Causes:**
 - The control plane or operator is overwhelmed and is suffering from timeouts or API throttling
 - The parent GCPSR was manually deleted
@@ -269,7 +269,7 @@ kubectl describe mrr <mrr-name> -n gcp-symphony
 
 **Action:**
 - If the gcpsr is still available and not in a `WaitingCleanup` state, continue to monitor the gcpsr for continued activity.
-- If the gcpsr is still available and in a `WaitingCleanup` state, get the details and review the `returnedMachines` events. If all machines show successfully returned with a returnTime more than an hour old, there may be a problem with the cluster that needs to be reviewd and corrected.
+- If the gcpsr is still available and in a `WaitingCleanup` state, get the details and review the `returnedMachines` events. If all machines show successfully returned with a returnTime more than an hour old, there may be a problem with the cluster that needs to be reviewed and corrected.
 - If the pods' parent gcpsr is no longer on the system, manual intervention will be necessary to remove them.
   - Check for and remove the operator's finalizer from the pod(s) in question:
     ```bash
@@ -287,7 +287,7 @@ kubectl describe mrr <mrr-name> -n gcp-symphony
     ```
 
 ### <a id="gcpsr-waiting-cleanup"></a>GCPSymphonyResource in `WaitingCleanup` state for longer than the `CRD_COMPLETED_RETAIN_TIME`
-**Symptons:** A GCPSymphonyResource object does not get cleaned up by the operator's cleanup process.  
+**Symptoms:** A GCPSymphonyResource object does not get cleaned up by the operator's cleanup process.  
 By default the cleanup process will remove any gcpsr or MachineReturnRequest (mrr|rrm) objects after they have reached `WaitingCleanup` and `Completed` state, respectively, for more than 24 hours. If they remain around longer than the `CRD_COMPLETED_RETAIN_TIME` + `CRD_COMPLETED_CHECK_INTERVAL`, the gcpsr may be missing a `Completed` condition with a status of `True`. This sometimes can happen during Node failures or very high control-plane activity where the completed events get lost to the operator.
 
 **Investigation:**
@@ -323,4 +323,4 @@ If any pods still exist, be sure to take note of the requestId.  If no pods exis
 ```bash
 kubectl delete gcpsr <gcpsr-name>
 ```
-If pods existed prior to deleting the gcpsr, make sure that they are deleted when the gcpsr is deleted with the same `kubectl` command above. If they still exist, follow the action for [**Pods not deleting**](#pods-not-deleting) above.
+If pods existed prior to deleting the gcpsr, make sure that they are deleted when the gcpsr is deleted with the same `kubectl` command above. If they still exist, follow the action for [**Pods not Deleting**](#pods-not-deleting) above.
