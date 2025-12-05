@@ -1,8 +1,22 @@
+# Overview
+
+The primary GCP GKE Operator Installation Documentation is now maintained in the dedicated docs folder.
+
+See full documentation at:
+- [SYMPHONY_GKE_INSTALL.md](../SYMPHONY_GKE_INSTALL.md)
+
+## Legacy Documentation (Do Not Use)
+
+**Stop reading here unless you specifically need legacy info.**
+
+<details>
+<summary>Click to expand (legacy documentation)</summary>
+
 The following is crude instructions on setting up the GCP Symphony Hostfactory Operator and GCP Symphony Hostfactory API Service to run in a kubernetes cluster.
 
 These instructions only go so far as deploying and starting up the two container images in the cluster. We still need to add information for setting up ingress controllers for routing traffic to the service API.
 
-# Requirements
+## Requirements
 
 - Docker runtime and tools (I used docker buildx)  
 - A running kubernetes cluster and a local config file already pointing to it  
@@ -10,10 +24,10 @@ These instructions only go so far as deploying and starting up the two container
 If you try to run the services outside of the cluster and connect you'll need to set a number of environment variables and ensure you have a valid kubernetes config file. Future docs will outline all necessary for this type of operation.
 
 
-# Quick and dirty deploy of the operator to kubernetes cluster
+## Quick and dirty deploy of the operator to kubernetes cluster
 
 
-## Build the operator docker image
+### Build the operator docker image
 
 To build the operator image, change to the `k8s-operator` directory and execute `docker buildx build -t gcp-symphony-operator:0.1.0 .`
 ```
@@ -47,14 +61,14 @@ Tag the image with `latest`
 docker tag gcp-symphony-operator:0.1.0 gcp-symphony-operator:latest
 ```
 
-## Load the image to a registry or the cluster node(s)
+### Load the image to a registry or the cluster node(s)
 
 Load the resulting image into your registry, or onto your kubernetes node.  Locally, in minukube, the following can be used.
 ```
 minikube image load gcp-symphony-operator:latest
 ```
 
-## Build the HF API container image
+### Build the HF API container image
 Change directories to the `hf-service` directory and execute the command `docker buildx build -t hf-service-api:0.1.0 .`.
 ```
 % docker buildx build -t hf-service-api:0.1.0 .
@@ -89,7 +103,7 @@ Load the container image to your registry or kubernetes node(s). For minikube, u
 minikube image load hf-service-api:latest
 ```
 
-## deploy the operator manifest
+### Deploy the operator manifest
 Switch to the `k8s-operator` directory and execute the following command `kubectl apply -f manifests/operator-deploy.yaml`  
 
 This will deploy the following resources:  
@@ -100,7 +114,7 @@ This will deploy the following resources:
 - the GCPSymphonyOperator custom resource definition
 - the GCP Symphony Operator itself (into the above-noted namespace)
 
-## deploy the hostfactory service api service
+### deploy the hostfactory service api service
 Switch to the `hf-service` directory and exeute the command `kubctl apply -f manifests/hf-service-api.yaml`  
 
 This will deploy the following resources:  
@@ -108,7 +122,7 @@ This will deploy the following resources:
 - the service-api itsef
 
 
-## deploy an ingress resource for the hf-service-api
+### deploy an ingress resource for the hf-service-api
 *If you're running minikube, be sure to enable the ingress addon with* `minikube addons enable ingress`*. If using another kubernetes cluster, refer to that software's availaility of an ingress controller, or check out [Ingress-NginxController](https://kubernetes.github.io/ingress-nginx/deploy/#local-testing).*
 
 Switch to the `hf-service` directory and execute the command `kubectl apply -f manifests/hf-service-ingress.yaml`
@@ -117,13 +131,15 @@ This will deploy the ingress resource that will allow for mapping from the ingre
 
 ***NOTE***: If using minikube, After applying the `hf-service-ingress.yaml` manifest, you'll need to run `minikube tunnel` in a separate terminal session and keep it going until you're done with your work session.
 
-# TBD - a more details ingress setup
+## TBD - a more details ingress setup
 *Need to setup ingress controller to route traffic to the hf-service-api-service service.*
 
 
-# Sample API Rest calls
+## Sample API Rest calls
 Within the `hf-servie/docs` directory there is the [sample_curl_requests.md](../../hf-service/docs/sample_curl_requests.md) markdown file.
 
 
 
 [Back to HOME](../README.md)
+
+</details>
