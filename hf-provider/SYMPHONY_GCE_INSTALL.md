@@ -1,37 +1,37 @@
-# GCP GCE provider installation
+# GCP GCE Provider Installation
 Installing the IBM Symphony Host Factory GCP GCE provider generally follows the conventions established by the pre-installed Symphony Host Factory providers. 
 
-* [Setup the Google Cloud environment](#setup-the-google-cloud-environment)
-* [Setup the provider plugin](#setup-the-provider-plugin)
+* [Set up the Google Cloud environment](#setup-the-google-cloud-environment)
+* [Set up the provider plugin](#setup-the-provider-plugin)
 * [Enable the provider plugin](#enable-the-provider-plugin)
-* [Setup a provider instance](#setup-the-provider-instance)
+* [Set up a provider instance](#setup-the-provider-instance)
 * [Enable the provider instance](#enable-the-provider-instance)
 * [Enable the requestor(s) to use the provider instance](#enable-the-requestors-to-use-the-provider-instance)
 
 
 
-# Setup the Google Cloud environment 
+# Set up the Google Cloud environment 
 
 ## Prerequisites
 
 - Create an Instance Group and Instance Template that meets the following requirements:
-  - Autoscaling should be disabled, because scaling needs to be directly managed by the HostFactory provider 
-  - New instances should be able to automatically launch the IBM Symphony services as a compute host
-  - The IBM Symphony Management Host has TCP connectivity to instances in the group
-- A service account that is able to manage this instance group and access the PubSub topic described below
+  - Autoscaling should be disabled, because scaling needs to be directly managed by the HostFactory provider.
+  - New instances should be able to automatically launch the IBM Symphony services as a compute host.
+  - The IBM Symphony Management Host has TCP connectivity to instances in the group.
+- A service account that can manage the instance group, publish and subscribe to the required Pub/Sub topic, and access the associated logging resources. Make sure this account has the appropriate IAM roles for instance group operations, Pub/Sub interaction, and log writing or reading as required by your workflow.
 
-## Setup PubSub
+## Set up Pub/Sub
 
-1. Setup temporary shell variables.
+1. Set up temporary shell variables.
    ```bash
    export GCP_PROJECT=<the name of the GCP project>
    export PUBSUB_TOPIC=hf-gce-vm-events
    ```
-2. Create a pubsub topic.
+2. Create a Pub/Sub topic.
    ```bash
    gcloud pubsub topics create $PUBSUB_TOPIC
    ```
-3. Create a logging sink to export audit logs to PubSub
+3. Create a logging sink to export audit logs to Pub/Sub
    ```bash
    gcloud logging sinks create ${PUBSUB_TOPIC}-sink \
      pubsub.googleapis.com/projects/${GCP_PROJECT}/topics/${PUBSUB_TOPIC} \
@@ -62,13 +62,13 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
    ```
 
    Note the service account named above, and use it the following step below:
-4. Grant PubSub publisher role.
+4. Grant Pub/Sub publisher role.
    ```bash
    gcloud pubsub topics add-iam-policy-binding $PUBSUB_TOPIC \
      --member="serviceAccount:service-NNNNNNNNNN@gcp-sa-logging.iam.gserviceaccount.com" \
      --role="roles/pubsub.publisher"
    ```
-5. Create a subscription to receive the logs.
+5. Create a Pub/Sub subscription to receive the logs.
    ```bash
    gcloud pubsub subscriptions create ${PUBSUB_TOPIC}-sub \
      --topic=${PUBSUB_TOPIC}
@@ -88,7 +88,7 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
 
  
 
-# Setup the provider plugin 
+# Set up the provider plugin 
 
 Suggested provider plugin directory name/location:
 ```
@@ -98,7 +98,7 @@ Install the hf-provider executable and scripts via [RPMS](#rpm-packages) or [Bui
 
 ## RPM packages
 RPM packages to install the executable and scripts can be found [<FIXME> repo name](https://<FIXME>)
-The RPM package's default `prefix` is `/opt/ibm/spectrumcomputing`. Use the rpm `--prefix` parameter to chose an alternative prefix if warranted.
+The RPM package's default `prefix` is `/opt/ibm/spectrumcomputing`. Use the rpm `--prefix` parameter to choose an alternative prefix if warranted.
 
 ## Building from source.
 [README.md](./README.md) outlines building of the cli executable. The suggested providerplugin directory tree + scripts can be found under the [resources/gce_cli/1.2/providerplugins/gcpgce](./resources/gce_cli/1.2/providerplugins/gcpgce) directory. 
@@ -134,13 +134,13 @@ Add `gcpgce` provider plugin section:
         }
 ```
 
-# Setup a provider instance
+# Set up a provider instance
 Suggested provider instance directory name/location:
 ```
 $HF_TOP/conf/providers/gcpgceinst/
 ```
 
-This directory tree and example files should be already present if using the [RPMS](#rpm-packages). If installing from source, the [resources/gce_cli/conf](./resources/gce_cli/conf/) directory contains recommended structure and example files that can be used to setup a new provider instance. In either case, the configuration files are described in greater detail in the following sections.
+This directory tree and example files should be already present if using the [RPMS](#rpm-packages). If installing from source, the [resources/gce_cli/conf](./resources/gce_cli/conf/) directory contains recommended structure and example files that can be used to set up a new provider instance. In either case, the configuration files are described in greater detail in the following sections.
 
 ## Create gcpgceinstprov_config.json
 Copy `gcpgceinstprov_config.json.dist` to `gcpgceinstprov_config.json`
@@ -156,11 +156,11 @@ The following configuration variables are supported. Variables that have no defa
 | `GCP_INSTANCE_PREFIX`   | A string to prepend to all hosts created by this provider                                                                                                                                                                                                                                            | `sym-`                                                                                                                       |
 | `LOGFILE`               | The location of the log file that the provider should log to                                                                                                                                                                                                                                         | A file with a generated name, located in the directory defined by the HostFactory environment variable `$HF_PROVIDER_LOGDIR` |
 | `LOG_LEVEL`             | The Python log level                                                                                                                                                                                                                                                                                 | `WARNING`                                                                                                                    |
-| `PUBSUB_TIMEOUT`        | If the most recent PubSub event was longer ago than this duration, in seconds, the PubSub listener will disconnect. This timeout only applies when the PubSub event listener is automatically launched. Otherwise, the listener will run indefinitely, and the admin should control the lifecycle.   | `600`                                                                                                                        |
-| `PUBSUB_TOPIC`          | The name of the PubSub topic. This variable is for backwards compatibility only.                                                                                                                                                                                                                     | `hf-gce-vm-events`                                                                                                           |
-| `PUBSUB_SUBSCRIPTION`   | The name of the PubSub subscription to monitor for VM events.                                                                                                                                                                                                                                        | `hf-gce-vm-events-sub`                                                                                                       |
-| `PUBSUB_LOCKFILE`       | The name of the file to indicate that the PubSub event listener is active                                                                                                                                                                                                                            | `/tmp/sym_hf_gcp_pubsub.lock`                                                                                                |
-| `PUBSUB_AUTOLAUNCH`     | If set to `true`, the provider will attempt to automatically launch the PubSub event listener. If `false`, you will need to launch the PubSub event listener manually, via the command `hf-monitor`. You can launch the daemon inline with a command, with the command `hf-gce <command> --monitor`. | `true`                                                                                                                       |
+| `PUBSUB_TIMEOUT`        | If the most recent Pub/Sub event was longer ago than this duration, in seconds, the Pub/Sub listener will disconnect. This timeout only applies when the PubSub event listener is automatically launched. Otherwise, the listener will run indefinitely, and the admin should control the lifecycle.   | `600`                                                                                                                        |
+| `PUBSUB_TOPIC`          | The name of the Pub/Sub topic. This variable is for backwards compatibility only.                                                                                                                                                                                                                     | `hf-gce-vm-events`                                                                                                           |
+| `PUBSUB_SUBSCRIPTION`   | The name of the Pub/Sub subscription to monitor for VM events.                                                                                                                                                                                                                                        | `hf-gce-vm-events-sub`                                                                                                       |
+| `PUBSUB_LOCKFILE`       | The name of the file to indicate that the Pub/Sub event listener is active                                                                                                                                                                                                                            | `/tmp/sym_hf_gcp_pubsub.lock`                                                                                                |
+| `PUBSUB_AUTOLAUNCH`     | If set to `true`, the provider will attempt to automatically launch the Pub/Sub event listener. If `false`, you will need to launch the Pub/Sub event listener manually, via the command `hf-monitor`. You can launch the daemon inline with a command, with the command `hf-gce <command> --monitor`. | `true`                                                                                                                       |
 
 
 
@@ -236,7 +236,7 @@ Add `gcpgceinst` provider instance section:
         }
 ```
 
-# Enable the requestor(s) instance to use the provider instance
+# Enable the requestor(s) to use the provider instance
 Edit 
 ```
 $HF_TOP/conf/requestors/hostRequestors.json
@@ -249,16 +249,3 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 ...
 "providers": ["gcpgceinst"],
 ...
-```
-
-# Initialize the provider's state database
-1. Ensure that you have configured `HF_DBDIR` in `gcpgceinstprov_config.json`. If you are using the default `HF_DBDIR` environment configured by HostFactory, you will still
-   need to export `HF_DBDIR=$EGO_TOP/hostfactory/db`, because that environment variable will not be set when you run the CLI manually.
-2. Execute the following commands:
-
-```bash
-export HF_PROVIDER_CONFDIR=<path-to-your-provider-confdir, e.g. /opt/ibm/spectrumcomputing/hostfactory/conf/providers/gcpgceinst>
-
-/path/to/hf-gce initializeDB
-```
-
