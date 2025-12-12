@@ -142,7 +142,7 @@ The Kubernetes Operator manages Symphony compute pods within GKE clusters, handl
 3. **For GKE: Deploy the Kubernetes Operator:**
    ```bash
    cd k8s-operator/
-   # Follow deployment instructions in docs/QUICKDEPLOY.md
+   # Follow deployment instructions in SYMPHONY_GKE_INSTALL.md
    ```
 
 4. **Configure Symphony Host Factory:**
