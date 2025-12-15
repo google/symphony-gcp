@@ -305,11 +305,6 @@ class MachineDao:
             f"Finished handling instance deletion for operation {message.operation.id}"
         )
 
-        # Check if auto trim command is enabled
-        if self.config.auto_run_trim_db:
-            # Check for possible cleanup of expired returned machines
-            self.remove_expired_returned_machines()
-
         return None
 
     def _handle_instance_deleted(self, message: SimpleNamespace) -> None:
@@ -672,8 +667,7 @@ class MachineDao:
             selectQuery = f"""
                 SELECT machine_name
                     FROM machines
-                WHERE machine_state IN ({MachineState.DELETED.value}, {MachineState.DELETE_REQUESTED.value})
-                    AND delete_grace_period = 0
+                WHERE machine_state IN ({MachineState.DELETED.value})
                 AND DATETIME(updated_at, '+{self.config.returned_vm_ttl} days') <= CURRENT_TIMESTAMP
             """
 
