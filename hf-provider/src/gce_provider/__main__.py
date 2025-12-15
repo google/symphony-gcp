@@ -27,6 +27,7 @@ from gce_provider.commands.request_return_machines import request_return_machine
 from gce_provider.config import Config, get_config
 from gce_provider.db.initialize import main as initialize_db
 from gce_provider.db.machines import MachineDao
+from gce_provider.initialize import ensure_initialized
 from gce_provider.model.models import HFGceRequestMachines
 from gce_provider.pubsub import launch_pubsub_daemon, main as monitor_events
 from gce_provider.utils.constants import CommandNames
@@ -108,9 +109,8 @@ def cmd_get_available_templates(
     :return: the templates JSON
     """
 
-    # Initialize the database to avoid the need to explicitly declare $HF_DBDIR,
-    # thereby simplifying the installation process.
-    initialize_db(config)
+    # Ensure all initialization is done before proceeding
+    ensure_initialized(config)
 
     config.logger.info(f"cmd_get_available_templates; payload={payload}")
     config.logger.info(f"hf_provider_conf_dir: {config.hf_provider_conf_dir}")

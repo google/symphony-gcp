@@ -24,8 +24,9 @@ The RPM package's default `prefix` is `/opt/ibm/spectrumcomputing`. Use the rpm 
 After building the cli executable, install it to the `bin` directory.
 
 ## Result
-Using either method should result with a matching provider plugin directory:
+Using either method should result with a matching provider plugin directory :
 ```
+$HF_TOP/$HF_VERSION/providerplugins/gcpgke
 ├── bin
 │   ├── hf-gke
 │   └── README.md
@@ -62,12 +63,13 @@ This directory tree and example files should be already present if using the [RP
 ## Create gcpgkeinstprov_config.json
 Copy `gcpgkeinstprov_config.json.dist` to `gcpgkeinstprov_config.json`
 
-`GKE_KUBECONFIG` - defines the path to a/the kubectl config file. Default is `kubeconfig` in the provider instance directory, but can be pathed to an alternative kubectl config file.
+Only one value typically needs to be modified:
+`GKE_KUBECONFIG` - defines the path to a standard kubectl config file for the associated GKE cluster. Default is `kubeconfig` in this provider instance directory, but can be pathed to an alternative kubectl config file.  Ensure the `GKE_KUBECONFIG` is set to a valid kubctl config file for kubernetes cluster this provider instance will utilize.
 
 ### Example file:
 ```
 {
-  "GKE_KUBECONFIG": "KUBECONFIG"
+  "GKE_KUBECONFIG": "kubeconfig"
 }
 ```
 
@@ -124,8 +126,6 @@ Modify to suit, with the understanding that template attributes should be aligne
   ]
 }
 ```
-## kubeconfig
-The default `gcpgkeinstprov_config.json` specifies a standard kubectl config file for the kubernetes cluster named `kubeconfig` within this provider instance directory. If following this default, ensure `kubeconfig` is a valid kubctl config file for your kubernetes cluster.
 
 ## pod-specs/pod-spec.yaml
 Copy `pod-spec.yaml.dist` to `pod-spec.yaml`
@@ -158,6 +158,7 @@ containers:
 
 ## Resulting provider instance directory should match:
 ```
+$HF_TOP/conf/providers/gcpgkeinst/
 ├── gcpgkeinstprov_config.json
 ├── gcpgkeinstprov_templates.json
 ├── kubeconfig
