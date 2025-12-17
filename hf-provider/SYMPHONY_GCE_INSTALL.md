@@ -236,7 +236,7 @@ Add `gcpgceinst` provider instance section:
         }
 ```
 
-# Enable the requestor(s) to use the provider instance
+# Enable the requestor(s) instance to use the provider instance
 Edit 
 ```
 $HF_TOP/conf/requestors/hostRequestors.json
