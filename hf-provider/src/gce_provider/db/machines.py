@@ -1,9 +1,11 @@
 import sqlite3
+import asyncio
 from types import SimpleNamespace
 from typing import Any, Callable, Optional, Dict, Tuple
 
 import google.cloud.compute_v1 as compute
 from tenacity import retry, stop_after_attempt, wait_exponential, wait_random
+from debouncer import debounce, DebounceOptions
 
 from common.model.models import HFReturnRequestsResponse
 from common.utils.list_utils import flatten
@@ -337,6 +339,11 @@ class MachineDao:
             f"Finished handling instance deletion for operation {message.operation.id}"
         )
 
+        # Check if auto trim command is enabled
+        if self.config.auto_run_trim_db:
+            # Check for possible cleanup of expired returned machines
+            self.remove_expired_returned_machines()
+
         return None
 
     def _handle_instance_preempted(self, message: SimpleNamespace) -> None:
@@ -613,7 +620,7 @@ class MachineDao:
                         return (False, details)
                 except sqlite3.DatabaseError as e:
                     details["integrity"] = f"Quick Check Error: {e}"
-                    self.logger.error(details["integrity"])
+                    # self.logger.error(details["integrity"])
                     return (False, details)
 
                 # Step 4: Insert/Delete probe inside SAVEPOINT (rollback always)
@@ -651,3 +658,61 @@ class MachineDao:
             details["integrity"] = f"Connection Error: {e}"
             self.logger.error(details["integrity"])
             return (False, details)
+
+    @debounce(wait=5.0, options=DebounceOptions(trailing=False, leading=True))  
+    async def _remove_expired_returned_machines_async(self) -> int:
+        """Asynchronously delete machine rows where return_ttl has expired."""
+
+        def _blocking_db_work():
+            selectQuery = f"""
+                SELECT machine_name
+                    FROM machines
+                WHERE machine_state IN ({MachineState.DELETED.value})
+                AND DATETIME(updated_at, '+{self.config.returned_vm_ttl} days') <= CURRENT_TIMESTAMP
+            """
+
+            with sqlite3.connect(
+                self.config.db_path,
+                detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
+            ) as conn:
+                cur = conn.cursor()
+                cur.execute(selectQuery)
+                candidate_for_deletion = [row[0] for row in cur.fetchall()]
+
+            if not candidate_for_deletion:
+                self.logger.debug("No expired returned machines found for cleanup.")
+                return 0
+
+            deleted_count = len(candidate_for_deletion)
+
+            placeholders = ", ".join(["?"] * deleted_count)
+            deleteQuery = f"DELETE FROM machines WHERE machine_name IN ({placeholders})"
+
+            with Transaction(self.config) as trans:
+                trans.execute(
+                    [
+                        Statement(deleteQuery, candidate_for_deletion)
+                    ]
+                )
+
+            return deleted_count
+    
+        deleted_count = await asyncio.to_thread(_blocking_db_work)
+        self.logger.info(f"Successfully cleaned up {deleted_count} expired returned machines.")
+        return deleted_count
+
+    def remove_expired_returned_machines(self) -> int:
+        """Delete machine rows where return_ttl has expired."""
+        try:
+            l = asyncio.get_event_loop()
+            if l.is_running():
+                asyncio.create_task(self._remove_expired_returned_machines_async())
+                return 0
+            else:
+                return asyncio.run(self._remove_expired_returned_machines_async())
+        except RuntimeError:
+            # No event loop in current thread
+            return asyncio.run(self._remove_expired_returned_machines_async())
+        except Exception as e:
+            self.logger.error(f"Error during cleanup of expired returned machines: {e}")
+            return 0
