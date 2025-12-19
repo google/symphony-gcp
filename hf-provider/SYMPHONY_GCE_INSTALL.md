@@ -97,8 +97,24 @@ $HF_TOP/$HF_VERSION/providerplugins/gcpgce/
 Install the hf-provider executable and scripts via [RPMS](#rpm-packages) or [Building from source](#building-from-source)
 
 ## RPM packages
-RPM packages to install the executable and scripts can be found [<FIXME> repo name](https://<FIXME>)
-The RPM package's default `prefix` is `/opt/ibm/spectrumcomputing`. Use the rpm `--prefix` parameter to chose an alternative prefix if warranted.
+A yum repo is available to provide the GCP provider RPM packages
+
+```
+sudo \
+tee /etc/yum.repos.d/google-cloud-symphony-connector.repo << EOM
+[google-cloud-symphony-connector]
+name=Google Cloud Symphony Connector
+baseurl=https://packages.cloud.google.com/yum/repos/google-cloud-symphony-connector-x86-64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOM
+```
+
+The RPM package's default `prefix` is `/opt/ibm/spectrumcomputing`.  `dnf install hf-gcpgce-provider.x86_64` will install to the default prefix
+
+To install to an alternative prefix, download the rpm, `dnf download hf-gcpgce-provider`, then use the rpm `--prefix` parameter to choose an alternative prefix `rpm -i --prefix /my/custom/prefix/ *hf-gcpgce-provider*.rpm`
 
 ## Building from source.
 [README.md](./README.md) outlines building of the cli executable. The suggested providerplugin directory tree + scripts can be found under the [resources/gce_cli/1.2/providerplugins/gcpgce](./resources/gce_cli/1.2/providerplugins/gcpgce) directory. 
