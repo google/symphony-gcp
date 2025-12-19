@@ -1,13 +1,13 @@
-# GCP GKE provider installation
+# GCP GKE Provider Installation
 Installing the IBM Symphony Host Factory GCP GKE provider generally follows the conventions established by the pre-installed Symphony Host Factory providers. Depends on the associated Kubernetes operator to be installed ( [Instructions](#../k8s-operator/README.md) )
 
-* [Setup the provider plugin](#setup-the-provider-plugin)
+* [Set up the provider plugin](#setup-the-provider-plugin)
 * [Enable the provider plugin](#enable-the-provider-plugin)
-* [Setup a provider instance](#setup-the-provider-instance)
+* [Set up a provider instance](#setup-the-provider-instance)
 * [Enable the provider instance](#enable-the-provider-instance)
 * [Enable the requestor(s) to use the provider instance](#enable-the-requestors-to-use-the-provider-instance)
 
-# Setup the provider plugin 
+# Set up the provider plugin 
 Suggested provider plugin directory name/location:
 ```
 $HF_TOP/1.2/providerplugins/gcpgke/
@@ -36,12 +36,12 @@ To install to an alternative prefix, download the rpm, `dnf download hf-gcpgke-p
 
 
 ## Building from source.
-[README.md](./README.md) outlines building of the cli executable. The suggested providerplugin directory tree + scripts can be found under the [resources/gke_cli/1.2/providerplugins/gcpgke](./resources/gke_cli/1.2/providerplugins/gcpgke) directory. 
+[README.md](./README.md) outlines building of the cli executable. The suggested provider plugin directory tree + scripts can be found under the [resources/gke_cli/1.2/providerplugins/gcpgke](./resources/gke_cli/1.2/providerplugins/gcpgke) directory. 
 
 After building the cli executable, install it to the `bin` directory.
 
 ## Result
-Using either method should result with a matching provider plugin directory :
+Using either method should result with a matching provider plugin directory:
 ```
 $HF_TOP/$HF_VERSION/providerplugins/gcpgke
 ├── bin
@@ -69,19 +69,19 @@ Add `gcpgke` provider plugin section:
         }
 ```
 
-# Setup a provider instance
+# Set up a provider instance
 Suggested provider instance directory name/location:
 ```
 $HF_TOP/conf/providers/gcpgkeinst/
 ```
 
-This directory tree and example files should be already present if using the [RPMS](#rpm-packages). If installing from source, the [resources/gke_cli/conf](./resources/gke_cli/conf/) directory contains recommended structure and example files that can be used to setup a new provider instance. In either case, the configuration files are described in greater detail in the following sections.
+This directory tree and example files should be already present if using the [RPMS](#rpm-packages). If installing from source, the [resources/gke_cli/conf](./resources/gke_cli/conf/) directory contains recommended structure and example files that can be used to set up a new provider instance. In either case, the configuration files are described in greater detail in the following sections.
 
 ## Create gcpgkeinstprov_config.json
 Copy `gcpgkeinstprov_config.json.dist` to `gcpgkeinstprov_config.json`
 
 Only one value typically needs to be modified:
-`GKE_KUBECONFIG` - defines the path to a standard kubectl config file for the associated GKE cluster. Default is `kubeconfig` in this provider instance directory, but can be pathed to an alternative kubectl config file.  Ensure the `GKE_KUBECONFIG` is set to a valid kubctl config file for kubernetes cluster this provider instance will utilize.
+`GKE_KUBECONFIG` - defines the path to a standard kubectl config file for the associated GKE cluster. Default is `kubeconfig` in this provider instance directory, but can be pathed to an alternative kubectl config file.  Ensure the `GKE_KUBECONFIG` is set to a valid kubectl config file for Kubernetes cluster this provider instance will utilize.
 
 ### Example file:
 ```
@@ -95,7 +95,7 @@ The following configuration variables are supported in the gcpgkeinstprov_config
 | Configuration Variable | Default Value | Description |
 |------------------------|---------------|-------------|
 | `GKE_KUBECONFIG`| | The filename with path of the configuration file used by the kubectl command.
-| `GKE_CRD_NAMESPACE`*|`gcp-symphony`| Defines the kubernetes namespace in which all resources will be created
+| `GKE_CRD_NAMESPACE`*|`gcp-symphony`| Defines the Kubernetes namespace in which all resources will be created
 | `GKE_CRD_GROUP`*| `accenture.com` | The resource group used to identify the GKE HF Operator custom resources
 | `GKE_CRD_VERSION`*| `v1` | The version used to identify GKE HF Operator custom resources
 | `GKE_CRD_KIND`*| `GCPSymphonyResource` | The name given to the custom resource definition that defines a request for compute resources (pods)
@@ -147,7 +147,7 @@ Modify to suit, with the understanding that template attributes should be aligne
 ## pod-specs/pod-spec.yaml
 Copy `pod-spec.yaml.dist` to `pod-spec.yaml`
 
-By default, `gcpgkeinstprov_templates.json` specifies the use of a pod spec file named `pod-spec.yaml` in a `pod-specs` sub directory. The contents of this pod spec file should only contain the `spec:` section configuration of a standard kubernetes pod manifest. The contents of this file are passed to the operator, which builds the complete the pod manifest used to provision the Symphony machine pod(s). The contents of `pod-spec.yaml` should be adjusted to meet the requirements of the associated Symphony and Kubernetes clusters and aligned with the attributes of the `gcpgkeinstprov_templates.json` file.
+By default, `gcpgkeinstprov_templates.json` specifies the use of a pod spec file named `pod-spec.yaml` in a `pod-specs` subdirectory. The contents of this pod spec file should only contain the `spec:` section configuration of a standard Kubernetes pod manifest. The contents of this file are passed to the operator, which builds the complete pod manifest used to provision the Symphony machine pod(s). The contents of `pod-spec.yaml` should be adjusted to meet the requirements of the associated Symphony and Kubernetes clusters and aligned with the attributes of the `gcpgkeinstprov_templates.json` file.
 
 ### Example file:
 ```
