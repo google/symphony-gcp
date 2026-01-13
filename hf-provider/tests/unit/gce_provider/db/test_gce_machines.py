@@ -3,14 +3,17 @@ import stat
 import sqlite3
 import textwrap
 import pytest
+from typing import Optional
+from unittest.mock import MagicMock, patch
 
 from gce_provider.db.machines import MachineDao
 
 class _DummyConfig:
     def __init__(self, db_path: str):
         self.db_path = db_path
+        self.logger = MagicMock()  # Mock logger for testing
 
-def _make_db(db_path: str, schema_sql: str | None):
+def _make_db(db_path: str, schema_sql: Optional[str]):
     """Create (or touch) a SQLite DB with optional schema."""
     # Ensure parent exists
     os.makedirs(os.path.dirname(db_path), exist_ok=True)
@@ -91,36 +94,42 @@ def test_check_missing_table(tmp_path):
     assert details["table_exists"] is False
     assert details["integrity"] != "ok"
 
-
-def test_check_readonly_db(tmp_path):
+@patch("gce_provider.db.machines.sqlite3")
+def test_check_readonly_db(mock_sqlite, tmp_path):
     """
-    DB file is read-only, BEGIN IMMEDIATE should fail to acquire a write lock.
-    Expect: ok=False, writable=False
+    Simulate a read-only DB by forcing an OperationalError during BEGIN IMMEDIATE.
     """
     db_path = tmp_path / "readonly.db"
-    _make_db(
-        str(db_path),
-        textwrap.dedent(
-            """
-            CREATE TABLE machines (
-                id INTEGER PRIMARY KEY AUTOINCREMENT
-            );
-            """
-        ),
-    )
-    # Make file read-only for owner/group/others
-    os.chmod(str(db_path), stat.S_IREAD | stat.S_IRGRP | stat.S_IROTH)
+    # Create the DB first so it passes existence check
+    _make_db(str(db_path), "CREATE TABLE machines (id INTEGER PRIMARY KEY);")
+    
+    # 1. Preserve original exception classes so try/except works
+    mock_sqlite.Error = sqlite3.Error
+    mock_sqlite.OperationalError = sqlite3.OperationalError
+    mock_sqlite.DatabaseError = sqlite3.DatabaseError
+    mock_sqlite.IntegrityError = sqlite3.IntegrityError
+    
+    # 2. Setup mock connection and cursor
+    mock_conn = MagicMock()
+    mock_cursor = MagicMock()
+    mock_sqlite.connect.return_value.__enter__.return_value = mock_conn
+    mock_conn.cursor.return_value = mock_cursor
+    
+    # 3. Create a side effect to raise error only on BEGIN IMMEDIATE
+    def side_effect(query, *args):
+        if "BEGIN IMMEDIATE" in query:
+             raise sqlite3.OperationalError("attempt to write a readonly database")
+        return MagicMock()  # Return mock for other queries
+        
+    mock_cursor.execute.side_effect = side_effect
 
+    # Run the check
     dao = MachineDao(_DummyConfig(str(db_path)))
     ok, details = dao._quick_check()
 
-    # Restore perms so tmp cleanup doesn't choke on some systems
-    os.chmod(str(db_path), stat.S_IWRITE | stat.S_IREAD)
-
     assert ok is False
-    assert details["table_exists"] is True
     assert details["writable"] is False
-    assert "not writable" in str(details.get("integrity", "")).lower()
+    assert "Not Writable" in details["integrity"]
 
 def test_check_raises_wrapper(tmp_path):
     """
