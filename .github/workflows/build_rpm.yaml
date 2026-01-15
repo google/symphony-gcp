@@ -11,14 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: ["8", "9", "10"]
+        version: ["9"]
         include:
-          - python_pkg: python39
-            version: 8
+#          - python_pkg: python39
+#            version: 8
           - python_pkg: python39
             version: 9
-          - python_pkg: python3
-            version: 10
+#          - python_pkg: python3
+#            version: 10
     container:
       image: rockylinux/rockylinux:${{ matrix.version }}
     steps:
@@ -43,7 +43,8 @@ jobs:
 
     - name: run gce rpmbuild
       id: gce-rpm
-      run: rpmbuild -bb hf-provider/resources/hf-gcpgce-provider.spec | grep Wrote |awk '{print "gce_rpm_path="$2}' >> $GITHUB_OUTPUT
+      shell: bash -el {0}
+      run: rpmbuild -v -bb hf-provider/resources/hf-gcpgce-provider.spec | grep Wrote |awk '{print "gce_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gce artifact
       uses: actions/upload-artifact@v4
@@ -54,7 +55,8 @@ jobs:
 
     - name: run gke rpmbuild
       id: gke-rpm
-      run: rpmbuild -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote |awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
+      shell: bash -el {0}
+      run: rpmbuild -v -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote | awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gke artifact
       uses: actions/upload-artifact@v4
