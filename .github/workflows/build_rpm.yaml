@@ -43,7 +43,7 @@ jobs:
 
     - name: run gce rpmbuild
       id: gce-rpm
-      shell: bash -el {0}
+      shell: /usr/bin/bash -el {0}
       run: |
            which bash
            which sh
