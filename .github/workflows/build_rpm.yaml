@@ -29,6 +29,10 @@ jobs:
            dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs bash
            alternatives --set python3 /usr/bin/python3.9 || true
 
+    - name: Add a directory to the PATH
+      run: |
+           echo "/usr/bin" >> $GITHUB_PATH
+
     - name: build clis
       run: |
            cd hf-provider
@@ -40,10 +44,6 @@ jobs:
            uv pip install pyinstaller
            PYTHONPATH=src pyinstaller --onefile src/gce_provider/__main__.py --name hf-gce --paths .venv/lib/python3.9/site-packages
            PYTHONPATH=src pyinstaller --onefile src/gke_provider/__main__.py --name hf-gke --paths .venv/lib/python3.9/site-packages
-
-    - name: Add a directory to the PATH
-      run: |
-           echo "/usr/bin" >> $GITHUB_PATH
 
     - name: run gce rpmbuild
       id: gce-rpm
