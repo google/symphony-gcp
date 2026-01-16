@@ -58,7 +58,7 @@ jobs:
 
     - name: run gke rpmbuild
       id: gke-rpm
-      shell: bash -el {0}
+      shell: /usr/bin/bash -el {0}
       run: rpmbuild -v -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote | awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gke artifact
