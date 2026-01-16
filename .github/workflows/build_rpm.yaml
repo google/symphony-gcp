@@ -26,7 +26,7 @@ jobs:
 
     - name: install required rpm packages
       run: |
-           dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs
+           dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs bash
            alternatives --set python3 /usr/bin/python3.9 || true
 
     - name: build clis
