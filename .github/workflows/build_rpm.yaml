@@ -45,8 +45,7 @@ jobs:
       id: gce-rpm
       shell: /usr/bin/bash -el {0}
       run: |
-           /usr/bin/which rpmbuild
-           rpmbuild -v -bb hf-provider/resources/hf-gcpgce-provider.spec | /usr/bin/grep Wrote | /usr/bin/awk '{print "gce_rpm_path="$2}' >> $GITHUB_OUTPUT
+           /usr/bin/rpmbuild -v -bb hf-provider/resources/hf-gcpgce-provider.spec | /usr/bin/grep Wrote | /usr/bin/awk '{print "gce_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gce artifact
       uses: actions/upload-artifact@v4
