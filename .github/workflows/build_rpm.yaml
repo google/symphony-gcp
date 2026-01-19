@@ -29,6 +29,9 @@ jobs:
            dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs
            alternatives --set python3 /usr/bin/python3.9 || true
 
+    - name: Add a directory to the PATH
+      run: echo "/usr/bin" >> $GITHUB_PATH
+
     - name: build clis
       run: |
            cd hf-provider
