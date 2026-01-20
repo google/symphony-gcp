@@ -62,7 +62,7 @@ jobs:
         path: "${{ steps.gce-rpm.outputs.gce_rpm_path }}"
         compression-level: 0
 
-github.ref_name    - name: run gke rpmbuild
+    - name: run gke rpmbuild
       id: gke-rpm
       run: rpmbuild -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote |awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
 
