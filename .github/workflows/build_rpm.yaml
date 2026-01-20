@@ -30,6 +30,8 @@ jobs:
       with:
         token: ${{ github.token }}
         branch: main
+        noNewCommitBehavior: current
+        noVersionBumpBehavior: patch
 
     - name: install required rpm packages
       run: |
