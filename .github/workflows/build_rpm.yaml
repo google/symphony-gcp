@@ -51,7 +51,7 @@ jobs:
     - name: Upload gce artifact
       uses: actions/upload-artifact@v4
       with:
-        name: hf-gcpgce-provider-1.0.0-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        name: hf-gcpgce-provider-${{ github.ref_name }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gce-rpm.outputs.gce_rpm_path }}"
         compression-level: 0
 
@@ -62,7 +62,7 @@ jobs:
     - name: Upload gke artifact
       uses: actions/upload-artifact@v4
       with:
-        name: hf-gcpgke-provider-1.0.0-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        name: hf-gcpgke-provider-${{ github.ref_name }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gke-rpm.outputs.gke_rpm_path }}"
         compression-level: 0
 
