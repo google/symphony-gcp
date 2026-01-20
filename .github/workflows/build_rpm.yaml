@@ -24,6 +24,13 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Get Next Version
+      id: semver
+      uses: ietf-tools/semver-action@v1
+      with:
+        token: ${{ github.token }}
+        branch: main
+
     - name: install required rpm packages
       run: |
            dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs
@@ -51,18 +58,18 @@ jobs:
     - name: Upload gce artifact
       uses: actions/upload-artifact@v4
       with:
-        name: hf-gcpgce-provider-${{ github.ref_name }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        name: hf-gcpgce-provider-${{ steps.semver.outputs.nextStrict }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gce-rpm.outputs.gce_rpm_path }}"
         compression-level: 0
 
-    - name: run gke rpmbuild
+github.ref_name    - name: run gke rpmbuild
       id: gke-rpm
       run: rpmbuild -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote |awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gke artifact
       uses: actions/upload-artifact@v4
       with:
-        name: hf-gcpgke-provider-${{ github.ref_name }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        name: hf-gcpgke-provider-${{ steps.semver.outputs.nextStrict }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gke-rpm.outputs.gke_rpm_path }}"
         compression-level: 0
 
