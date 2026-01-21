@@ -9,11 +9,16 @@ def test_get_request_machine_status_success(mock_config, mock_hfr):
     """Test getting request machine status successfully."""
     mock_hfr.requestStatus = MagicMock(spec=HFRequestStatus)
     mock_hfr.requestStatus.requests = [{"requestId": "test-request-id"}]
+    mock_config.crd_kind = "GCPSymphonyResource"
     with patch(
-        "gke_provider.k8s.resources.get_resource_and_pod_status",
-        return_value={"phase": "Running", "pods": []},
+        "gke_provider.k8s.resources.get_resource_status",
+        return_value={
+            "phase": "Running",
+            "pods": [],
+            "kind": "GCPSymphonyResource",
+        },
     ), patch(
-        "gke_provider.commands.get_request_machine_status._process_resource",
+        "gke_provider.commands.get_request_machine_status._process_gcpsr",
         return_value={
             "requestId": "test-request-id",
             "message": "",
@@ -31,11 +36,22 @@ def test_get_request_machine_status_success_no_config(mock_config: MagicMock, mo
     """Test getting request machine status without providing a config."""
     mock_hfr.requestStatus = MagicMock(spec=HFRequestStatus)
     mock_hfr.requestStatus.requests = [{"requestId": "test-request-id"}]
+    mock_returned_config = MagicMock()
+    mock_returned_config.crd_kind = "GCPSymphonyResource"
+    mock_returned_config.crd_namespace = "default"
+
     with patch(
-        "gke_provider.k8s.resources.get_resource_and_pod_status",
-        return_value={"phase": "Running", "pods": []},
+        "gke_provider.k8s.resources.get_resource_status",
+        return_value={
+            "phase": "Running",
+            "pods": [],
+            "kind": "GCPSymphonyResource",
+        },
     ), patch(
-        "gke_provider.commands.get_request_machine_status._process_resource",
+        "gke_provider.commands.get_request_machine_status.get_config",
+        return_value=mock_returned_config,
+    ), patch(
+        "gke_provider.commands.get_request_machine_status._process_gcpsr",
         return_value={
             "requestId": "test-request-id",
             "message": "",
@@ -53,13 +69,12 @@ def test_get_request_machine_status_invalid_request(mock_config, mock_hfr):
     with pytest.raises(ValueError):
         get_request_machine_status.get_request_machine_status(mock_hfr, mock_config)
 
-
 def test_get_request_machine_status_no_request_ids(mock_config, mock_hfr):
     """Test getting request machine status with invalid request."""
     mock_hfr.requestStatus = MagicMock()
     mock_hfr.requestStatus.requests = [{"request_id": "None"}]
     with patch(
-        "gke_provider.k8s.resources.get_resource_and_pod_status",
+        "gke_provider.k8s.resources.get_resource_status",
         return_value={"phase": "Running", "pods": []},
     ), pytest.raises(ValueError):
         get_request_machine_status.get_request_machine_status(mock_hfr, mock_config)
@@ -72,25 +87,22 @@ def test_get_request_machine_status_no_requests(mock_config, mock_hfr):
     with pytest.raises(ValueError):
         get_request_machine_status.get_request_machine_status(mock_hfr, mock_config)
 
-
 def test_get_request_machine_status_resource_error(mock_config, mock_hfr):
     """Test getting request machine status with resource error."""
     mock_hfr.requestStatus = MagicMock()
     mock_hfr.requestStatus.requests = [{"requestId": "test-request-id"}]
     with patch(
-        "gke_provider.k8s.resources.get_resource_and_pod_status", return_value="Error"
+        "gke_provider.k8s.resources.get_resource_status", return_value="Error"
     ), pytest.raises(ValueError):
         get_request_machine_status.get_request_machine_status(mock_hfr, mock_config)
-
 
 def test_process_resource_error_phase():
     """Test _process_resource when the phase is in error."""
     resource = {"phase": {"error": "Some error"}, "pods": []}
     request_id = "test-request-id"
-    result = get_request_machine_status._process_resource(resource, request_id)
+    result = get_request_machine_status._process_gcpsr(resource, request_id)
     assert result["status"] == get_request_machine_status.STATUS_COMPLETE_WITH_ERROR
     assert result["message"] == f"Error getting information for requestId: {request_id}"
-
 
 def test_process_resource_pod_executing():
     """Test _process_resource when a pod is executing."""
@@ -100,10 +112,9 @@ def test_process_resource_pod_executing():
         "gke_provider.commands.get_request_machine_status._extract_pod_details",
         return_value={"status": "running", "result": "executing"},
     ):
-        result = get_request_machine_status._process_resource(resource, request_id)
+        result = get_request_machine_status._process_gcpsr(resource, request_id)
     assert result["status"] == get_request_machine_status.STATUS_RUNNING
     assert result["message"] == "Some machines are still being deployed."
-
 
 def test_process_resource_pod_failed():
     """Test _process_resource when a pod has failed."""
@@ -113,10 +124,9 @@ def test_process_resource_pod_failed():
         "gke_provider.commands.get_request_machine_status._extract_pod_details",
         return_value={"status": "terminated", "result": "fail"},
     ):
-        result = get_request_machine_status._process_resource(resource, request_id)
+        result = get_request_machine_status._process_gcpsr(resource, request_id)
     assert result["status"] == get_request_machine_status.STATUS_COMPLETE_WITH_ERROR
     assert result["message"] == "Some machines have failed."
-
 
 def test_process_resource_complete():
     """Test _process_resource when all pods are complete."""
@@ -126,9 +136,9 @@ def test_process_resource_complete():
         "gke_provider.commands.get_request_machine_status._extract_pod_details",
         return_value={"status": "stopped", "result": "succeed"},
     ):
-        result = get_request_machine_status._process_resource(resource, request_id)
+        result = get_request_machine_status._process_gcpsr(resource, request_id)
     assert result["status"] == get_request_machine_status.STATUS_COMPLETE
-    assert result["message"] is None
+    assert result["message"] is ""
     assert result["requestId"] == request_id
     assert "machines" in result
 
@@ -165,7 +175,7 @@ def test_get_request_list_invalid_request_format(mock_hfr):
         get_request_machine_status._get_request_list(mock_hfr)
     assert (
         str(excinfo.value)
-        == "Invalid request format: requests should include a single or list of objects"
+        == "Invalid request format: requestStatus.requests should include a single dict or list of dicts"
     )
 
 
@@ -175,13 +185,12 @@ def test_datetime_to_utc_int_with_timezone():
     timestamp = get_request_machine_status.datetime_to_utc_int(dt)
     assert timestamp == 1704067200
 
-
 def test_datetime_to_utc_int_without_timezone():
     """Test datetime_to_utc_int with a datetime object that does not have a timezone."""
     dt = datetime.datetime(2024, 1, 1, 0, 0, 0)
     timestamp = get_request_machine_status.datetime_to_utc_int(dt)
-    assert timestamp == 1704088800
-
+    expected = int(dt.replace(tzinfo=datetime.timezone.utc).timestamp())
+    assert timestamp == expected
 
 def test_extract_pod_details():
     """Test _extract_pod_details function."""
@@ -202,6 +211,10 @@ def test_extract_pod_details():
         return_value=("running", "succeed"),
     ):
         result = get_request_machine_status._extract_pod_details(pod)
+
+        dt = datetime.datetime(2024, 1, 1, 0, 0, 0)
+        expected = int(dt.replace(tzinfo=datetime.timezone.utc).timestamp())
+        
         assert result["machineId"] == "test-uid"
         assert result["name"] == "test-name"
         assert result["result"] == "succeed"
@@ -209,7 +222,7 @@ def test_extract_pod_details():
         assert result["privateIpAddress"] == "10.0.0.1"
         assert result["publicIpAddress"] == ""
         assert (
-            result["launchtime"] == 1704088800
+            result["launchtime"] == expected
         )  # UTC timestamp for 2024-01-01 00:00:00
         assert result["message"] == "Deployed in namespace: test-namespace"
 

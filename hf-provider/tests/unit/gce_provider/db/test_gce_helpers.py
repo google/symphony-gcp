@@ -40,14 +40,14 @@ def test_list_managed_instances(mock_client, mock_managed_instance, mock_config)
         for i in range(2)
     ]
 
-    mock_client.list_managed_instances.return_value = mock_instances
+    mock_client.return_value.list_managed_instances.return_value = mock_instances
 
     result = fetch_managed_instance_list(
         "symphony-dev-1", "us-central1-c", "corykim-test-01"
     )
     assert mock_instances[0].instance in result
     assert mock_instances[1].instance in result
-    mock_client.list_managed_instances.assert_called_once()
+    mock_client.return_value.list_managed_instances.assert_called_once()
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ def mock_instance():
 def test_fetch_instance(mock_client, mock_instance):
     # Setup mock return value
     instance_name = "my-instance-1"
-    mock_client.get.return_value = mock_instance(
+    mock_client.return_value.get.return_value = mock_instance(
         instance_name, "10.0.0.100", "35.100.200.1"
     )
 
@@ -87,14 +87,14 @@ def test_fetch_instance(mock_client, mock_instance):
     assert instance.name == instance_name
     assert instance.network_interfaces[0].network_i_p == "10.0.0.100"
     assert instance.network_interfaces[0].access_configs[0].nat_ip == "35.100.200.1"
-    mock_client.get.assert_called_once()
+    mock_client.return_value.get.assert_called_once()
 
 
 @patch("gce_provider.db.gce_helpers.client_factory.instances_client")
 def test_fetch_instance_by_url(mock_client, mock_instance):
     # Setup mock return value
     instance_name = "my-instance-1"
-    mock_client.get.return_value = mock_instance(
+    mock_client.return_value.get.return_value = mock_instance(
         instance_name, "10.0.0.100", "35.100.200.1"
     )
 
@@ -105,7 +105,7 @@ def test_fetch_instance_by_url(mock_client, mock_instance):
     assert instance.name == instance_name
     assert instance.network_interfaces[0].network_i_p == "10.0.0.100"
     assert instance.network_interfaces[0].access_configs[0].nat_ip == "35.100.200.1"
-    mock_client.get.assert_called_once()
+    mock_client.return_value.get.assert_called_once()
 
 
 def generate_instance_url(
@@ -124,7 +124,7 @@ def test_fetch_instances(mock_client, mock_instance):
         for i, name in enumerate(instance_names)
     ]
 
-    mock_client.get.side_effect = mock_instances
+    mock_client.return_value.get.side_effect = mock_instances
 
     instance_args = [
         ResourceIdentifier(project=TEST_PROJECT, zone=TEST_ZONE, name=name)
@@ -136,7 +136,7 @@ def test_fetch_instances(mock_client, mock_instance):
 
     # Validate
     assert len(instances) == len(instance_names)
-    assert mock_client.get.call_count == len(instance_names)
+    assert mock_client.return_value.get.call_count == len(instance_names)
 
     for instance in instances:
         assert instance is not None
@@ -153,7 +153,7 @@ def test_fetch_many_instances(mock_client, mock_instance):
         for i, name in enumerate(instance_names)
     ]
 
-    mock_client.get.side_effect = mock_instances
+    mock_client.return_value.get.side_effect = mock_instances
 
     instance_args = [
         ResourceIdentifier(project=TEST_PROJECT, zone=TEST_ZONE, name=name)
@@ -165,7 +165,7 @@ def test_fetch_many_instances(mock_client, mock_instance):
 
     # Validate
     assert len(instances) == len(instance_names)
-    assert mock_client.get.call_count == len(instance_names)
+    assert mock_client.return_value.get.call_count == len(instance_names)
 
     for instance in instances:
         assert instance is not None
@@ -181,7 +181,7 @@ def test_fetch_instances_by_url(mock_client, mock_instance):
         for i, name in enumerate(instance_names)
     ]
 
-    mock_client.get.side_effect = mock_instances
+    mock_client.return_value.get.side_effect = mock_instances
 
     # Call the function under test
     instances = fetch_instances_by_url(
@@ -190,7 +190,7 @@ def test_fetch_instances_by_url(mock_client, mock_instance):
 
     # Validate
     assert len(instances) == len(instance_names)
-    assert mock_client.get.call_count == len(instance_names)
+    assert mock_client.return_value.get.call_count == len(instance_names)
 
     for instance in instances:
         assert instance is not None
