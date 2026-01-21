@@ -35,7 +35,7 @@ jobs:
       if: steps.check-tag.outputs.match == 'true'
       run: |
         # Extract the version part (e.g., 1.2.3)
-        echo "VERSION=$(echo ${{ github.ref_name }}" | sed 's/^v//') >> $GITHUB_ENV
+        echo "VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//') >> $GITHUB_ENV
 
     - name: Set version on any other tag
       if: steps.check-tag.outputs.match != 'true'
