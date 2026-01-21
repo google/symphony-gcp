@@ -99,12 +99,12 @@ def test_returned_machine_valid() -> None:
     data = {
         "name": "test-machine",
         "returnRequestId": "test-request-id",
-        "returnRequestTime": datetime.datetime.now(datetime.timezone.utc),
+        "returnTime": datetime.datetime.now(datetime.timezone.utc),
     }
     returned_machine = ReturnedMachine(**data)
     assert returned_machine.name == data["name"]
     assert returned_machine.returnRequestId == data["returnRequestId"]
-    assert returned_machine.returnRequestTime == data["returnRequestTime"]
+    assert returned_machine.returnTime == data["returnTime"]
 
 
 def test_returned_machine_invalid_timezone() -> None:
@@ -112,7 +112,7 @@ def test_returned_machine_invalid_timezone() -> None:
     data = {
         "name": "test-machine",
         "returnRequestId": "test-request-id",
-        "returnRequestTime": datetime.datetime.now(),  # No timezone
+        "returnTime": datetime.datetime.now(), # No timezone info
     }
     with pytest.raises(ValidationError):
         ReturnedMachine(**data)
@@ -123,7 +123,7 @@ def test_gcpsymphonyresourcestatus_valid() -> None:
     returned_machine = ReturnedMachine(
         name="test-machine",
         returnRequestId="test-request-id",
-        returnRequestTime=datetime.datetime.now(datetime.timezone.utc),
+        returnTime=datetime.datetime.now(datetime.timezone.utc),
     )
     data = {
         "phase": "Running",
