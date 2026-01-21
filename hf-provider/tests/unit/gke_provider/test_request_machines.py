@@ -8,6 +8,8 @@ def test_request_machines_success(mock_config, mock_hfr):
     mock_hfr.requestMachines = MagicMock()
     mock_hfr.requestMachines.template = MagicMock()
     mock_hfr.requestMachines.template.machineCount = 2
+    mock_config.crd_label_name_text = "test-label"
+    mock_config.crd_label_value_text = "test-value"
     mock_hfr.pod_spec = {"test": "spec"}
     with patch(
         "gke_provider.k8s.resources.create_gcpsymphonyresource",

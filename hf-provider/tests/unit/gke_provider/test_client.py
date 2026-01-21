@@ -12,6 +12,7 @@ def test_load_kubernetes_config_kubeconfig(mock_config):
         patch("gke_provider.config.Config.__new__", return_value=mock_config),
         patch("kubernetes.config.load_kube_config") as mock_load_kube_config,
     ):
+        client.load_kubernetes_config.cache_clear()
         client.load_kubernetes_config()
         mock_load_kube_config.assert_called_once()
 
@@ -19,11 +20,12 @@ def test_load_kubernetes_config_kubeconfig(mock_config):
 def test_load_kubernetes_config_incluster(mock_config):
     """Test loading Kubernetes config from incluster config."""
     with (
-        patch.object(
-            client, "load_kubernetes_config", side_effect=config.ConfigException
+        patch(
+            "kubernetes.config.load_kube_config", side_effect=config.ConfigException
         ),
         patch("kubernetes.config.load_incluster_config") as mock_load_incluster_config,
     ):
+        client.load_kubernetes_config.cache_clear()
         client.load_kubernetes_config()
         mock_load_incluster_config.assert_called_once()
 
@@ -40,6 +42,7 @@ def test_load_kubernetes_config_failure(mock_config):
         ),
         pytest.raises(Exception),
     ):
+        client.load_kubernetes_config.cache_clear()
         client.load_kubernetes_config()
 
 
