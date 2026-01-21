@@ -24,6 +24,23 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Check Tag
+      id: check-tag
+      run: |
+        if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Set version on a valid SemVer tag
+      if: steps.check-tag.outputs.match == 'true'
+      run: |
+        # Extract the version part (e.g., 1.2.3)
+        echo "VERSION=$(echo ${{ github.ref_name }}" | sed 's/^v//') >> $GITHUB_ENV
+
+    - name: Set version on any other tag
+      if: steps.check-tag.outputs.match != 'true'
+      run: echo "VERSION=1.0.0" >> $GITHUB_ENV
+
     - name: install required rpm packages
       run: |
            dnf install -y ${{ matrix.python_pkg }} rpm-build nodejs
@@ -51,7 +68,7 @@ jobs:
     - name: Upload gce artifact
       uses: actions/upload-artifact@v4
       with:
-        name: hf-gcpgce-provider-1.0.0-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        name: hf-gcpgce-provider-${{ env.VERSION }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gce-rpm.outputs.gce_rpm_path }}"
         compression-level: 0
 
@@ -62,7 +79,7 @@ jobs:
     - name: Upload gke artifact
       uses: actions/upload-artifact@v4
       with:
-        name: hf-gcpgke-provider-1.0.0-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
+        name: hf-gcpgke-provider-${{ env.VERSION }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gke-rpm.outputs.gke_rpm_path }}"
         compression-level: 0
 
