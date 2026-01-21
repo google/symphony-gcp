@@ -24,16 +24,21 @@ jobs:
     steps:
     - uses: actions/checkout@v2
 
+    - name: Check Tag
+      id: check-tag
+      run: |
+        if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "match=true" >> $GITHUB_OUTPUT
+        fi
+
     - name: Check if a valid SemVer tag
-      if: startsWith(github.ref, 'refs/tags/v') && match(github.ref, '^refs/tags/v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$')
+      if: steps.check-tag.outputs.match == 'true'
       run: |
         # Extract the version part (e.g., 1.2.3)
         VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')
 
-    - name: Run on any other tag or push
-      if: |
-        !startsWith(github.ref, 'refs/tags/v') ||
-        !match(github.ref, '^refs/tags/v(0|[1-9]\\d*)\\.(0|[1-9]\\d*)\\.(0|[1-9]\\d*)(?:-((?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\\.(?:0|[1-9]\\d*|\\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\\+([0-9a-zA-Z-]+(?:\\.[0-9a-zA-Z-]+)*))?$')
+    - name: Run on any other tag
+      if: steps.check-tag.outputs.match != 'true'
       run: VERSION='1.0.0'
 
     - name: install required rpm packages
