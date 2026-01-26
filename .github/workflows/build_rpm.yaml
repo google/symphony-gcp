@@ -19,7 +19,6 @@ jobs:
             version: 9
           - python_pkg: python3
             version: 10
-        test_suite: [common, gke_provider, gce_provider]
     container:
       image: rockylinux/rockylinux:${{ matrix.version }}
     steps:
@@ -60,13 +59,29 @@ jobs:
            uv pip install -r pyproject.toml
            uv pip install pyinstaller
 
-    - name: run unit tests
-      env:
-           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/${{ matrix.test_suite == 'gce_provider' && 'gcpgceinst' || 'gcpgkeinst' }}
+    - name: run common unit tests
+      env: 
+           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
       run: |
            cd hf-provider
            source .venv/bin/activate
-           python -m pytest tests/unit/${{ matrix.test_suite }}
+           python -m pytest tests/unit/common
+
+    - name: run gcpgke unit tests
+      env: 
+           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
+      run: |
+           cd hf-provider
+           source .venv/bin/activate
+           python -m pytest tests/unit/gke_provider
+           
+    - name: run gcpgce unit tests
+      env: 
+           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgceinst
+      run: |
+           cd hf-provider
+           source .venv/bin/activate
+           python -m pytest tests/unit/gce_provider
 
     - name: build clis
       run: |
