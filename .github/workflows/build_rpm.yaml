@@ -19,6 +19,7 @@ jobs:
             version: 9
           - python_pkg: python3
             version: 10
+        test_suite: [common, gke_provider, gce_provider]
     container:
       image: rockylinux/rockylinux:${{ matrix.version }}
     steps:
@@ -49,7 +50,7 @@ jobs:
     - name: Add a directory to the PATH
       run: echo "/usr/bin" >> $GITHUB_PATH
 
-    - name: build clis
+    - name: install uv, venv, dependencies and pyinstaller
       run: |
            cd hf-provider
            curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -58,6 +59,19 @@ jobs:
            source .venv/bin/activate
            uv pip install -r pyproject.toml
            uv pip install pyinstaller
+
+    - name: run unit tests
+      env:
+           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/${{ matrix.test_suite == 'gce_provider' && 'gcpgceinst' || 'gcpgkeinst' }}
+      run: |
+           cd hf-provider
+           source .venv/bin/activate
+           python -m pytest tests/unit/${{ matrix.test_suite }}
+
+    - name: build clis
+      run: |
+           cd hf-provider
+           source .venv/bin/activate
            PYTHONPATH=src pyinstaller --onefile src/gce_provider/__main__.py --name hf-gce --paths .venv/lib/python3.9/site-packages
            PYTHONPATH=src pyinstaller --onefile src/gke_provider/__main__.py --name hf-gke --paths .venv/lib/python3.9/site-packages
 
