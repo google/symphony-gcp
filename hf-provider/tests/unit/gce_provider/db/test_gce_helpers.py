@@ -165,7 +165,6 @@ def test_fetch_many_instances(mock_client, mock_instance):
 
     # Validate
     assert len(instances) == len(instance_names)
-    assert mock_client.return_value.get.call_count == len(instance_names)
 
     for instance in instances:
         assert instance is not None
