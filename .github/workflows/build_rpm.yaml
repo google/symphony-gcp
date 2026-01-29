@@ -67,14 +67,6 @@ jobs:
            source .venv/bin/activate
            python -m pytest tests/unit/common
 
-    - name: run gcpgke unit tests
-      env: 
-           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
-      run: |
-           cd hf-provider
-           source .venv/bin/activate
-           python -m pytest tests/unit/gke_provider
-           
     - name: run gcpgce unit tests
       env: 
            HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgceinst
@@ -83,12 +75,21 @@ jobs:
            source .venv/bin/activate
            python -m pytest tests/unit/gce_provider
 
+    - name: run gcpgke unit tests
+      env: 
+           HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
+      run: |
+           cd hf-provider
+           source .venv/bin/activate
+           python -m pytest tests/unit/gke_provider
+
     - name: build clis
       run: |
            cd hf-provider
            source .venv/bin/activate
-           PYTHONPATH=src pyinstaller --onefile src/gce_provider/__main__.py --name hf-gce --paths .venv/lib/python3.9/site-packages
-           PYTHONPATH=src pyinstaller --onefile src/gke_provider/__main__.py --name hf-gke --paths .venv/lib/python3.9/site-packages
+           uv run pyinstaller hf-gce.spec --clean
+           uv run pyinstaller hf-monitor.spec --clean
+           uv run pyinstaller hf-gke.spec --clean
 
     - name: run gce rpmbuild
       id: gce-rpm
