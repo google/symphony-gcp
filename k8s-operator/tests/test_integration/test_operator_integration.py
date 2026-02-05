@@ -20,7 +20,7 @@ class TestOperatorIntegration:
     @pytest.fixture
     def test_namespace(
         self: Self,
-    ) -> Generator[Any, None]:
+    ) -> Generator[Any, None, None]:
         """Create a test namespace for integration tests."""
         namespace_name = "test-symphony-operator"
         api = k8s.CoreV1Api()
