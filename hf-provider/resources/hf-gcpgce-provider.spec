@@ -12,13 +12,14 @@ Prefix: /opt/ibm/spectrumcomputing
 %define _build_id_links none
 
 %description
-IBM Symphony Host Factory provider for GCP GCE
+IBM Symphony Host Factory provider for GCP GCE, with hf-monitor used to track and monitor GCE VM events.
 
 %install
 echo "BUILDROOT = $RPM_BUILD_ROOT"
 mkdir -p ${RPM_BUILD_ROOT}%{prefix}/hostfactory
 cp -a ${GITHUB_WORKSPACE}/hf-provider/resources/gce_cli/* ${RPM_BUILD_ROOT}%{prefix}/hostfactory/
 cp -a ${GITHUB_WORKSPACE}/hf-provider/dist/hf-gce ${RPM_BUILD_ROOT}%{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/
+cp -a ${GITHUB_WORKSPACE}/hf-provider/dist/hf-monitor ${RPM_BUILD_ROOT}%{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/
 exit
 
 %files
@@ -29,6 +30,7 @@ exit
 %dir %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin
 %dir %{prefix}/hostfactory/1.2/providerplugins/gcpgce/scripts
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/hf-gce
+%attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/hf-monitor
 %attr(0644, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/README.md
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/scripts/*
 %dir %{prefix}/hostfactory/conf

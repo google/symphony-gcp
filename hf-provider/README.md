@@ -35,46 +35,80 @@ hf-gke requestMachines --json-file $2
 
 # Installation
 
-To install the CLI, use:
+This guide covers setting up the development environment, running tests, and building the CLI executables.
+
+## Prerequisites
+
+*   **Python 3.9+**
+*   **uv**: A Python package installer and resolver. [Install uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+## Install Dependencies
+
+1.  **Navigate to the project directory:**
+
+    ```bash
+    cd hf-provider
+    ```
+
+2.  **Create and activate a virtual environment:**
+
+    ```bash
+    uv venv
+    source .venv/bin/activate
+    ```
+
+3.  **Install dependencies and PyInstaller:**
+
+    ```bash
+    uv pip install .
+    uv pip install pyinstaller
+    ```
+
+## Unit Test
+
+Run unit tests to ensure the setup is correct. These commands simulate the GitHub workflow.
 
 ```bash
-cd [PROJECT-ROOT/hf-provider]
+# Run Common Tests
+export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
+python -m pytest tests/unit/common
 
-# Install and activate venv via UV
-# https://docs.astral.sh/uv/getting-started/installation/
+# Run GCP GCE Provider Tests
+export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgceinst
+python -m pytest tests/unit/gce_provider
 
-# Create the venv
-uv venv
+# Run GCP GKE Provider Tests
+export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
+python -m pytest tests/unit/gke_provider
+```
 
-# Activate the venv
-source .venv/bin/activate
+## Build CLIs
 
-# Install project dependencies
-uv pip install .
+Build the standalone CLI executables for GCE and GKE providers.
 
-# Install pyinstaller
-uv pip install pyinstaller
-
-# Create the hf-gce CLI for GCE clusters
+```bash
+# Build hf-gce CLI (GCE clusters)
 uv run pyinstaller hf-gce.spec --clean
 
-# Create the hf-monitor CLI to monitor GCE VM events
+# Build hf-monitor CLI (GCE VM monitoring)
 uv run pyinstaller hf-monitor.spec --clean
 
-# Create the hf-gke CLI for GKE clusters
+# Build hf-gke CLI (GKE clusters)
 uv run pyinstaller hf-gke.spec --clean
+```
 
-# Example command
-# Note: you should expect to see an error message if certain environment variables are not exported in your environment. 
-# Please see section below for additional information
-dist/hf-gce --help 
+**Verify the build:**
+
+```bash
+dist/hf-gce --help
 dist/hf-gke --help
 ```
 
-The installed CLI executables can be moved to any location for execution, provided that the OS can support the version of Python used to build them. Both executables have been tested with Python 3.9.6.
+*Note: You may see errors about missing environment variables; this is expected at this stage.*
 
-If you are using the GCE connector, make sure that you have installed both `hf-gce` and `hf-monitor` in the same directory.
+The executables are created in the `dist/` directory.
 
+> **Important**: If using the GCE connector, `hf-gce` and `hf-monitor` must be in the same directory.
 
 # Running from Python
 
