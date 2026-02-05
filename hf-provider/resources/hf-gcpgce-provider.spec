@@ -31,6 +31,7 @@ exit
 %dir %{prefix}/hostfactory/1.2/providerplugins/gcpgce/scripts
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/hf-gce
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/hf-monitor
+%attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/show_gce_provider_install.sh
 %attr(0644, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/bin/README.md
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgce/scripts/*
 %dir %{prefix}/hostfactory/conf

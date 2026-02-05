@@ -29,6 +29,7 @@ exit
 %dir %{prefix}/hostfactory/1.2/providerplugins/gcpgke/bin
 %dir %{prefix}/hostfactory/1.2/providerplugins/gcpgke/scripts
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgke/bin/hf-gke
+%attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgke/bin/show_gke_provider_install.sh
 %attr(0644, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgke/bin/README.md
 %attr(0755, egoadmin, egoadmin) %{prefix}/hostfactory/1.2/providerplugins/gcpgke/scripts/*
 %dir %{prefix}/hostfactory/conf
