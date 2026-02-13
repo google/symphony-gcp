@@ -1,0 +1,11 @@
+---
+name: Build k8s-operator
+on: 
+  workflow_dispatch:
+  push:
+    paths:
+      - k8s-operator/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
