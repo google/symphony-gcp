@@ -78,7 +78,7 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
 6. Ensure that your service account has the correct permissions to subscribe to the subscription, e.g.:
    ```bash
    gcloud pubsub subscriptions add-iam-policy-binding <my-pubsub-topic-sub> \
-    --member="serviceAccount:<my-service-account>@<my-project-id>.iam.gserviceaccount.com" \
+    --member="serviceAccount:service-NNNNNNNNNN@gcp-sa-logging.iam.gserviceaccount.com" \
     --role="roles/pubsub.subscriber"
    ```
 
