@@ -40,6 +40,8 @@ To install to an alternative prefix, download the rpm, `dnf download hf-gcpgke-p
 
 After building the cli executable, install it to the `bin` directory.
 
+Ensure the provider plugin directory and its files are readable and executable by other users.
+
 ## Result
 Using either method should result with a matching provider plugin directory:
 ```
