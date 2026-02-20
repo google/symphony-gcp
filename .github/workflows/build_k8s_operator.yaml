@@ -28,7 +28,6 @@ jobs:
         run: |
           cd k8s-operator
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          source $HOME/.local/bin/env
           uv venv --python 3.12 --allow-existing
           source .venv/bin/activate
           uv pip install -e ".[dev]"
