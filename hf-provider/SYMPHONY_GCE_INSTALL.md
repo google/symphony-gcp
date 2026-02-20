@@ -7,6 +7,7 @@ Installing the IBM Symphony Host Factory GCP GCE provider generally follows the 
 * [Set up a provider instance](#setup-the-provider-instance)
 * [Enable the provider instance](#enable-the-provider-instance)
 * [Enable the requestor(s) to use the provider instance](#enable-the-requestors-to-use-the-provider-instance)
+* [Verify the provider setup and configuration](#verify-the-provider-setup-and-configuration)
 
 
 
@@ -265,3 +266,15 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 ...
 "providers": ["gcpgceinst"],
 ...
+```
+
+# Verify the provider setup and configuration
+After completing the provider plugin and instance configuration, verify the GCE provider is correctly installed by running the validation script `show_gce_provider_install.sh`.
+
+The validation script can be found under the [resources/gce_cli/1.2/providerplugins/gcpgce/bin](./resources/gce_cli/1.2/providerplugins/gcpgce) directory. 
+
+If installed via RPM, it will be located under:
+```
+$HF_TOP/$HF_VERSION/providerplugins/gcpgce/bin
+```
+Review the output carefully. Any errors must be resolved to use the GCE provider.
