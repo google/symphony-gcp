@@ -20,7 +20,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-    
+
+      - name: Add a directory to the PATH
+        run: echo "/usr/bin" >> $GITHUB_PATH
+
       - name: Run Tests
         run: |
           cd k8s-operator
