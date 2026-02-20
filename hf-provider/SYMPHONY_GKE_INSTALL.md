@@ -6,7 +6,7 @@ Installing the IBM Symphony Host Factory GCP GKE provider generally follows the 
 * [Set up a provider instance](#setup-the-provider-instance)
 * [Enable the provider instance](#enable-the-provider-instance)
 * [Enable the requestor(s) to use the provider instance](#enable-the-requestors-to-use-the-provider-instance)
-
+* [Verify the provider setup and configuration](#verify-the-provider-setup-and-configuration)
 # Set up the provider plugin 
 Suggested provider plugin directory name/location:
 ```
@@ -214,3 +214,14 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 "providers": ["gcpgkeinst"],
 ...
 ```
+
+# Verify the provider setup and configuration
+After completing the provider plugin and instance configuration, verify the GKE provider is correctly installed, enabled and able to communicate to the GKE cluster by running the validation script `show_gke_provider_install.sh`.
+
+The validation script can be found under the [resources/gke_cli/1.2/providerplugins/gcpgke/bin](./resources/gce_cli/1.2/providerplugins/gcpgke/bin) directory. 
+
+If installed via RPM, it will be located under:
+```
+$HF_TOP/$HF_VERSION/providerplugins/gcpgke/bin
+```
+Review the output carefully. Any errors must be resolved to use the GKE provider.
