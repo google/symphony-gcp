@@ -45,8 +45,6 @@ jobs:
           load: true
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
-          build-args: |
-            VERSION=${{ env.VERSION }}
           tags: |
             ${{ env.IMAGE }}:${{ env.TAG }}
 
