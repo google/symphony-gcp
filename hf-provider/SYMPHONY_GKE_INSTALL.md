@@ -217,12 +217,13 @@ Add/replace the provider instance of the `providers` parameter of the appropriat
 ```
 
 # Verify the provider setup and configuration
-After completing the provider plugin and instance configuration, verify the GKE provider is correctly installed, enabled and able to communicate to the GKE cluster by running the validation script `show_gke_provider_install.sh`.
-
-The validation script can be found under the [resources/gke_cli/1.2/providerplugins/gcpgke/bin](./resources/gce_cli/1.2/providerplugins/gcpgke/bin) directory. 
-
-If installed via RPM, it will be located under:
+Suggested validation script location:
 ```
 $HF_TOP/$HF_VERSION/providerplugins/gcpgke/bin
 ```
+
+After completing the provider plugin and instance configuration, verify the GKE provider is correctly installed, enabled and able to communicate to the GKE cluster by running the validation script `show_gke_provider_install.sh`.
+
+If building from source, the validation script can be found under the [resources/gke_cli/1.2/providerplugins/gcpgke/bin](./resources/gke_cli/1.2/providerplugins/gcpgke/bin) directory. Copy it to the suggested location.
+
 Review the output carefully. Any errors must be resolved to use the GKE provider.
