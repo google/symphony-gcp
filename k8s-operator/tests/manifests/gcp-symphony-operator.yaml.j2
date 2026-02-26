@@ -1,0 +1,497 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gcp-symphony
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: gcp-symphony-resources.accenture.com
+spec:
+  group: accenture.com
+  names:
+    kind: GCPSymphonyResource
+    listKind: List
+    plural: gcp-symphony-resources
+    shortNames:
+    - gcpsr
+    singular: gcp-symphony-resource
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: Current Status
+      jsonPath: .status.phase
+      name: Status
+      type: string
+    - description: Number of Machines
+      jsonPath: .spec.machineCount
+      name: MachinesRequested
+      type: integer
+    - description: Prefix for the pod names
+      jsonPath: .status.availableMachines
+      name: MachinesAvailable
+      type: integer
+    - description: Container Image
+      jsonPath: .spec.podSpec.containers[0].image
+      name: Image
+      type: string
+    name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              annotations:
+                additionalProperties:
+                  type: string
+                description: Annotations to add to the machines (pods) to provision
+                type: object
+              labels:
+                additionalProperties:
+                  type: string
+                description: Labels to add to the machines (pods) to provision
+                type: object
+              machineCount:
+                default: 1
+                description: Number of machines (pods) to provision
+                minimum: 0
+                type: integer
+              namePrefix:
+                description: Prefix for the name of the machines (pods) to provision
+                type: string
+              podSpec:
+                description: Full Kubernetes PodSpec
+                type: object
+                x-kubernetes-preserve-unknown-fields: true
+            required:
+            - namePrefix
+            - machineCount
+            - podSpec
+            type: object
+          status:
+            properties:
+              availableMachines:
+                description: The number of available Machines
+                type: integer
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  type: object
+                type: array
+              machines:
+                additionalProperties:
+                  properties:
+                    deleteRequestId:
+                      description: RequestId that was submitted to delete this machine
+                        (pod)
+                      type: string
+                    hostIP:
+                      type: string
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    phase:
+                      type: string
+                    podIP:
+                      type: string
+                    reason:
+                      type: string
+                    sequenceTime:
+                      format: float
+                      type: number
+                  type: object
+                type: object
+              phase:
+                description: The phase of the custom resource
+                type: string
+              returnedMachines:
+                description: When pod (machine) is returned, it gets put on this list
+                  by the operator for tracking.
+                items:
+                  properties:
+                    name:
+                      description: Name of the returned machine (pod)
+                      type: string
+                    returnRequestId:
+                      description: RequestId that was submitted to delete this machine
+                        (pod)
+                      type: string
+                    returnTime:
+                      description: Time when the machine (pod) was returnedd
+                      format: date-time
+                      type: string
+                  type: object
+                type: array
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: machine-return-requests.accenture.com
+spec:
+  group: accenture.com
+  names:
+    kind: MachineReturnRequest
+    listKind: MachineReturnRequestList
+    plural: machine-return-requests
+    shortNames:
+    - mrr
+    - rrm
+    singular: machine-return-request
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - description: Current Status
+      jsonPath: .status.phase
+      name: Status
+      type: string
+    - description: Number of Machines to Return
+      jsonPath: .status.totalMachines
+      name: Machines
+      type: integer
+    - description: Number of Machines Returned
+      jsonPath: .status.returnedMachines
+      name: Returned
+      type: integer
+    name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              labels:
+                additionalProperties:
+                  type: string
+                description: Labels to add to the return request for filtering or
+                  categorization
+                type: object
+              machineIds:
+                description: List of machine IDs (pod names) to delete from a GCPSymphonyResource
+                items:
+                  type: string
+                type: array
+              requestId:
+                description: Unique ID generated by the client application for tracking
+                  this return request
+                type: string
+            required:
+            - requestId
+            - machineIds
+            type: object
+          status:
+            properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      format: date-time
+                      type: string
+                    message:
+                      type: string
+                    reason:
+                      type: string
+                    status:
+                      type: string
+                    type:
+                      type: string
+                  type: object
+                type: array
+              failedMachines:
+                description: Number of machines that failed to return
+                type: integer
+              machineEvents:
+                additionalProperties:
+                  properties:
+                    machineId:
+                      description: ID of the machine (pod name)
+                      type: string
+                    message:
+                      description: Additional information about the return operation
+                      type: string
+                    returnCompletionTime:
+                      description: Time when the machine was successfully returned
+                      format: date-time
+                      type: string
+                    returnRequestTime:
+                      description: Time when the return request was initiated for
+                        this machine
+                      format: date-time
+                      type: string
+                    status:
+                      description: Current status of the return operation for this
+                        machine (Pending, InProgress, Completed, Failed)
+                      type: string
+                  type: object
+                type: object
+              phase:
+                description: The phase of the return request (Pending, InProgress,
+                  Completed, Failed)
+                type: string
+              returneddMachines:
+                description: Number of machines successfully returned
+                type: integer
+              totalMachines:
+                description: Total number of machines to return
+                type: integer
+            type: object
+            x-kubernetes-preserve-unknown-fields: true
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: gcp-symphony-operator-sa
+  namespace: gcp-symphony
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gcp-symphony-operator-role
+  namespace: gcp-symphony
+rules:
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - create
+  - update
+  - patch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - roles
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - rolebindings
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ''
+  resources:
+  - serviceaccounts
+  verbs:
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - delete
+  - update
+  - patch
+- apiGroups:
+  - accenture.com
+  resources:
+  - gcp-symphony-resources
+  - machine-return-requests
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+  - patch
+  - create
+  - delete
+- apiGroups:
+  - accenture.com
+  resources:
+  - gcp-symphony-resources/status
+  - machine-return-requests/status
+  verbs:
+  - get
+  - update
+  - patch
+  - delete
+  - create
+- apiGroups:
+  - accenture.com
+  resources:
+  - kopfpeerings
+  verbs:
+  - list
+  - watch
+  - patch
+  - get
+- apiGroups:
+  - ''
+  resources:
+  - events
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gcp-symphony-operator-cluster-role
+rules:
+- apiGroups:
+  - apiextensions.k8s.io
+  resources:
+  - customresourcedefinitions
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterroles
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - rbac.authorization.k8s.io
+  resources:
+  - clusterrolebindings
+  verbs:
+  - get
+  - list
+- apiGroups:
+  - ''
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ''
+  resources:
+  - nodes
+  verbs:
+  - get
+  - list
+  - watch
+  - patch
+- apiGroups:
+  - accenture.com
+  resources:
+  - gcp-symphony-resources
+  - machine-return-requests
+  verbs:
+  - get
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gcp-symphony-operator-role-binding
+  namespace: gcp-symphony
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gcp-symphony-operator-role
+subjects:
+- kind: ServiceAccount
+  name: gcp-symphony-operator-sa
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gcp-symphony-operator-cluster-role-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: gcp-symphony-operator-cluster-role
+subjects:
+- kind: ServiceAccount
+  name: gcp-symphony-operator-sa
+  namespace: gcp-symphony
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gcp-symphony-operator
+  namespace: gcp-symphony
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gcp-symphony-operator
+  template:
+    metadata:
+      labels:
+        app: gcp-symphony-operator
+        version: 0.2.6
+    spec:
+      containers:
+      - env:
+        - name: GCP_HF_DEFAULT_NAMESPACES
+          value: gcp-symphony
+        - name: GCP_HF_LOG_LEVEL
+          value: INFO
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        image: gcp-symphony-operator:latest
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: health
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        name: gcp-symphony-operator
+        ports:
+        - containerPort: 8080
+          name: health
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /ready
+            port: health
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 512Mi
+          requests:
+            cpu: 100m
+            memory: 128Mi
+      serviceAccountName: gcp-symphony-operator-sa
+---
