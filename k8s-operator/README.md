@@ -76,7 +76,7 @@ that HostFactory returns, improving performance of the CLI.
 - pip
 - Kubernetes cluster for testing (minikube, kind, etc.)
 
-These instructions will descring the use of `uv`, "an extremely fast Python package manager."  It is recommended to use `uv` as the document describes, but it is not a hard requirement.
+These instructions described the use of `uv`, an extremely fast Python package manager. While using `uv` is highly recommended, it is not strictly required.
 
 ### <a id="installation"></a>Installation
 
