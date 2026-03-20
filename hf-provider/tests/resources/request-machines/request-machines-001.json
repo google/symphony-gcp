@@ -1,6 +1,6 @@
 {
   "template": {
     "templateId": "template-gcp-01",
-    "machineCount": 2
+    "machineCount": 1
   }
 }

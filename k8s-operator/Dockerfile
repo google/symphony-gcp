@@ -1,5 +1,5 @@
 # Dockerfile
-FROM python:3.13-slim AS builder
+FROM python:3.13-slim-trixie AS builder
 
 WORKDIR /app
 
@@ -21,14 +21,19 @@ RUN pip install uv && \
     uv build --wheel --out-dir=dist .
 
 # Create a new stage for the final image
-FROM python:3.13-slim
+FROM python:3.13-slim-trixie
 
 LABEL org.opencontainers.image.source=https://github.com/GCP-Symphony/google-symphony-hf
 LABEL org.opencontainers.image.description="A kubernetes operator for Google GKE and IBM Specturm Spymphony host factory"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
 LABEL org.opencontainers.image.authors="Accenture, LLC"
 
+
 WORKDIR /app
+
+#Update OS packages to patch vulnerabilities
+RUN apt update && apt upgrade -y && \
+    apt clean && rm -rf /var/lib/apt/lists/*
 
 # Copy the wheel file from the builder stage
 COPY --from=builder /app/dist/*.whl /app/
