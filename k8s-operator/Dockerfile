@@ -1,11 +1,10 @@
 # Dockerfile
-FROM python:3.13-slim AS builder
+FROM python:3.13-alpine3.23 AS builder
 
 WORKDIR /app
 
 # Copy pyproject.toml and poetry.lock
-COPY pyproject.toml .
-COPY README.md .
+COPY pyproject.toml README.md .
 COPY src ./src
 COPY build_scripts ./build_scripts
 
@@ -17,11 +16,11 @@ RUN if [ -n "$VERSION" ]; then \
     fi
 
 # Install uv and build the wheel
-RUN pip install uv && \
+RUN pip install --no-cache-dir uv && \
     uv build --wheel --out-dir=dist .
 
 # Create a new stage for the final image
-FROM python:3.13-slim
+FROM python:3.13-alpine3.23
 
 LABEL org.opencontainers.image.source=https://github.com/GCP-Symphony/google-symphony-hf
 LABEL org.opencontainers.image.description="A kubernetes operator for Google GKE and IBM Specturm Spymphony host factory"
@@ -34,12 +33,13 @@ WORKDIR /app
 COPY --from=builder /app/dist/*.whl /app/
 
 # Install the package from the wheel file
-RUN pip install --no-cache-dir /app/*.whl
-
-COPY gcp_symphony_operator.run .
+RUN pip install --no-cache-dir /app/*.whl && \
+    rm /app/*.whl
 
 # Copy the entrypoint
 # COPY run.py .
+COPY gcp_symphony_operator.run .
+
 ENV PATH="/app:${PATH}"
 
 ENTRYPOINT ["python", "gcp_symphony_operator.run"]
