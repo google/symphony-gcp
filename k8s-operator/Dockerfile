@@ -22,8 +22,8 @@ RUN pip install --no-cache-dir uv && \
 # Create a new stage for the final image
 FROM python:3.13-alpine3.23
 
-LABEL org.opencontainers.image.source=https://github.com/GCP-Symphony/google-symphony-hf
-LABEL org.opencontainers.image.description="A kubernetes operator for Google GKE and IBM Specturm Spymphony host factory"
+LABEL org.opencontainers.image.source=https://github.com/google/symphony-gcp
+LABEL org.opencontainers.image.description="A kubernetes operator for Google GKE and IBM Spectrum Symphony host factory"
 LABEL org.opencontainers.image.licenses="Apache 2.0"
 LABEL org.opencontainers.image.authors="Accenture, LLC"
 
