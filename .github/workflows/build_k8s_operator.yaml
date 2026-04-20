@@ -91,7 +91,7 @@ jobs:
           # cache-to: type=gha,mode=max
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}
+          tags: ${{ env.IMAGE }}:${{ env.VERSION }}
           outputs: type=docker, dest=${{runner.temp}}/k8s-operator.tar
 
       - name: Upload Docker image artifact for debugging
