@@ -6,7 +6,7 @@ set -Eeuo pipefail
 
 RESOURCE_MANIFEST="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifests/resource.yaml"
 NAMESPACE="gcp-symphony"
-LABEL="app=test-resource-5"
+LABEL="app=test-resource"
 
 # kubectl apply -f "${RESOURCE_MANIFEST}"
 

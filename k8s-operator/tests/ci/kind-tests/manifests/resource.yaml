@@ -1,11 +1,11 @@
 apiVersion: accenture.com/v1
 kind: GCPSymphonyResource
 metadata:
-  name: test-resource-5
+  name: test-resource
   namespace: gcp-symphony
   uid: test-uid
   labels:
-    symphony.requestId: test-request-id-5
+    symphony.requestId: test-request-id
 spec:
   machineCount: 1
   namePrefix: test
@@ -14,46 +14,7 @@ spec:
     - name: base-pod
       image: nginx:alpine
 
-
-# apiVersion: accenture.com/v1
-# kind: MachineReturnRequest
-# metadata:
-#   annotations:
-#     kopf.zalando.org/last-handled-configuration: |
-#       {"spec":{"machineIds":["test-resource-4-pod-0"],"requestId":"test-request-return-id-4"},"metadata":{"labels":{"symphony.waitingCleanup":"True","triggerUpdate":"true"}}}
-#     kubectl.kubernetes.io/last-applied-configuration: |
-#       {"apiVersion":"accenture.com/v1","kind":"MachineReturnRequest","metadata":{"annotations":{},"name":"test-return-request-4","namespace":"gcp-symphony"},"spec":{"machineIds":["test-resource-4-pod-0"],"requestId":"test-request-return-id-4"}}
-#   creationTimestamp: "2026-04-21T13:52:02Z"
-#   generation: 1
-#   labels:
-#     symphony.waitingCleanup: "True"
-#     triggerUpdate: "true"
-#   name: test-return-request-4
-#   namespace: gcp-symphony
-#   resourceVersion: "187683"
-#   uid: 1cbca77e-6673-4539-880f-f6121e14613d
-# spec:
-#   machineIds:
-#   - test-resource-4-pod-0
-#   requestId: test-request-return-id-4
-# status:
-#   conditions:
-#   - lastTransitionTime: "2026-04-21T13:52:02.247943+00:00"
-#     message: Successfully returned all 1 pods
-#     reason: AllPodsDeleted
-#     status: "True"
-#     type: AllPodsDeleted
-#   failedMachines: 0
-#   machineEvents:
-#     test-resource-4-pod-0:
-#       message: Pod deletion successful
-#       returnCompletionTime: "2026-04-21T13:52:02.230692+00:00"
-#       returnRequestTime: "2026-04-21T13:52:02.044416+00:00"
-#       status: Completed
-#   phase: Completed
-#   returnedMachines: 1
-#   totalMachines: 1
-
+########################## GCPSR DETAILS FOR THE SAMPLE TEST CASE ##########################
 # apiVersion: accenture.com/v1
 # kind: GCPSymphonyResource
 # metadata:
@@ -101,3 +62,44 @@ spec:
 #   - name: test-resource-4-pod-0
 #     returnRequestId: unknown
 #     returnTime: "2026-04-21T13:52:02.242968+00:00"
+
+
+############################ MRR DETAILS FOR SAMPLE TEST CASE ###################################
+# apiVersion: accenture.com/v1
+# kind: MachineReturnRequest
+# metadata:
+#   annotations:
+#     kopf.zalando.org/last-handled-configuration: |
+#       {"spec":{"machineIds":["test-resource-4-pod-0"],"requestId":"test-request-return-id-4"},"metadata":{"labels":{"symphony.waitingCleanup":"True","triggerUpdate":"true"}}}
+#     kubectl.kubernetes.io/last-applied-configuration: |
+#       {"apiVersion":"accenture.com/v1","kind":"MachineReturnRequest","metadata":{"annotations":{},"name":"test-return-request-4","namespace":"gcp-symphony"},"spec":{"machineIds":["test-resource-4-pod-0"],"requestId":"test-request-return-id-4"}}
+#   creationTimestamp: "2026-04-21T13:52:02Z"
+#   generation: 1
+#   labels:
+#     symphony.waitingCleanup: "True"
+#     triggerUpdate: "true"
+#   name: test-return-request-4
+#   namespace: gcp-symphony
+#   resourceVersion: "187683"
+#   uid: 1cbca77e-6673-4539-880f-f6121e14613d
+# spec:
+#   machineIds:
+#   - test-resource-4-pod-0
+#   requestId: test-request-return-id-4
+# status:
+#   conditions:
+#   - lastTransitionTime: "2026-04-21T13:52:02.247943+00:00"
+#     message: Successfully returned all 1 pods
+#     reason: AllPodsDeleted
+#     status: "True"
+#     type: AllPodsDeleted
+#   failedMachines: 0
+#   machineEvents:
+#     test-resource-4-pod-0:
+#       message: Pod deletion successful
+#       returnCompletionTime: "2026-04-21T13:52:02.230692+00:00"
+#       returnRequestTime: "2026-04-21T13:52:02.044416+00:00"
+#       status: Completed
+#   phase: Completed
+#   returnedMachines: 1
+#   totalMachines: 1
