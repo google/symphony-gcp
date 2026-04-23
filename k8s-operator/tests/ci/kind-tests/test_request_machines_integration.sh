@@ -5,18 +5,15 @@
 set -Eeuo pipefail
 
 RESOURCE_MANIFEST="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifests/resource.yaml"
-NAMESPACE="gcp-symphony"
 RESOURCE_NAME="test-resource"
 
 kubectl apply -f "${RESOURCE_MANIFEST}"
 
 kubectl wait --for=create pod \
-    -n "$NAMESPACE" \
     -l "app=$RESOURCE_NAME" \
-    --timeout=30s
+    --timeout=60s
 
 kubectl wait --for=condition=Ready pod \
-    -n "$NAMESPACE" \
     -l "app=$RESOURCE_NAME" \
     --timeout=60s
 

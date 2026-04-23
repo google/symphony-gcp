@@ -4,11 +4,10 @@
 
 set -Eeuo pipefail
 
-NAMESPACE="gcp-symphony"
 RESOURCE_NAME="test-resource"
 
-for pod in $(kubectl get pods -n "${NAMESPACE}" -l "app=${RESOURCE_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
-    STATUS=$(kubectl get pod "$pod" -n "${NAMESPACE}" -o jsonpath='{.status.phase}')
+for pod in $(kubectl get pods -l "app=${RESOURCE_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
+    STATUS=$(kubectl get pod "$pod" -o jsonpath='{.status.phase}')
 
     if [[ "$STATUS" != "Running" ]]; then
         echo "[FAIL] Pod $pod is not running (current status: $STATUS)"
@@ -16,10 +15,12 @@ for pod in $(kubectl get pods -n "${NAMESPACE}" -l "app=${RESOURCE_NAME}" -o jso
     fi
 done
 
+sleep 2
+
 SR_MACHINE_COUNT=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.spec.machineCount}')
 SR_AVAILABLE_MACHINES=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.availableMachines}')
 SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
-POD_COUNT=$(kubectl get pods -n "${NAMESPACE}" -l "app=${RESOURCE_NAME}" --no-headers | wc -l)
+POD_COUNT=$(kubectl get pods -l "app=${RESOURCE_NAME}" --no-headers | wc -l)
 
 if [[ 
     $SR_MACHINE_COUNT != $SR_AVAILABLE_MACHINES || \

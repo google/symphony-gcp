@@ -4,12 +4,13 @@
 
 set -Eeuo pipefail
 
-NAMESPACE="gcp-symphony"
 RETURN_RESOURCE_NAME="test-return-request"
 
-MR_PHASE=$(kubectl get mrr "${RETURN_RESOURCE_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.phase}')
-MR_RETURNED_MACHINES=$(kubectl get mrr "${RETURN_RESOURCE_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.returnedMachines}')
-MR_TOTAL_MACHINES=$(kubectl get mrr "${RETURN_RESOURCE_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.totalMachines}')
+sleep 2
+
+MR_PHASE=$(kubectl get mrr "${RETURN_RESOURCE_NAME}" -o jsonpath='{.status.phase}')
+MR_RETURNED_MACHINES=$(kubectl get mrr "${RETURN_RESOURCE_NAME}" -o jsonpath='{.status.returnedMachines}')
+MR_TOTAL_MACHINES=$(kubectl get mrr "${RETURN_RESOURCE_NAME}" -o jsonpath='{.status.totalMachines}')
 
 if [[ $MR_PHASE != "Completed" || $MR_RETURNED_MACHINES != $MR_TOTAL_MACHINES ]]; then
     echo "[FAIL] Machine return incomplete:"

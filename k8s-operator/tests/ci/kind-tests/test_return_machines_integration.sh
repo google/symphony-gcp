@@ -5,13 +5,11 @@
 set -Eeuo pipefail
 
 RETURN_RESOURCE_MANIFEST="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/manifests/return-resource.yaml"
-NAMESPACE="gcp-symphony"
 RESOURCE_NAME="test-resource"
 
 kubectl apply -f "${RETURN_RESOURCE_MANIFEST}"
 
 kubectl wait --for=delete pod \
-    -n "$NAMESPACE" \
     -l "app=$RESOURCE_NAME" \
     --timeout=60s
 

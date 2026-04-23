@@ -4,12 +4,11 @@
 
 set -Eeuo pipefail
 
-NAMESPACE="gcp-symphony"
 RESOURCE_NAME="test-resource"
 
-SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.phase}')
-SR_STATUS=$(kubectl get gcpsr "${RESOURCE_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.conditions[-1].status}')
-SR_TYPE=$(kubectl get gcpsr "${RESOURCE_NAME}" -n "${NAMESPACE}" -o jsonpath='{.status.conditions[-1].type}')
+SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
+SR_STATUS=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].status}')
+SR_TYPE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].type}')
 
 if [[ $SR_PHASE != "WaitingCleanup" || $SR_STATUS != "True" || $SR_TYPE != "Completed" ]]; then
     echo "[FAIL] Resource state did not meet the requirements for cleanup."
