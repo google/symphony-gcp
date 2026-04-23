@@ -9,14 +9,28 @@ set -Eeuo pipefail
 # Date: 2026-04-10
 # =========================================
 
+echo "[INFO] Applying CRD manifests to the cluster..."
+
+kubectl apply -f manifests.yaml
+
+echo "[INFO] Waiting for CRDs to be established..."
+
+kubectl wait --for=condition=Established \
+    crd/gcp-symphony-resources.accenture.com \
+    --timeout=60s
+    
+kubectl wait --for=condition=Established \
+    crd/machine-return-requests.accenture.com \
+    --timeout=60s
+
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/kind-tests"
 
-echo "[INFO] Running kind tests from directory: $TEST_DIR"
+echo "[INFO] Running integration tests from directory: $TEST_DIR"
 
 for test_script in "$TEST_DIR"/*.sh; do
-    echo "[INFO] Running test script: $test_script"
+    printf "\n[INFO] Running test script: $test_script\n"
     bash "$test_script"
 done
 
 echo
-echo "[INFO] All kind tests passed successfully!"
+echo "[INFO] All integration tests passed successfully!"
