@@ -1,0 +1,9 @@
+apiVersion: accenture.com/v1
+kind: MachineReturnRequest
+metadata:
+  name: test-return-request
+  namespace: gcp-symphony
+spec:
+  requestId: test-request-return-id
+  machineIds:
+  - "test-resource-pod-0"
