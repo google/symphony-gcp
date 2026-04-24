@@ -9,9 +9,11 @@ set -Eeuo pipefail
 # Date: 2026-04-10
 # =========================================
 
+echo "[INFO] Modifying manifests.yaml to use localhost image registry..."
 echo "[INFO] Applying CRD manifests to the cluster..."
 
-kubectl apply -f manifests.yaml
+sed 's|image: gcp-symphony-operator:.*|image: localhost/gcp-symphony-operator:latest|' manifests.yaml \
+| kubectl apply -f -
 
 echo "[INFO] Waiting for CRDs to be established..."
 
