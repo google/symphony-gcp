@@ -15,6 +15,10 @@ echo "[INFO] Applying CRD manifests to the cluster..."
 sed 's|image: gcp-symphony-operator:.*|image: localhost/gcp-symphony-operator:latest|' manifests.yaml \
 | kubectl apply -f -
 
+echo "[INFO] Set Namespace to gcp-symphony"
+
+kubectl config set-context --current --namespace=gcp-symphony
+
 echo "[INFO] Waiting for CRDs to be established..."
 
 kubectl wait --for=condition=Established \
@@ -24,7 +28,7 @@ kubectl wait --for=condition=Established \
 kubectl wait --for=condition=Established \
     crd/machine-return-requests.accenture.com \
     --timeout=60s
-
+    
 TEST_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/kind-tests"
 
 echo "[INFO] Running integration tests from directory: $TEST_DIR"
