@@ -9,16 +9,6 @@ set -Eeuo pipefail
 # Date: 2026-04-10
 # =========================================
 
-echo "[INFO] Modifying manifests.yaml to use localhost image registry..."
-echo "[INFO] Applying CRD manifests to the cluster..."
-
-sed 's|image: gcp-symphony-operator:.*|image: localhost/gcp-symphony-operator:latest|' manifests.yaml \
-| kubectl apply -f -
-
-echo "[INFO] Set Namespace to gcp-symphony"
-
-kubectl config set-context --current --namespace=gcp-symphony
-
 echo "[INFO] Waiting for CRDs to be established..."
 
 kubectl wait --for=condition=Established \

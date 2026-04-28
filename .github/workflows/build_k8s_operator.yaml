@@ -155,6 +155,15 @@ jobs:
       - name: Load Docker image into Kind cluster
         run: |
           kind load docker-image ${{ env.IMAGE }}:${{ env.VERSION }} --name symphony-operator-test-cluster
+        
+      - name: Modify manifests to use localhost image registry
+        run: |
+          sed 's|image: gcp-symphony-operator:.*|image: ${{ env.IMAGE }}:${{ env.VERSION }}|' manifests.yaml \
+          | kubectl apply -f -
+      
+      - name: Set namespace to gcp-symphony
+        run: |
+          kubectl config set-context --current --namespace=gcp-symphony
 
       - name: Run kind integration tests
         run: bash ./k8s-operator/tests/ci/run-kind-tests.sh
