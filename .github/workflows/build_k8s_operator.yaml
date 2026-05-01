@@ -165,6 +165,13 @@ jobs:
         run: |
           kubectl config set-context --current --namespace=gcp-symphony
 
+      - name: Set Operator Retain Time to 2 minutes for testing and then restart operator
+        run: |
+          kubectl set env deploy/${{ env.IMAGE }} \
+            GCP_HF_CRD_COMPLETED_RETAIN_TIME=2 \
+            GCP_HF_CRD_COMPLETED_CHECK_INTERVAL=1
+          kubectl rollout restart deploy/${{ env.IMAGE }}
+
       - name: Run kind integration tests
         run: bash ./k8s-operator/tests/ci/run-kind-tests.sh
 
