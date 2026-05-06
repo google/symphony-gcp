@@ -2,11 +2,7 @@
 # Purpose: Assert that the gcp-symphony-operator pod is running.
 # Run from k8s-operator/tests/ci/kind-tests with an isolated Kubernetes context.
 
-kubectl wait --for=create pod \
-    -l "app=$IMAGE" \
-    --timeout=60s
-
-if ! kubectl wait --for=condition=Ready pod \
+if ! kubectl wait --for=create --for=condition=Ready pod \
     -l "app=$IMAGE" \
     --timeout=60s; then
     REASON=$(kubectl get pods -l app=$IMAGE -o jsonpath='{.items[0].status.containerStatuses[0].state.waiting.reason}')

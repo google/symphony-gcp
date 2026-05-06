@@ -1,10 +1,35 @@
 #!/usr/bin/env bash
-# Purpose: Validate that all requested machines are running and the resource state is consistent.
+# Purpose: Validate that after returning machines, the resource is cleaned up and removed from the gcpsr.
 # Run from k8s-operator/tests/ci/kind-tests with an isolated Kubernetes context.
-
 set -Eeuo pipefail
 
-RESOURCE_NAME="test-resource"
+RESOURCE_NAME="test-request-resource-assert"
+
+RESOURCE_MANIFESTS="
+apiVersion: accenture.com/v1
+kind: GCPSymphonyResource
+metadata:
+  name: ${RESOURCE_NAME}
+  namespace: gcp-symphony
+  uid: test-uid-${RESOURCE_NAME}
+  labels:
+    symphony.requestId: ${RESOURCE_NAME}-request-id
+spec:
+  machineCount: 1
+  namePrefix: test
+  podSpec:
+    containers:
+    - name: base-pod
+      image: nginx:alpine
+"
+
+kubectl apply -f - <<< "$RESOURCE_MANIFESTS"
+
+kubectl wait --for=create --for=condition=Ready pod \
+    -l "app=$RESOURCE_NAME" \
+    --timeout=60s
+
+echo "[PASS] Resource request successfully created and initialized pods."
 
 for pod in $(kubectl get pods -l "app=${RESOURCE_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
     STATUS=$(kubectl get pod "$pod" -o jsonpath='{.status.phase}')
@@ -15,7 +40,7 @@ for pod in $(kubectl get pods -l "app=${RESOURCE_NAME}" -o jsonpath='{.items[*].
     fi
 done
 
-sleep 2
+sleep 1
 
 SR_MACHINE_COUNT=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.spec.machineCount}')
 SR_AVAILABLE_MACHINES=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.availableMachines}')
