@@ -52,8 +52,10 @@ kubectl wait --for=delete pod \
     --timeout=60s
 
 # Default timeout (minutes) to wait for resource removal from gcpsr after return request is processed
-DEFAULT_TIMEOUT_MINUTES=${DEFAULT_TIMEOUT_MINUTES:-4}
-DEFAULT_TIMEOUT_SECONDS=$((DEFAULT_TIMEOUT_MINUTES * 60))
+DEFAULT_TIMEOUT_MINUTES=5
+DEFAULT_TIMEOUT_SECONDS=$((DEFAULT_TIMEOUT_MINUTES *  60))
+STALL_TIMEOUT_MINUTES=4 # stall timeout must be > GCP_HF_CRD_COMPLETED_RETAIN_TIME
+STALL_TIMEOUT_SECONDS=$((STALL_TIMEOUT_MINUTES * 60))
 START_TIME=$(date +%s)
 
 while true; do
@@ -63,8 +65,34 @@ while true; do
     exit 0
   fi
 
-  # Fail if we've exceeded the default timeout
   ELAPSED=$(( $(date +%s) - START_TIME ))
+
+  if [ "$ELAPSED" -gt "$STALL_TIMEOUT_SECONDS" ]; then
+    # This sometimes can happen during node failures or very high control-plane activity where  the completed events get lost to operator
+    # Reference Link: https://github.com/google/symphony-gcp/blob/main/k8s-operator/docs/operator-troubleshooting-guide.md#gcpsymphonyresource-in-waitingcleanup-state-for-longer-than-the-crd_completed_retain_time
+    echo "Resource '${RESOURCE_NAME}' still exists after ${STALL_TIMEOUT_MINUTES} minutes. This may indicate a stall in cleanup processing."
+    echo "Verifying resource manually..."
+    # Check for any pods that are associated with this gcpsr using requestId
+    PODS=$(kubectl get pods -l symphony.requestId=${RESOURCE_NAME}-request-id -o jsonpath='{.items[*].metadata.name}')
+    # Check if the mrr with resource name exists.
+    MRR_RESOURCE=$(kubectl get mrr --no-headers 2>/dev/null | awk '{print $1}' | grep -qx "${RESOURCE_NAME}-return" && echo "yes" || echo "no")
+    # Check if the gcpsr is still in WaitingCleanup phase
+    PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
+    # manually deleting the resource to unblock cleanup if they still exist.
+    if [[ -z "$PODS" && "$MRR_RESOURCE" == "no" && "$PHASE" == "WaitingCleanup" ]]; then
+      echo "Manually deleting resource '${RESOURCE_NAME}' to unblock cleanup..."
+      kubectl delete gcpsr "${RESOURCE_NAME}" --ignore-not-found=true
+      continue
+    else
+      echo "Resource '${RESOURCE_NAME}' is still present with the following details:"
+      echo " - Associated Pods: ${PODS:-None}"
+      echo " - MRR Resource Exists: ${MRR_RESOURCE}"
+      echo " - Current Phase: ${PHASE}"
+      echo "Manual deletion will not be performed as there are still associated resources or the phase is not WaitingCleanup."
+    fi
+  fi
+
+  # Fail if we've exceeded the default timeout
   if [ "$ELAPSED" -gt "$DEFAULT_TIMEOUT_SECONDS" ]; then
     echo "[FAIL] Resource '${RESOURCE_NAME}' still exists after ${DEFAULT_TIMEOUT_MINUTES} minutes."
     exit 1

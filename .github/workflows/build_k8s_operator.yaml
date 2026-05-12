@@ -169,18 +169,13 @@ jobs:
         run: |
           kubectl set env deploy/${{ env.IMAGE }} \
             GCP_HF_CRD_COMPLETED_RETAIN_TIME=2 \
-            GCP_HF_CRD_COMPLETED_CHECK_INTERVAL=1
+            GCP_HF_CRD_COMPLETED_CHECK_INTERVAL=1 \
+            GCP_HF_POD_GRACE_PERIOD=10
           kubectl rollout restart deploy/${{ env.IMAGE }}
 
       - name: Run kind integration tests
         run: bash ./k8s-operator/tests/ci/run-kind-tests.sh
 
-      - name: Upload manifests artifact for debugging
-        uses: actions/upload-artifact@v4
-        with:
-          name: manifests.yaml
-          path: manifests.yaml
-          compression-level: 0
 
   push:
     name: Push to Registry
