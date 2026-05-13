@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
-# Purpose: Assert that the gcp-symphony-operator pod is running.
+# Purpose: Assert that the gcp-symphony-operator is running.
 # Run from k8s-operator/tests/ci/kind-tests with an isolated Kubernetes context.
 
-if ! kubectl wait --for=create --for=condition=Ready pod \
-    -l "app=$IMAGE" \
+if ! kubectl wait --for=condition=Available \
+    "deployment/$IMAGE" \
     --timeout=60s; then
-    REASON=$(kubectl get pods -l app=$IMAGE -o jsonpath='{.items[0].status.containerStatuses[0].state.waiting.reason}')
-    MESSAGE=$(kubectl get pods -l app=$IMAGE -o jsonpath='{.items[0].status.containerStatuses[0].state.waiting.message}')
-    
     echo "[FAIL] $IMAGE isn't running properly."
-    echo " - Likely reason: ${REASON:-Unknown} - ${MESSAGE:-No error message provided.}"
-
+    echo "- Recent Cluster Error Events:"
+    kubectl get events --sort-by='.lastTimestamp' | grep -iE "error|fail|warning" | tail -n 5
+    
     exit 1
 fi
 

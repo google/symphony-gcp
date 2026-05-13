@@ -64,42 +64,11 @@ fi
 
 echo "[PASS] Machine return request completed successfully."
 
-# DEFAULT_TIMEOUT_SECONDS=${DEFAULT_TIMEOUT_SECONDS:-10}
-# START_TIME=$(date +%s)
-
-# while true; do
-#   SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
-#   SR_STATUS=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].status}')
-#   SR_TYPE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].type}')
-
-#   if [[ $SR_PHASE == "WaitingCleanup" && $SR_STATUS == "True" && $SR_TYPE == "Completed" ]]; then
-#     echo "[PASS] Resource is in WaitingCleanup phase and ready for cleanup."
-#     exit 0
-#   fi
-
-#   # Fail if we've exceeded the default timeout
-#   ELAPSED=$(( $(date +%s) - START_TIME ))
-#   if [ "$ELAPSED" -gt "$DEFAULT_TIMEOUT_SECONDS" ]; then
-#     echo "[FAIL] Resource state did not meet the requirements for cleanup."
-#     echo "- Phase: $SR_PHASE"
-#     echo "- Last condition status: $SR_STATUS"
-#     echo "- Last condition type: $SR_TYPE"
-#     exit 1
-#   fi
-
-#   echo "Resource Mismatch: Waiting....."
-#   echo "- Phase: $SR_PHASE"
-#   echo "- Last condition status: $SR_STATUS"
-#   echo "- Last condition type: $SR_TYPE"
-#   sleep 2
-
-# done
-
 SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
 SR_STATUS=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].status}')
 SR_TYPE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].type}')
 
-if [[ $SR_PHASE == "WaitingCleanup" && $SR_STATUS == "True" && $SR_TYPE == "Completed" ]]; then
+if [[ $SR_PHASE != "WaitingCleanup" || $SR_STATUS != "True" || $SR_TYPE != "Completed" ]]; then
   echo "[FAIL] Resource state did not meet the requirements for cleanup."
   echo "- Phase: $SR_PHASE"
   echo "- Last condition status: $SR_STATUS"
