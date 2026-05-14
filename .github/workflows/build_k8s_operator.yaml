@@ -66,7 +66,7 @@ jobs:
   build:
     name: Build 
     runs-on: ubuntu-24.04
-    needs: [check-tags, set-version]
+    needs: [unit-tests, check-tags, set-version]
     env:
       VERSION: ${{ needs.set-version.outputs.version }}
     steps:
@@ -105,7 +105,7 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-24.04
-    needs: [unit-tests, build, set-version]
+    needs: [build, set-version]
     env:
       VERSION: ${{ needs.set-version.outputs.version }}
     steps:
