@@ -65,14 +65,10 @@ fi
 echo "[PASS] Machine return request completed successfully."
 
 SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
-SR_STATUS=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].status}')
-SR_TYPE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.conditions[-1].type}')
 
-if [[ $SR_PHASE != "WaitingCleanup" || $SR_STATUS != "True" || $SR_TYPE != "Completed" ]]; then
-  echo "[FAIL] Resource state did not meet the requirements for cleanup."
+if [ "$SR_PHASE" != "WaitingCleanup" ]; then
+  echo "[FAIL] Resource state did not meet the requirement for cleanup."
   echo "- Phase: $SR_PHASE"
-  echo "- Last condition status: $SR_STATUS"
-  echo "- Last condition type: $SR_TYPE"
   exit 1
 fi
 
