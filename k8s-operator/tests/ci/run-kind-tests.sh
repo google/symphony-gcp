@@ -35,6 +35,20 @@ kubectl wait --for=condition=Established \
     crd/machine-return-requests.accenture.com \
     --timeout=60s
 
+echo "[INFO] Waiting for the operator to be available..."
+
+if ! kubectl wait --for=condition=Available \
+    "deployment.apps/$IMAGE" \
+    --timeout=60s; then
+    echo "[FAIL] $IMAGE isn't running properly."
+    echo "- Recent Cluster Error Events:"
+    kubectl get events --sort-by='.lastTimestamp' | grep -iE "error|fail|warning" | tail -n 5
+
+    exit 1
+fi
+
+echo "[INFO] $IMAGE is now available."
+
 echo "[INFO] Running integration test from directory: $TEST_DIR" | tee -a "$LOG_FILE"
 
 run_test() {
