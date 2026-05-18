@@ -25,7 +25,11 @@ spec:
 
 kubectl apply -f - <<< "$RESOURCE_MANIFESTS"
 
-kubectl wait --for=create --for=condition=Ready pod \
+kubectl wait --for=create pod \
+    -l "app=$RESOURCE_NAME" \
+    --timeout=60s
+
+kubectl wait --for=condition=Ready pod \
     -l "app=$RESOURCE_NAME" \
     --timeout=60s
 
