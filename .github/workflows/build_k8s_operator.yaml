@@ -8,15 +8,11 @@ on:
 
 env:
   IMAGE: gcp-symphony-operator
-  REGISTRY: "gcp-symphony-registry" # TODO: Update with actual registry
 
 jobs:
-  tests:
-    name: Tests
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-24.04
-    env:
-      TAG: test
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -32,41 +28,7 @@ jobs:
           source .venv/bin/activate
           uv pip install -e ".[dev]"
           pytest tests
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker image
-        uses: docker/build-push-action@v6
-        with:
-          context: k8s-operator
-          file: ./k8s-operator/Dockerfile
-          push: false # NOTE: It's important to set push to false here to avoid pushing test images to the registry
-          load: true
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
-          tags: |
-            ${{ env.IMAGE }}:${{ env.TAG }}
-
-      - name: Run export-manifests
-        run: |
-          docker run --rm ${{ env.IMAGE }}:${{ env.TAG }} export-manifests > manifests.yaml
-
-      - name: Verify manifests
-        run: |
-          if [ -f k8s-operator/tests/manifests/gcp-symphony-operator.yaml.j2 ]; then
-            diff manifests.yaml k8s-operator/tests/manifests/gcp-symphony-operator.yaml.j2 || { echo "Manifest mismatch manifests.yaml and k8s-operator/tests/manifests/gcp-symphony-operator.yaml.j2"; exit 1; }
-          else
-            echo "k8s-operator/gcp-symphony-operator.yaml.j2 not found." && exit 1
-          fi
-
-      - name: Upload manifests artifact for debugging
-        uses: actions/upload-artifact@v4
-        with:
-          name: manifests.yaml
-          path: manifests.yaml
-          compression-level: 0
-
+  
   check-tags:
     name: Check Tags
     runs-on: ubuntu-24.04
@@ -81,66 +43,181 @@ jobs:
             echo "is_release=false" >> $GITHUB_OUTPUT
           fi
 
+  set-version:
+    name: Set Version
+    runs-on: ubuntu-24.04
+    needs: check-tags
+    outputs:
+      version: ${{ steps.set_version.outputs.version }}
+    steps:
+      - id: set_version
+        run: |
+          if [[ "${{ needs.check-tags.outputs.is_release }}" == "true" ]]; then
+            VERSION=${GITHUB_REF_NAME#v}
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          else
+            SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+            VERSION=1.0.0-build.${GITHUB_RUN_NUMBER}-${SHORT_SHA}
+            echo "VERSION=$VERSION" >> $GITHUB_ENV
+          fi
+
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
   build:
-    name: Build
-    needs: [tests, check-tags]
-    if: github.ref_type != 'tag' || needs.check-tags.outputs.is_release == 'false'
+    name: Build 
     runs-on: ubuntu-24.04
-
+    needs: [unit-tests, check-tags, set-version]
+    env:
+      VERSION: ${{ needs.set-version.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set Dev Version
-        run: |
-          SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
-          VERSION=1.0.0-build.${GITHUB_RUN_NUMBER}-${SHORT_SHA}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
+      - name: Set up QEMU (Simulate multi-arch builds)
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Build and Push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v6
         with:
           context: k8s-operator
           file: ./k8s-operator/Dockerfile
-          push: false # TODO: Change to true when ready to push to registry
+          platforms: linux/amd64
+          push: false # NOTE: It's important to set push to false here to avoid pushing test images to the registry
+          load: true
           # cache-from: type=gha
           # cache-to: type=gha,mode=max
           build-args: |
             VERSION=${{ env.VERSION }}
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}
+          tags: ${{ env.IMAGE }}:${{ env.VERSION }}
+          outputs: type=docker, dest=${{runner.temp}}/k8s-operator.tar
 
-  release:
-    name: Release
-    needs: [tests, check-tags]
-    if: needs.check-tags.outputs.is_release == 'true'
+      - name: Upload Docker image artifact for debugging
+        uses: actions/upload-artifact@v4
+        with:
+          name: k8s-operator-image
+          path: ${{runner.temp}}/k8s-operator.tar
+          retention-days: 1
+
+
+  integration-tests:
+    name: Integration Tests
     runs-on: ubuntu-24.04
-
+    needs: [build, set-version]
+    env:
+      VERSION: ${{ needs.set-version.outputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set Release Version
-        run: |
-          VERSION=${GITHUB_REF_NAME#v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build and Push Docker image
-        uses: docker/build-push-action@v6
+        
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
         with:
-          context: k8s-operator
-          file: ./k8s-operator/Dockerfile
-          push: false # TODO: Change to true when ready to push to registry
-          # cache-from: type=gha
-          # cache-to: type=gha,mode=max
-          build-args: |
-            VERSION=${{ env.VERSION }}
-          tags: |
-              ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}
-              ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
+          name: k8s-operator-image
+          path: ${{ runner.temp }}
+
+      - name: Check Downloaded artifact
+        run: |
+          if [ -f ${{ runner.temp }}/k8s-operator.tar ]; then
+            echo "Docker image artifact downloaded successfully."
+          else
+            echo "Failed to download Docker image artifact." && exit 1
+          fi
+
+      - name: Load Docker image
+        run: |
+          docker load -i ${{ runner.temp }}/k8s-operator.tar
+      
+      - name: Run Integration Tests
+        run: |
+          echo "Running integration tests..."
+      
+      - name: Verify Docker image
+        run: |
+          if docker images ${{ env.IMAGE }}:${{ env.VERSION }} | grep -q ${{ env.IMAGE }}; then
+            echo "Docker image ${{ env.IMAGE }}:${{ env.VERSION }} is available."
+          else
+            echo "Docker image ${{ env.IMAGE }}:${{ env.VERSION }} not found." && exit 1
+          fi
+
+      - name: Run export-manifests
+        run: |
+          docker run --rm ${{ env.IMAGE }}:${{ env.VERSION }} export-manifests > manifests.yaml
+
+      - name: Create cluster
+        uses:  helm/kind-action@v1 
+        with:
+          version: v0.17.0
+          cluster_name: symphony-operator-test-cluster
+
+      - name: Load Docker image into Kind cluster
+        run: |
+          kind load docker-image ${{ env.IMAGE }}:${{ env.VERSION }} --name symphony-operator-test-cluster
+        
+      - name: Modify manifests to use localhost image registry
+        run: |
+          sed 's|image: gcp-symphony-operator:.*|image: ${{ env.IMAGE }}:${{ env.VERSION }}|' manifests.yaml \
+          | kubectl apply -f -
+      
+      - name: Set namespace to gcp-symphony
+        run: |
+          kubectl config set-context --current --namespace=gcp-symphony
+
+      - name: Set Operator Retain Time to 2 minutes for testing and then restart operator
+        run: |
+          kubectl set env deploy/${{ env.IMAGE }} \
+            GCP_HF_CRD_COMPLETED_RETAIN_TIME=2 \
+            GCP_HF_CRD_COMPLETED_CHECK_INTERVAL=1 \
+            GCP_HF_POD_GRACE_PERIOD=10
+          kubectl rollout restart deploy/${{ env.IMAGE }}
+
+      - name: Run kind integration tests
+        run: bash ./k8s-operator/tests/ci/run-kind-tests.sh
+
+
+  push:
+    name: Push to Registry
+    needs: [integration-tests, check-tags, set-version]
+    runs-on: ubuntu-24.04
+    env:
+      VERSION: ${{ needs.set-version.outputs.version }}
+      REGISTRY: "gcp-symphony-registry" # TODO: Update with actual registry
+
+    steps:
+      - name: Download Docker image artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: k8s-operator-image
+          path: ${{ runner.temp }}
+
+      - name: Check Downloaded artifact
+        run: |
+          if [ -f ${{ runner.temp }}/k8s-operator.tar ]; then
+            echo "Docker image artifact downloaded successfully."
+          else
+            echo "Failed to download Docker image artifact." && exit 1
+          fi
+
+      - name: Load Docker image
+        run: |
+          docker load -i ${{ runner.temp }}/k8s-operator.tar
+        
+      - name: Tag version image
+        run: |
+          docker tag ${{ env.IMAGE }}:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }}
+        
+      - name: Push version image to registry
+        run: |
+          echo "Pushing image ${{ env.REGISTRY }}/${{ env.IMAGE }}:${{ env.VERSION }} to registry..."
+
+      - name: Tag latest image
+        if: needs.check-tags.outputs.is_release == 'true'
+        run: |
+          docker tag ${{ env.IMAGE }}:${{ env.VERSION }} ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest
+      
+      - name: Push latest image to registry
+        if: needs.check-tags.outputs.is_release == 'true'
+        run: |
+          echo "Pushing image ${{ env.REGISTRY }}/${{ env.IMAGE }}:latest to registry..."
