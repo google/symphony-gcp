@@ -17,6 +17,18 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 [Return to the Google Symphony Hostfactory main readme](../README.md)
 
 ## <a id="change-log"></a>Change log
+### Version 0.2.9
+- Updated the operator Dockerfile from `python:3.13-slim` to `python:3.13-alpine3.23` to reduce 
+  image size and optimize build process.
+
+### Version 0.2.8
+- Added k8s-operator workflow
+- Updated all job runners to ubuntu-24.04 for more stable builds compared to ubuntu-latest.
+- Build images are now tagged as: k8s-operator:1.0.0-build.<run-number>.<first-7-characters-of-commit-hash>
+- Release images follow semantic versioning, e.g.: k8s-operator:1.0.0
+
+### Version 0.2.7
+- Fixed Failing Unit Tests
 
 ### Version 0.3.0
 - Streamlined the k8s-operator workflow to utilize a single Docker build image throughout the entire execution cycle.
