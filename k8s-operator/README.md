@@ -18,6 +18,11 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ## <a id="change-log"></a>Change log
 
+### Version 0.3.0
+- Streamlined the k8s-operator workflow to utilize a single Docker build image throughout the entire execution cycle.
+- Implemented operator workflow integration tests, validation workflows (release, GCPSR/MRR/RMM CRDs, deployments, grace periods, cleanups), and health checks.
+- Introduced a script to accelerate manual testing within an isolated kind cluster.
+
 ### Version 0.2.6
 - Added initial pod status check on operator startup to ensure existing pods are accounted
   for in status updates.
