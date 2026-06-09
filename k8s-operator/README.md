@@ -17,6 +17,9 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 [Return to the Google Symphony Hostfactory main readme](../README.md)
 
 ## <a id="change-log"></a>Change log
+### Version 0.2.9
+- Updated the operator Dockerfile from `python:3.13-slim` to `python:3.13-alpine3.23` to reduce 
+  image size and optimize build process.
 
 ### Version 0.2.8
 - Added k8s-operator workflow
