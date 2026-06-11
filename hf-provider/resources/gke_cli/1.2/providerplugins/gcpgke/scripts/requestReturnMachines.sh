@@ -10,4 +10,4 @@ inJson=$2
 scriptDir=`dirname $0`
 homeDir="$(cd "$scriptDir" && cd .. && pwd)"
 
-$homeDir/bin/hf-gke requestReturnMachines -f $inJson
+$homeDir/bin/hf-gke requestReturnMachines -f $inJson 2>/dev/null

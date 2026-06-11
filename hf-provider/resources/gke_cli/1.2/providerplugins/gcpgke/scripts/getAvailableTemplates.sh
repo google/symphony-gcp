@@ -10,4 +10,4 @@ inJson=$2
 scriptDir=`dirname $0`
 homeDir="$(cd "$scriptDir" && cd .. && pwd)"
 
-$homeDir/bin/hf-gke getAvailableTemplates -f $inJson
+$homeDir/bin/hf-gke getAvailableTemplates -f $inJson 2>/dev/null
