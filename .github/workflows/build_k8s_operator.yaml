@@ -170,7 +170,8 @@ jobs:
           kubectl set env deploy/${{ env.IMAGE }} \
             GCP_HF_CRD_COMPLETED_RETAIN_TIME=2 \
             GCP_HF_CRD_COMPLETED_CHECK_INTERVAL=1 \
-            GCP_HF_POD_GRACE_PERIOD=10
+            GCP_HF_POD_GRACE_PERIOD=10 \
+            GCP_HF_HEALTH_CHECK_ENABLED=True
           kubectl rollout restart deploy/${{ env.IMAGE }}
 
       - name: Run kind integration tests
