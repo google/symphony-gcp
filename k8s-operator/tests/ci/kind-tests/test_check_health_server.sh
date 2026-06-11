@@ -50,7 +50,7 @@ done
 
 START_TIME=$(date +%s)
 while true; do
-    curl -s http://localhost:8080/health > "$tmp_file" 2>/dev/null
+    curl -s http://localhost:8080/ready > "$tmp_file" 2>/dev/null
     IS_READY=$?
     if [ $IS_READY -eq 0 ] && [ -s "$tmp_file" ]; then
         echo "Readiness server is responding with 200 Ready."
