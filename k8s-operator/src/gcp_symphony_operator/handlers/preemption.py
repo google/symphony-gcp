@@ -14,6 +14,12 @@ from gcp_symphony_operator.handlers.machine_return_request import process_pod_de
 
 def preemption_handler_factory(config, logger: Logger) -> Any:
     """
+    [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
+
+    This feature is deprecated and no longer recommended for active use. 
+    However, the underlying codebase still supports this feature; you can 
+    still enable it by uncommenting the configuration block if required.
+
     Factory function to create the preemption handler.
 
     Args:
