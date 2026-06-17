@@ -35,6 +35,7 @@ This project provides two main components that work together to extend IBM Spect
 IBM Spectrum Symphony's Host Factory provides dynamic resource provisioning capabilities, but lacks native support for Google Cloud Platform. This project bridges that gap by:
 
 - **Enabling Cloud Bursting**: Allows Symphony clusters to dynamically scale into GCP when on-premises resources are insufficient
+- **Cost Optimization**: Leverages GCP's spot instances and preemptible VMs for cost-effective compute scaling
 - **Unified Management**: Provides a consistent interface for managing both GKE pods and GCE instances through Symphony's existing Host Factory framework
 - **Enterprise Integration**: Seamlessly integrates with existing Symphony deployments without requiring architectural changes
 
@@ -92,6 +93,7 @@ The Host Factory Provider contains CLI tools that implement Symphony's Host Fact
 **Key Features:**
 - **Dual Provider Support**: Separate providers for GCE and GKE workloads
 - **Template-Based Provisioning**: Configurable resource templates aligned with Symphony requirements
+- **Spot Instance Support**: Cost optimization through preemptible VM usage
 - **Pub/Sub Integration**: Event-driven resource management for GCE instances
 
 **Documentation:**
