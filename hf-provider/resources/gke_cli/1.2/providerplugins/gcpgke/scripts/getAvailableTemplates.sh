@@ -10,4 +10,4 @@ inJson=$2
 scriptDir=`dirname $0`
 homeDir="$(cd "$scriptDir" && cd .. && pwd)"
 
-$homeDir/bin/hf-gke getAvailableTemplates -f $inJson 2>/dev/null
+$homeDir/bin/hf-gke getAvailableTemplates -f $inJson 2>>"${HF_LOGDIR:-/tmp}/${HF_PROVIDER_NAME:-gcp-symphony}-provider.${EGOSC_INSTANCE_HOST:-$(hostname)}.log"
