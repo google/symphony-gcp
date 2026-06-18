@@ -81,12 +81,11 @@ class Config:
 
     DEFAULT_ENABLE_GKE_PREEMPTION_HANDLING = False
     """
-    [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-
-    This feature is deprecated and no longer recommended for active use. 
-    It has been commented out and removed from the official documentation. 
-    However, the underlying codebase still supports this feature; you can 
-    still enable it by uncommenting the configuration block if required.
+    [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+    or taints to nodes that the operator can key on to identify when a node 
+    is being preempted. Without a reliable signal provided from the GCP 
+    infrastructure layer to the Kubernetes layer, this functionality is 
+    disabled by default as it provides no operational benefit.
 
     bool: Whether to enable GKE preemption handling.
     This will allow the operator to handle GKE VM preemption events.
@@ -190,12 +189,11 @@ class Config:
         "cloud.google.com/gke-provisioning": "spot"
     }
     """
-    [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-
-    This feature is deprecated and no longer recommended for active use. 
-    It has been commented out and removed from the official documentation. 
-    However, the underlying codebase still supports this feature; you can 
-    still enable it by uncommenting the configuration block if required.
+    [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+    or taints to nodes that the operator can key on to identify when a node 
+    is being preempted. Without a reliable signal provided from the GCP 
+    infrastructure layer to the Kubernetes layer, this functionality is 
+    disabled by default as it provides no operational benefit.
 
     dict: A dictionary of labels used to identify GKE VMs that may be subject to preemption.
     This is used to filter resources in the cluster.
@@ -208,12 +206,11 @@ class Config:
         "node.kubernetes.io/unschedulable",
     }
     """
-    [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-
-    This feature is deprecated and no longer recommended for active use. 
-    It has been commented out and removed from the official documentation. 
-    However, the underlying codebase still supports this feature; you can 
-    still enable it by uncommenting the configuration block if required.
+    [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+    or taints to nodes that the operator can key on to identify when a node 
+    is being preempted. Without a reliable signal provided from the GCP 
+    infrastructure layer to the Kubernetes layer, this functionality is 
+    disabled by default as it provides no operational benefit.
 
     set: A set of taints used to identify nodes that are being preempted by the compute engine. These are only applied after passing the GKE_PREEMPT_LABELS filter.
     This is used to filter resources in the cluster.
@@ -318,11 +315,11 @@ class Config:
             else None
         )
         
-        # [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-        # This feature is deprecated and no longer recommended for active use. 
-        # It has been commented out and removed from the official documentation. 
-        # However, the underlying codebase still supports this feature; you can 
-        # still enable it by uncommenting this configuration block if required.
+        # [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+        # or taints to nodes that the operator can key on to identify when a node 
+        # is being preempted. Without a reliable signal provided from the GCP 
+        # infrastructure layer to the Kubernetes layer, this functionality is 
+        # disabled by default as it provides no operational benefit.
         # self.enable_gke_preemption_handling = os.environ.get(
         #     f"{self.env_var_prefix}ENABLE_GKE_PREEMPTION_HANDLING",
         #     str(Config.DEFAULT_ENABLE_GKE_PREEMPTION_HANDLING),
@@ -618,21 +615,21 @@ class Config:
             f"{self.env_var_prefix}READINESS_CHECK_PATH",
             Config.DEFAULT_READINESS_CHECK_PATH,
         )
-        # [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-        # This feature is deprecated and no longer recommended for active use. 
-        # It has been commented out and removed from the official documentation. 
-        # However, the underlying codebase still supports this feature; you can 
-        # still enable it by uncommenting this configuration block if required.
+        # [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+        # or taints to nodes that the operator can key on to identify when a node 
+        # is being preempted. Without a reliable signal provided from the GCP 
+        # infrastructure layer to the Kubernetes layer, this functionality is 
+        # disabled by default as it provides no operational benefit.
         # self.gke_preempt_labels = os.environ.get(
         #     f"{self.env_var_prefix}GKE_PREEMPT_LABELS",
         #     Config.DEFAULT_GKE_PREEMPT_LABELS,
         # )
 
-        # [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-        # This feature is deprecated and no longer recommended for active use. 
-        # It has been commented out and removed from the official documentation. 
-        # However, the underlying codebase still supports this feature; you can 
-        # still enable it by uncommenting this configuration block if required.
+        # [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+        # or taints to nodes that the operator can key on to identify when a node 
+        # is being preempted. Without a reliable signal provided from the GCP 
+        # infrastructure layer to the Kubernetes layer, this functionality is 
+        # disabled by default as it provides no operational benefit.
         # self.gke_node_taints_list = os.environ.get(
         #     f"{self.env_var_prefix}GKE_NODE_TAINTS_LIST",
         #     Config.DEFAULT_GKE_NODE_TAINTS_LIST,

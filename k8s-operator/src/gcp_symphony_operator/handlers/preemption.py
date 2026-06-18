@@ -14,11 +14,11 @@ from gcp_symphony_operator.handlers.machine_return_request import process_pod_de
 
 def preemption_handler_factory(config, logger: Logger) -> Any:
     """
-    [DEPRECATED - NOT RECOMMENDED] Whether to enable preemption handling.
-
-    This feature is deprecated and no longer recommended for active use. 
-    However, the underlying codebase still supports this feature; you can 
-    still enable it by uncommenting the configuration block if required.
+    [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+    or taints to nodes that the operator can key on to identify when a node 
+    is being preempted. Without a reliable signal provided from the GCP 
+    infrastructure layer to the Kubernetes layer, this functionality is 
+    disabled by default as it provides no operational benefit.
 
     Factory function to create the preemption handler.
 
