@@ -56,10 +56,15 @@ def register_handlers(config: Config) -> None:
         machine_return_request.machine_return_request_handler_factory(config, logger)
     )
 
-    if config.enable_gke_preemption_handling:
-        from gcp_symphony_operator.handlers import preemption
-        _resource_handlers["preemption"] = preemption.preemption_handler_factory(
-            config, logger
-        )
+    # [DEPRECATED] This feature is deprecated because GKE does not apply labels 
+    # or taints to nodes that the operator can key on to identify when a node 
+    # is being preempted. Without a reliable signal provided from the GCP 
+    # infrastructure layer to the Kubernetes layer, this functionality is 
+    # disabled by default as it provides no operational benefit.
+    # if config.enable_gke_preemption_handling:
+        # from gcp_symphony_operator.handlers import preemption
+        # _resource_handlers["preemption"] = preemption.preemption_handler_factory(
+        #     config, logger
+        # )
 
     logger.info("All handlers registered successfully")
