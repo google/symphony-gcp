@@ -24,13 +24,13 @@ version = "0.3.1"
 
 [project.optional-dependencies]
 dev = [
-    "pytest == 8.3.3",
+    "pytest==9.0.3",
     "pytest-cov == 6.1.1",
     "pytest-mock == 3.14.1",
     "pytest-asyncio == 1.0.0",
     "mock == 5.2.0",
     "coverage == 7.8.2",
-    "black == 25.1.0",
+    "black==26.3.1",
     "isort == 6.0.1",
     "mypy == 1.16.*",
     "flake8 == 7.2.*"
