@@ -65,3 +65,20 @@ if [[
 fi
 
 echo "[PASS] All machines are running and the resource state is consistent."
+
+RETURN_RESOURCE="
+apiVersion: accenture.com/v1
+kind: MachineReturnRequest
+metadata:
+  name: ${RESOURCE_NAME}-return
+  namespace: gcp-symphony
+spec:
+  requestId: ${RESOURCE_NAME}-return-request-id
+  machineIds:
+  - "${RESOURCE_NAME}-pod-0"
+"
+kubectl apply -f - <<< "$RETURN_RESOURCE"
+
+kubectl wait --for=delete pod \
+    -l "app=$RESOURCE_NAME" \
+    --timeout=60s
