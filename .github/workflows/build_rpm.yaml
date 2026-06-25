@@ -82,20 +82,20 @@ jobs:
            cd hf-provider
            source .venv/bin/activate
            python -m pytest tests/unit/gke_provider
-    - name: debug uv state
+    - name: inspect bundled google-auth version
       run: |
            cd hf-provider
            source .venv/bin/activate
-           echo "=== python ==="
-           python --version
-           echo "=== uv.lock present? ==="
-           ls -la uv.lock || echo "NO uv.lock"
-           echo "=== google-auth BEFORE uv run ==="
+           echo "=== venv google-auth ==="
            uv pip show google-auth | grep Version
-           echo "=== triggering uv run ==="
-           uv run python -c "import google.auth; print('via uv run:', google.auth.__version__)"
-           echo "=== google-auth AFTER uv run ==="
-           uv pip show google-auth | grep Version
+           echo "=== bundled in hf-gce ==="
+           pyi-archive_viewer -l dist/hf-gce | grep -i google_auth
+           echo "=== bundled in hf-monitor ==="
+           pyi-archive_viewer -l dist/hf-monitor | grep -i google_auth
+           echo "=== bundled in hf-gke ==="
+           pyi-archive_viewer -l dist/hf-gke | grep -i google_auth
+           echo "=== run binary ==="
+           ./dist/hf-gce --version 2>&1 | head -10
     - name: build clis
       run: |
            cd hf-provider
