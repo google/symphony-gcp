@@ -46,6 +46,7 @@ HF_PROVIDER_LOGFILE = (
 )
 
 logging.getLogger(__name__)
+logging.captureWarnings(True)
 
 PROVIDER_CONF_GKE_KUBECONFIG = "GKE_KUBECONFIG"
 KUBECONFIG_DEFAULT_ENV = "KUBECONFIG"

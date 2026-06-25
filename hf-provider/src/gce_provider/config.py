@@ -84,7 +84,7 @@ HF_PROVIDER_LOGFILE = (
 )
 
 logging.getLogger(__name__)
-
+logging.captureWarnings(True)
 
 class Config:
     """Configuration class for the application."""
