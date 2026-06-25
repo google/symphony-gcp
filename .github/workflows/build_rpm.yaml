@@ -82,6 +82,15 @@ jobs:
            cd hf-provider
            source .venv/bin/activate
            python -m pytest tests/unit/gke_provider
+
+    - name: build clis
+      run: |
+           cd hf-provider
+           source .venv/bin/activate
+           uv run pyinstaller hf-gce.spec --clean
+           uv run pyinstaller hf-monitor.spec --clean
+           uv run pyinstaller hf-gke.spec --clean
+           
     - name: inspect bundled google-auth version
       run: |
            cd hf-provider
@@ -96,13 +105,6 @@ jobs:
            pyi-archive_viewer -l dist/hf-gke | grep -i google_auth
            echo "=== run binary ==="
            ./dist/hf-gce --version 2>&1 | head -10
-    - name: build clis
-      run: |
-           cd hf-provider
-           source .venv/bin/activate
-           uv run pyinstaller hf-gce.spec --clean
-           uv run pyinstaller hf-monitor.spec --clean
-           uv run pyinstaller hf-gke.spec --clean
 
     - name: run gce rpmbuild
       id: gce-rpm
