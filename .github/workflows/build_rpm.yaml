@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         version: ["8", "9", "10"]
@@ -48,15 +48,20 @@ jobs:
 
     - name: Add a directory to the PATH
       run: echo "/usr/bin" >> $GITHUB_PATH
+    
+    - name: Install uv version 0.11.26
+      env:
+        UV_VERSION: 0.11.26
+        UV_INSTALL_DIR: ${{runner.temp}}/uv
+      run: |
+           curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | env UV_INSTALL_DIR="${UV_INSTALL_DIR}" sh
+           echo "${UV_INSTALL_DIR}" >> "$GITHUB_PATH"
+           "${UV_INSTALL_DIR}/uv" --version
 
-    - name: install uv, venv, dependencies and pyinstaller
+    - name: Uv Sync and Install Pyinstaller
       run: |
            cd hf-provider
-           curl -LsSf https://astral.sh/uv/install.sh | sh
-           source $HOME/.local/bin/env
-           uv venv
-           source .venv/bin/activate
-           uv pip install -r pyproject.toml
+           uv sync --locked
            uv pip install pyinstaller
 
     - name: run common unit tests
@@ -64,32 +69,28 @@ jobs:
            HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
       run: |
            cd hf-provider
-           source .venv/bin/activate
-           python -m pytest tests/unit/common
+           uv run --locked python -m pytest tests/unit/common
 
     - name: run gcpgce unit tests
       env: 
            HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgceinst
       run: |
            cd hf-provider
-           source .venv/bin/activate
-           python -m pytest tests/unit/gce_provider
+           uv run --locked python -m pytest tests/unit/gce_provider
 
     - name: run gcpgke unit tests
       env: 
            HF_PROVIDER_CONFDIR: ${{ github.workspace }}/hf-provider/tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
       run: |
            cd hf-provider
-           source .venv/bin/activate
-           python -m pytest tests/unit/gke_provider
+           uv run --locked python -m pytest tests/unit/gke_provider
 
     - name: build clis
       run: |
            cd hf-provider
-           source .venv/bin/activate
-           uv run pyinstaller hf-gce.spec --clean
-           uv run pyinstaller hf-monitor.spec --clean
-           uv run pyinstaller hf-gke.spec --clean
+           uv run --locked pyinstaller hf-gce.spec --clean
+           uv run --locked pyinstaller hf-monitor.spec --clean
+           uv run --locked pyinstaller hf-gke.spec --clean
 
     - name: run gce rpmbuild
       id: gce-rpm

@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 # ------------------------------
 [project]
 name = "google-symphony-hf"
-version = "0.3.6"
+version = "0.3.7"
 description = "Default template"
 readme = "README.md"
 license = { text = "Apache-2.0" }
@@ -56,7 +56,7 @@ gcphf  = "gke_provider.__main__:main"
 # (Optional but nice)
 [project.urls]
 Homepage = "https://example.com/"
-Repository = "https://example.com/repo"
+Repository = "https://github.com/google/symphony-gcp"
 
 # ------------------------------
 # Setuptools: src/ discovery & data files
@@ -86,3 +86,6 @@ max-line-length = 100
 
 [tool.isort]
 profile = "black"
+
+[tool.uv]
+required-version="==0.11.26"
