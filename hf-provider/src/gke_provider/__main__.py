@@ -1,8 +1,12 @@
 import argparse
 import json
+import logging
 import os
 import sys
 from typing import Any, Dict, Optional
+
+from common.log_bootstrap import bootstrap_logging
+bootstrap_logging()
 
 from typing_extensions import Self
 
@@ -19,6 +23,8 @@ from gke_provider.commands.get_return_requests import get_return_requests
 from gke_provider.commands.request_machines import request_machines
 from gke_provider.commands.request_return_machines import request_return_machines
 from gke_provider.config import get_config
+
+logger = logging.getLogger(__name__)
 
 # Initialize configuration
 config = get_config()
@@ -231,9 +237,8 @@ def dispatch_command(command: str, payload: Optional[dict]):
             print(output)
             return
         else:
-            config.logger.info(f"DISPATCHING|command: {command}; ERROR: empty result")
-            print("ERROR: Command returned empty result")
-            return
+            config.logger.error(f"DISPATCHING|command: {command}; ERROR: empty result")
+            raise RuntimeError(f"Command {command} returned no result")
     else:
         raise Exception(f"Invalid command: {cmd}")
 
@@ -283,6 +288,7 @@ def main() -> int:
         dispatch_command(command, payload)
         sys.exit(0)
     except Exception as e:
+        logger.exception(f"Command failed: {e}")
         print(f"Error: {e}")
         sys.exit(1)
 
