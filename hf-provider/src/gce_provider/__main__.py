@@ -1,9 +1,13 @@
 import argparse
 import json
+import logging
 import os
 import sys
 from argparse import Namespace
 from typing import Any, Callable, Optional
+
+from common.log_bootstrap import bootstrap_logging
+bootstrap_logging()
 
 from pydantic import BaseModel
 
@@ -32,6 +36,7 @@ from gce_provider.model.models import HFGceRequestMachines
 from gce_provider.pubsub import launch_pubsub_daemon, main as monitor_events
 from gce_provider.utils.constants import CommandNames
 
+logger = logging.getLogger(__name__)
 
 #   1. Before running this module,
 #      set up ADC as described in https://cloud.google.com/docs/authentication/external/set-up-adc
@@ -320,6 +325,7 @@ def main():
 
         sys.exit(0)
     except Exception as e:
+        logger.exception(f"Command failed: {e}")
         print(f"Error: {e}")
         sys.exit(1)
 

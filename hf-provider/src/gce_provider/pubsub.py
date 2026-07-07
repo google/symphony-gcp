@@ -5,6 +5,9 @@ import sys
 from concurrent.futures import TimeoutError
 from pprint import pprint
 
+from common.log_bootstrap import bootstrap_logging
+bootstrap_logging()
+
 import google.cloud.pubsub_v1 as pubsub
 
 from gce_provider.config import get_config
