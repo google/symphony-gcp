@@ -50,17 +50,14 @@ This guide covers setting up the development environment, running tests, and bui
     cd hf-provider
     ```
 
-2.  **Create and activate a virtual environment:**
+2.  **Install dependencies and PyInstaller:**
+
+    Use a lockfile-driven install so tests and builds share the same dependency
+    versions (`uv.lock`). `uv sync --locked` creates `.venv` if needed and fails
+    if the lockfile is out of date with `pyproject.toml`.
 
     ```bash
-    uv venv
-    source .venv/bin/activate
-    ```
-
-3.  **Install dependencies and PyInstaller:**
-
-    ```bash
-    uv pip install .
+    uv sync --locked
     uv pip install pyinstaller
     ```
 
@@ -71,15 +68,15 @@ Run unit tests to ensure the setup is correct. These commands simulate the GitHu
 ```bash
 # Run Common Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
-python -m pytest tests/unit/common
+uv run python -m pytest tests/unit/common
 
 # Run GCP GCE Provider Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgceinst
-python -m pytest tests/unit/gce_provider
+uv run python -m pytest tests/unit/gce_provider
 
 # Run GCP GKE Provider Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
-python -m pytest tests/unit/gke_provider
+uv run python -m pytest tests/unit/gke_provider
 ```
 
 ## Build CLIs
@@ -144,11 +141,13 @@ The executables are created in the `dist/` directory.
 
 2. Set the working directory to the root of this module.
 
-3. Activate a virtual environment, e.g.: `uv venv; source .venv/bin/activate`
+3. Install the project dependencies (lockfile-pinned, same as CI/build):
 
-4. Install the project dependencies with `uv pip install -r pyproject.toml`
+   ```bash
+   uv sync --locked
+   ```
 
-5. Execute the CLI using:
+4. Execute the CLI using:
    ```bash
    # GCE provider
    uv run hf-gce --help
