@@ -6,8 +6,8 @@ from socket import gethostname
 from dotenv import load_dotenv
 
 import common.utils.path_utils as path_utils
+from common import log_bootstrap
 from common.utils.file_utils import load_json_file
-from logging.handlers import RotatingFileHandler
 
 # Load environment variables from .env file (if it exists)
 load_dotenv()
@@ -37,15 +37,6 @@ DEFAULT_HF_PROVIDER_NAME = "gcp-symphony"
 
 HF_PROVIDER_NAME = os.environ.get("HF_PROVIDER_NAME", DEFAULT_HF_PROVIDER_NAME)
 HF_PROVIDER_CONFDIR_ENV = "HF_PROVIDER_CONFDIR"
-HF_PROVIDER_LOGDIR = os.environ.get("HF_PROVIDER_LOGDIR")
-EGOSC_INSTANCE_HOST = os.environ.get("EGOSC_INSTANCE_HOST")
-HF_PROVIDER_LOGFILE = (
-    os.path.join(HF_PROVIDER_LOGDIR, f"{HF_PROVIDER_NAME}-provider.{EGOSC_INSTANCE_HOST}.log")
-    if HF_PROVIDER_LOGDIR
-    else None
-)
-
-logging.getLogger(__name__)
 
 PROVIDER_CONF_GKE_KUBECONFIG = "GKE_KUBECONFIG"
 KUBECONFIG_DEFAULT_ENV = "KUBECONFIG"
@@ -56,6 +47,8 @@ class Config:
 
     def __init__(self) -> None:
         """Load configuration values from environment"""
+        self.logger = logging.getLogger(__name__)
+
         self.hf_provider_name = HF_PROVIDER_NAME
 
         self.hf_provider_conf_dir: str = os.environ.get(HF_PROVIDER_CONFDIR_ENV, "")
@@ -135,31 +128,21 @@ class Config:
             hf_provider_conf.get("GKE_POLLING_INTERVAL", DEFAULT_POLLING_INTERVAL)
         )
         # This allows the user to override the default HF log directory/filename
-        self.hf_provider_log_file = hf_provider_conf.get("LOGFILE", HF_PROVIDER_LOGFILE)
+        self.hf_provider_log_file = (
+            hf_provider_conf.get("LOGFILE") or log_bootstrap.default_log_file()
+        )
         self.log_level = hf_provider_conf.get("LOG_LEVEL", DEFAULT_LOG_LEVEL)
 
-        # Create rotating handler (append by default)
-        handler = RotatingFileHandler(
-            filename=str(self.hf_provider_log_file),
-            maxBytes=int(
+        log_bootstrap.configure_logging(
+            logfile=str(self.hf_provider_log_file),
+            level=self.log_level,
+            max_bytes=int(
                 hf_provider_conf.get("LOG_MAX_FILE_SIZE", DEFAULT_LOG_MAX_FILE_SIZE)
             ) * 1024 * 1024,  # nth MB in bytes
-            backupCount=hf_provider_conf.get(
-                "LOG_MAX_ROTATE", DEFAULT_LOG_MAX_ROTATE
+            backup_count=int(
+                hf_provider_conf.get("LOG_MAX_ROTATE", DEFAULT_LOG_MAX_ROTATE)
             )
         )
-        formatter = logging.Formatter(
-            "%(asctime)s - %(levelname)s - %(message)s",
-        )
-        handler.setFormatter(formatter)
-
-        logging.basicConfig(
-            format="%(asctime)s - %(levelname)s - %(message)s",
-            filename=self.hf_provider_log_file,
-            level=self.log_level.upper() if self.log_level else DEFAULT_LOG_LEVEL,
-        )
-        self.logger = logging.getLogger(__name__)
-        self.logger.addHandler(handler)
 
         # iterate over the class attributes and log them
         if self.log_level.upper() == "DEBUG":

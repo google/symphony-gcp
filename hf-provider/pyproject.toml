@@ -11,8 +11,8 @@ build-backend = "setuptools.build_meta"
 # ------------------------------
 [project]
 name = "google-symphony-hf"
-version = "0.3.6"
-description = "Default template"
+version = "0.3.7"
+description = "IBM Spectrum Symphony Connectors for Google Cloud let you add compute resources from Google Cloud to your Symphony clusters. When your high performance computing (HPC) workloads need more capacity than your existing infrastructure provides, the connectors let Symphony's host factory service automatically provision Compute Engine virtual machines (VM) instances or pods in Google Kubernetes Engine (GKE). This approach lets you scale your Symphony environment into Google Cloud to meet peak demand for your HPC workloads."
 readme = "README.md"
 license = { text = "Apache-2.0" }
 requires-python = "==3.9.*"
@@ -55,8 +55,8 @@ gcphf  = "gke_provider.__main__:main"
 
 # (Optional but nice)
 [project.urls]
-Homepage = "https://example.com/"
-Repository = "https://example.com/repo"
+Homepage = "https://docs.cloud.google.com/compute/docs/instances/ibm-symphony/overview"
+Repository = "https://github.com/google/symphony-gcp"
 
 # ------------------------------
 # Setuptools: src/ discovery & data files
@@ -86,3 +86,6 @@ max-line-length = 100
 
 [tool.isort]
 profile = "black"
+
+[tool.uv]
+required-version="==0.11.26"
