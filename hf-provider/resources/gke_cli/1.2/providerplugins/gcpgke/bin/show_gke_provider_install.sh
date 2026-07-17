@@ -133,7 +133,7 @@ echo "------------------------------------"
 echo " "
 # --- Check 1: \$HF_TOP is present ---
 start_spinner "Checking for \$HF_TOP..."
-sleep 5
+sleep 3
 
 if [[ -n ${HF_TOP} ]]; then
     stop_spinner 0
@@ -148,12 +148,11 @@ fi
 echo " "
 # --- Check 2: 'tree' command ---
 start_spinner "Checking for 'tree' utility..."
-sleep 5
+sleep 3
 
 if command -v tree > /dev/null 2>&1; then
     stop_spinner 0
-    echo -e "  ${GREEN}${CHECK}${NC} 'tree' is installed."
-    echo -e "tree utility is installed"
+    echo -e "  ${GREEN}${CHECK}${NC} 'tree' package is installed."
 else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Tree package not installed:${NC} Run 'dnf install tree' to install."
@@ -167,7 +166,7 @@ fi
 # --- Check 3: Confirm the Symphony variables ---
 echo " "
 start_spinner "Checking for Symphony variables..."
-sleep 5
+sleep 3
 if [[ -n "${HF_TOP}" && "${HF_VERSION}" ]]; then
 stop_spinner 0
 echo -e "  ${GREEN}${CHECK}${NC} Symphony variables are present"
@@ -185,7 +184,8 @@ fi
 TARGET_DIR="${HF_TOP}/${HF_VERSION}/providerplugins/${PROVIDERPLUGINSDIRNAME}"
 echo ''
 start_spinner "Checking for the provider plugin directory structure"
-sleep 5
+sleep 3
+
 
 # Step 1: Check if the Directory Exists
 if [ -d "$TARGET_DIR" ]; then
@@ -193,8 +193,7 @@ if [ -d "$TARGET_DIR" ]; then
     stop_spinner 0
     echo -e "  ${GREEN}${CHECK}${NC} Directory structure confirmed."
 
-    # Step 2: Check if the 'tree' command is installed
-
+# Step 2: Check if the 'tree' command is installed
 if command -v tree > /dev/null 2>&1; then
         echo -e "   Running: ${YELLOW}tree $TARGET_DIR${NC}"
         echo "------------------------------------"
@@ -208,7 +207,7 @@ if command -v tree > /dev/null 2>&1; then
         echo "------------------------------------"
     fi
 else
-    # Directory does not exist! Stop the spinner as FAILURE.
+    # Directory does not exist!.
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Directory does not exist:${NC}"
     echo -e "      ${RED}$TARGET_DIR${NC}"
@@ -216,40 +215,22 @@ fi
 
 
 
-
 # --- Check 5: Confirm the provider plugin is present and enabled ---
 echo ''
 start_spinner "Confirming the provider plugin is present and enabled..."
-sleep 5
+sleep 3
 PROVPLUGIN_DIR="${HF_TOP}/conf/providerplugins"
 PROVPLUGIN_FILE="${HF_TOP}/conf/providerplugins/hostProviderPlugins.json"
 
-# Trap the output of the grep command so it doesn't break the spinner
 if OUTPUT=$(grep -A1 -B1 "${PROVIDERPLUGINSDIRNAME}" "$PROVPLUGIN_FILE" 2>&1); then
     # Stop spinner as SUCCESS
     stop_spinner 0
-    echo -e "  ${GREEN}${CHECK}${NC} Provider Plugin is present and enabled. Contents:"
+    echo -e "  ${GREEN}${CHECK}${NC} Provider Plugin is present and enabled. Content of ${YELLOW}\$HF_TOP/conf/providerplugins/hostProviderPlugins.json${NC}"
     echo "------------------------------------"
     echo "$OUTPUT"
     echo "------------------------------------"
 
-if command -v tree > /dev/null 2>&1; then
-        echo -e "   Running: ${YELLOW}tree $PROVPLUGIN_DIR${NC}"
-        echo "------------------------------------"
-        tree "$PROVPLUGIN_DIR"
-        echo "------------------------------------"
-    else
-        # Fallback if 'tree' is not installed
-        echo -e "   ${YELLOW}[INFO]${NC} 'tree' package not installed. Falling back to 'ls'"
-        echo "------------------------------------"
-        ls -R "$PROVPLUGIN_DIR"
-        echo "------------------------------------"
-    fi
-
-
-
 else
-    # Stop spinner as FAILURE
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider plugin '${PROVIDERPLUGINSDIRNAME}' not found in:${NC}"
     echo -e "      ${RED}$PROVPLUGIN_FILE${NC}"
@@ -271,9 +252,8 @@ if [[ -d "$PROV_INSTANCE_DIR" && -f "$PROV_CONFIG_FILE" ]]; then
 
     # Step 2: Attempt to read the JSON file
     if CONFIG_OUTPUT=$(cat "$PROV_CONFIG_FILE" 2>&1); then
-        # SUCCESS! Everything exists and is readable
         stop_spinner 0
-        echo -e "  ${GREEN}${CHECK}${NC} Directory and configuration file confirmed."
+        echo -e "  ${GREEN}${CHECK}${NC} Provider instance directory and config file are present."
 
         # Step 3: Display Directory Structure (Tree vs LS)
         if command -v tree > /dev/null 2>&1; then
@@ -289,7 +269,7 @@ if [[ -d "$PROV_INSTANCE_DIR" && -f "$PROV_CONFIG_FILE" ]]; then
         fi
 
         # Step 4: Display the JSON Configuration Content
-        echo -e "   Contents of: ${YELLOW}${PROVIDERINSTANCEDIRNAME}prov_config.json${NC}"
+        echo -e "   Content of ${YELLOW}\$HF_TOP/conf/providers/gcpgke/${PROVIDERINSTANCEDIRNAME}prov_config.json${NC}"
         echo "------------------------------------"
         echo "$CONFIG_OUTPUT"
         echo "------------------------------------"
@@ -315,60 +295,157 @@ fi
 
 
 
-
-# Extract the kubectl config file from ${PROVIDERINSTANCEDIRNAME}prov_config.json
-KUBE_CONFIG=$(grep GKE_KUBECONFIG "${HF_TOP}"/conf/providers/"${PROVIDERINSTANCEDIRNAME}"/"${PROVIDERINSTANCEDIRNAME}"prov_config.json | awk -F\" '{print $4}')
-
+# --- Check 7: Extract the kubectl config file from ${PROVIDERINSTANCEDIRNAME}prov_config.json
 echo ''
-echo -e "\033[1mConfirm the GKE_KUBECONFIG file is present\033[0m"
-sleep $SLEEP
-echo "ls -l ${KUBE_CONFIG}"
-ls -l "${KUBE_CONFIG}" || fail "Check install"
+start_spinner "Checking the kubectl config file from ${PROVIDERINSTANCEDIRNAME}prov_config.json and confirming GKE_KUBECONFIG..."
+sleep 3
 
-echo ''
-echo -e "\033[1mConfirm the GKE_KUBECONFIG file is valid\033[0m"
-sleep $SLEEP
-echo "kubectl --kubeconfig=${KUBE_CONFIG} get nodes"
-kubectl --kubeconfig="${KUBE_CONFIG}" get nodes || fail "Check install"
+# Extract the kubectl config file
+KUBE_CONFIG=$(grep GKE_KUBECONFIG "$PROV_CONFIG_FILE" | awk -F\" '{print $4}')
 
+if [ -n "$KUBE_CONFIG" ] && OUTPUT=$(ls -l "$KUBE_CONFIG" 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} GKE_KUBECONFIG file found: ${YELLOW}$KUBE_CONFIG${NC}"
+    echo "------------------------------------"
+    ls -l "$KUBE_CONFIG"
+    echo "------------------------------------"
+else
+    # Stop spinner as FAILURE
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: GKE_KUBECONFIG file is missing or path is unconfigured!${NC}"
+    echo -e "      Expected path: ${RED}${KUBE_CONFIG:-"Empty / Not Found"}${NC}"
+fi
+
+
+
+# --- Check 8: Confirm the GKE_KUBECONFIG file is valid
 echo ''
-echo -e "\033[1mShow the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file\033[0m"
-sleep $SLEEP
-echo "cat ${PROVIDERINSTANCEDIRNAME}prov_templates.json"
-cat "${PROVIDERINSTANCEDIRNAME}"prov_templates.json || fail "Check install"
+start_spinner "Confirming the GKE_KUBECONFIG file is valid..."
+sleep 3
+if OUTPUT=$(kubectl --kubeconfig="${KUBE_CONFIG}" get nodes 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} GKE config file is valid. Nodes found:"
+    echo "------------------------------------"
+    echo "$OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error connecting to cluster. Details:${NC}"
+    echo "$OUTPUT"
+
+fi
+
+
+
+# --- Check 9: Show the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file
+echo ''
+start_spinner "Show the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file..."
+sleep 3
+
+TEMPLATE_FILE="${PROVIDERINSTANCEDIRNAME}prov_templates.json"
+
+if OUTPUT=$(cat "$TEMPLATE_FILE" 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC}Template file found. Content of ${YELLOW}\$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_templates.json${NC}"
+    echo "------------------------------------"
+    echo "$OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Missing GKE provider instance directory or template file!${NC}"
+    echo -e "      Expected Dir:  $PROV_INSTANCE_DIR"
+    echo -e "      Expected File: ${PROV_INSTANCE_DIR}/$TEMPLATE_FILE"
+fi
+
+
+
+# --- Check 10: Content of ${PROVIDERINSTANCEDIRNAME}prov_templates.json 'podSpecYaml' file
+echo ''
+start_spinner "Content of ${PROVIDERINSTANCEDIRNAME}prov_templates.json 'podSpecYaml' file..."
+sleep 3
 
 # Extract the podspec yaml file from ${PROVIDERINSTANCEDIRNAME}prov_template.json
 PODSPEC=$(grep podSpecYaml "${HF_TOP}"/conf/providers/"${PROVIDERINSTANCEDIRNAME}"/"${PROVIDERINSTANCEDIRNAME}"prov_templates.json | awk -F\" '{print $4}')
 
-echo ''
-echo -e "\033[1mShow ${PROVIDERINSTANCEDIRNAME}prov_templates.json 'podSpecYaml' file\033[0m"
-sleep $SLEEP
-echo "cat ${PODSPEC}"
-cat "${PODSPEC}" || fail "Check install"
+if [ -n "$PODSPEC" ] && OUTPUT=$(cat "$PODSPEC" 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} PodSpecYaml file found. Content of ${YELLOW}${PODSPEC}${NC}"
+    #echo -e " FILE: ${YELLOW}${PODSPEC}${NC}"
+    #echo " Contents:"
+    echo "------------------------------------"
+    echo "$OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error reading PodSpecYaml file.${NC}"
 
-echo ''
-echo -e "\033[1mConfirm the ${PROVIDERINSTANCEDIRNAME} provider instance directory structure\033[0m"
-sleep $SLEEP
-echo "tree \$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/"
-tree "${HF_TOP}"/conf/providers/"${PROVIDERINSTANCEDIRNAME}"/ || fail "Check install"
+fi
 
-echo ''
-echo -e "\033[1mConfirm the provider instance is present and enabled\033[0m"
-sleep $SLEEP
-echo "grep -A2 -B1 ${PROVIDERINSTANCEDIRNAME} \$HF_TOP/conf/providers/hostProviders.json"
-grep -A2 -B1 "${PROVIDERINSTANCEDIRNAME}" "${HF_TOP}"/conf/providers/hostProviders.json || fail "Check install"
 
+
+# --- Check 11: Confirm the provider instance is present and enabled
 echo ''
-echo -e "\033[1mConfirm a requestor is configured to use the  provider instance\033[0m"
-sleep $SLEEP
-echo "grep ${PROVIDERINSTANCEDIRNAME} \$HF_TOP/conf/requestors/hostRequestors.json"
-grep "${PROVIDERINSTANCEDIRNAME}" "${HF_TOP}"/conf/requestors/hostRequestors.json || fail "Check install"
+start_spinner "Checking if provider instance is present and enabled..."
+sleep 3
+
+HOST_PROVIDERS="${HF_TOP}/conf/providers/hostProviders.json"
+
+if PROV_INST_OUTPUT=$(grep -A2 -B1 "${PROVIDERINSTANCEDIRNAME}" "$HOST_PROVIDERS" 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} Provider instance is enabled. Content of ${YELLOW}\$HF_TOP/conf/providers/hostProviders.json${NC}"
+    echo "------------------------------------"
+    echo "$PROV_INST_OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider not found in hostProviders.json${NC}"
+    echo -e "   Dir: ${YELLOW}\$HF_TOP/conf/providers/${NC}"
+
+fi
+
+
+
+
+# --- Check 12: Confirm a requestor is configured to use the  provider instance
+echo ''
+start_spinner "Checking if a requestor is configured to use the  provider instance..."
+sleep 3
+
+HOST_REQUESTORS="${HF_TOP}/conf/requestors/hostRequestors.json"
+
+if REQ_OUTPUT=$(grep "${PROVIDERINSTANCEDIRNAME}" "$HOST_REQUESTORS" 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} Requestor file configured with the provider instance. Content of ${YELLOW}\$HF_TOP/conf/requestors/hostRequestors.json${NC}"
+    echo "------------------------------------"
+    echo "$REQ_OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance not found in hostRequestors.json${NC}"
+    echo -e "   Dir: ${YELLOW}\$HF_TOP/conf/requestors/${NC}"
+
+fi
+
+
 
 
 ## K8S_OPERATOR VALIDATION
-
+# --- Check 13: Confirm the provider operator manifest is applied
 echo ''
-echo -e "\033[1mConfirm the provider operator manifest is applied\033[0m"
-sleep $SLEEP
-echo 'kubectl get pods --namespace gcp-symphony'
-kubectl get pods --namespace gcp-symphony || fail "Check install"
+start_spinner "Checking if the provider operator manifest is applied..."
+sleep 3
+
+
+if PODS_OUTPUT=$(kubectl get pods --namespace gcp-symphony 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} Operator manifest applied. Active pods:"
+    echo "------------------------------------"
+    echo "$PODS_OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Failed to get pods in namespace gcp-symphony. Details:${NC}"
+    echo "$PODS_OUTPUT"
+fi
+
+
