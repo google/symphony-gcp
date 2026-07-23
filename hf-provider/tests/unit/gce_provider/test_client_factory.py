@@ -39,10 +39,12 @@ def test_uses_global_config_when_none_passed():
     mock_get_config.assert_called_once()
 
 
-def test_returns_none_when_file_missing(tmp_path):
-    """Configured-but-missing credentials file falls back to ADC (returns None)."""
+def test_raises_when_file_missing(tmp_path):
+    """Configured but missing credentials file fails fast instead of falling back to ADC."""
     config = make_config(credentials_file="missing_gcp_credentials_file.json", conf_dir=str(tmp_path))
-    assert client_factory.get_credentials(config) is None
+
+    with pytest.raises(RuntimeError, match="does not exist"):
+        client_factory.get_credentials(config)
 
 
 def test_resolves_relative_path_against_confdir(tmp_path):
@@ -64,18 +66,16 @@ def test_resolves_relative_path_against_confdir(tmp_path):
     mock_from_info.assert_called_once_with(sa_info)
 
 
-def test_falls_back_to_none_when_credential_load_fails(tmp_path):
-    """When GCP rejects the key file, swallow, log, and fall back to ADC (returns None)."""
+def test_raises_when_credential_load_fails(tmp_path):
+    """When GCP rejects the key file, fail fast instead of falling back to ADC"""
     creds = tmp_path / "test_gcp_credentials_file.json"
     creds.write_text("{}")
     config = make_config(credentials_file="test_gcp_credentials_file.json", conf_dir=str(tmp_path))
 
-    with patch.object(
-        service_account.Credentials,
-        "from_service_account_info",
-        side_effect=ValueError("bad key"),
-    ):
-        result = client_factory.get_credentials(config)
-
-    assert result is None
-    config.logger.exception.assert_called_once()
+    with pytest.raises(RuntimeError, match="could not be loaded"):
+        with patch.object(
+            service_account.Credentials,
+            "from_service_account_info",
+            side_effect=ValueError("bad key"),
+        ):
+            client_factory.get_credentials(config)
