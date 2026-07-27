@@ -76,17 +76,10 @@ CROSS=$(printf '\u2717')
 
 
 # Define Colors
-RED='\e[31m'
 NC='\e[0m' # No Color (Reset)
-YELLOW='\e[33m'
-BOLD='\e[1m'
-BLNK='\e[5m'
-RED_BOLD='\e[1;31m'
-BG_RED='\e[41m'       # Red Background
-FG_WHITE='\e[97;1m'   # Bold White Text
 GREEN='\e[1;32m'
-RED='\e[1;31m'
-YELLOW='\e[1;33m'
+RED='\e[1;31m' #Red Bold
+YELLOW='\e[1;33m' #Yellow Bold
 
 # --- 2. Define the Spinner Function ---
 # Usage: start_spinner "Message to display..."
@@ -133,7 +126,7 @@ echo "------------------------------------"
 echo " "
 # --- Check 1: \$HF_TOP is present ---
 start_spinner "Checking for \$HF_TOP..."
-sleep 3
+sleep $SLEEP
 
 if [[ -n ${HF_TOP} ]]; then
     stop_spinner 0
@@ -148,7 +141,7 @@ fi
 echo " "
 # --- Check 2: 'tree' command ---
 start_spinner "Checking for 'tree' utility..."
-sleep 3
+sleep $SLEEP
 
 if command -v tree > /dev/null 2>&1; then
     stop_spinner 0
@@ -167,7 +160,7 @@ fi
 # --- Check 3: Confirm the Symphony variables ---
 echo " "
 start_spinner "Checking for Symphony variables..."
-sleep 3
+sleep $SLEEP
 if [[ -n "${HF_TOP}" && "${HF_VERSION}" ]]; then
 stop_spinner 0
 echo -e "  ${GREEN}${CHECK}${NC} Symphony variables are present"
@@ -175,7 +168,8 @@ echo -e "\$HF_TOP: ${YELLOW}${HF_TOP}${NC}"
 echo -e "\$HF_VERSION: ${YELLOW}${HF_VERSION}${NC}"
 else
 stop_spinner 1
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Symphony variables are missing"
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> \$HF_TOP is empty. ${NC}Source your Symphony environment (e.g. '. \$EGO_TOP/profile.platform')"
+
 fi
 
 
@@ -185,7 +179,7 @@ fi
 TARGET_DIR="${HF_TOP}/${HF_VERSION}/providerplugins/${PROVIDERPLUGINSDIRNAME}"
 echo ''
 start_spinner "Checking for the provider plugin directory structure"
-sleep 3
+sleep $SLEEP
 
 
 # Step 1: Check if the Directory Exists
@@ -211,7 +205,7 @@ else
     # Directory does not exist!.
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Directory does not exist:${NC}"
-    echo -e "      ${RED}$TARGET_DIR${NC}"
+    echo "tree \$HF_TOP/\$HF_VERSION/providerplugins/${PROVIDERPLUGINSDIRNAME}"
 fi
 
 
@@ -219,7 +213,7 @@ fi
 # --- Check 5: Confirm the provider plugin is present and enabled ---
 echo ''
 start_spinner "Confirming the provider plugin is present and enabled..."
-sleep 3
+sleep $SLEEP
 PROVPLUGIN_DIR="${HF_TOP}/conf/providerplugins"
 PROVPLUGIN_FILE="${HF_TOP}/conf/providerplugins/hostProviderPlugins.json"
 
@@ -228,32 +222,93 @@ if OUTPUT=$(grep -A1 -B1 "${PROVIDERPLUGINSDIRNAME}" "$PROVPLUGIN_FILE" 2>&1); t
     stop_spinner 0
     echo -e "  ${GREEN}${CHECK}${NC} Provider Plugin is present and enabled. Content of ${YELLOW}\$HF_TOP/conf/providerplugins/hostProviderPlugins.json${NC}"
     echo "------------------------------------"
+    echo "grep -A1 -B1 ${PROVIDERPLUGINSDIRNAME} \$HF_TOP/conf/providerplugins/hostProviderPlugins.json"
     echo "$OUTPUT"
 else
     stop_spinner 1
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider plugin '${PROVIDERPLUGINSDIRNAME}' not found in:${NC}"
-    echo -e "      ${RED}$PROVPLUGIN_FILE${NC}"
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider plugin '${PROVIDERPLUGINSDIRNAME}' not found.${NC}"
+    echo "        grep -A1 -B1 ${PROVIDERPLUGINSDIRNAME} \$HF_TOP/conf/providerplugins/hostProviderPlugins.json"
 fi
 
 
-# --- Check 6: Show the provider instance configuration directory and file ---
+# --- Check 6: Change to the provider instance directory ---
 echo ''
-start_spinner "Checking provider instance directory and config file..."
-sleep 3
+start_spinner "Changing to the provider instance directory..."
+sleep $SLEEP
+
+PROVIDER_DIR="${HF_TOP}/conf/providers/${PROVIDERINSTANCEDIRNAME}"
+
+if cd "$PROVIDER_DIR" > /dev/null 2>&1; then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} Changed to provider instance directory: ${YELLOW}cd \$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${NC}"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Could not change to directory:${NC} cd \$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/"
+fi
+
+
+# --- Check 7: Show the provider instance gcpgceinstprov_config.json file ---
+echo ''
+start_spinner "Checking the provider instance ${PROVIDERINSTANCEDIRNAME}prov_config.json file..."
+sleep $SLEEP
+
+# Define absolute paths
+PROV_CONFIG_FILE="$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_config.json"
+
+    # Step 1: Attempt to read the ${PROVIDERINSTANCEDIRNAME}prov_config.json file
+    if CONFIG_OUTPUT=$(cat "$PROV_CONFIG_FILE" 2>&1); then
+        stop_spinner 0
+        echo -e "  ${GREEN}${CHECK}${NC} Provider instance configured. Content of ${YELLOW}\$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_config.json${NC}"
+        echo "------------------------------------"
+        echo "cat gcpgceinstprov_config.json"
+        echo "$CONFIG_OUTPUT"
+        echo "------------------------------------"
+
+else
+    # ${PROVIDERINSTANCEDIRNAME}prov_config.json file is missing
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance config file not readable.${NC}"
+    echo -e "        cat ${PROVIDERINSTANCEDIRNAME}prov_config.json"
+
+fi
+
+
+# --- Check 8: Show the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file
+echo ''
+start_spinner "Displaying the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file..."
+sleep $SLEEP
+
+TEMPLATE_FILE="${PROVIDERINSTANCEDIRNAME}prov_templates.json"
+
+if TEMP_OUTPUT=$(cat "$TEMPLATE_FILE" 2>&1); then
+    stop_spinner 0
+    echo -e "  ${GREEN}${CHECK}${NC} Provider instance template file found. Content of ${YELLOW}\$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_templates.json${NC}"
+    echo "------------------------------------"
+    echo "cat ${PROVIDERINSTANCEDIRNAME}prov_templates.json"
+    echo "$TEMP_OUTPUT"
+    echo "------------------------------------"
+else
+    stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance template file not readable.${NC}"
+    echo "        cat ${PROVIDERINSTANCEDIRNAME}prov_templates.json"
+
+fi
+
+
+# --- Check 9: Confirm the ${PROVIDERINSTANCEDIRNAME} provider instance directory structure ---
+echo ''
+start_spinner "Checking the ${PROVIDERINSTANCEDIRNAME} provider instance directory structure..."
+sleep $SLEEP
 
 # Define absolute paths
 PROV_INSTANCE_DIR="${HF_TOP}/conf/providers/${PROVIDERINSTANCEDIRNAME}"
-PROV_CONFIG_FILE="${PROV_INSTANCE_DIR}/${PROVIDERINSTANCEDIRNAME}prov_config.json"
 
-# Step 1: Validate that both the Directory and the specific JSON file exist
-if [[ -d "$PROV_INSTANCE_DIR" && -f "$PROV_CONFIG_FILE" ]]; then
+# Step 1: Validate that the gcpgceinstprov_config.json file exist
+if [ -d "$PROV_INSTANCE_DIR" ]; then
+            stop_spinner 0
+            echo -e "  ${GREEN}${CHECK}${NC} Provider instance directory structure confirmed."
 
-    # Step 2: Attempt to read the JSON file
-    if CONFIG_OUTPUT=$(cat "$PROV_CONFIG_FILE" 2>&1); then
-        stop_spinner 0
-        echo -e "  ${GREEN}${CHECK}${NC} Provider instance directory and config file are present."
-
-        # Step 3: Display Directory Structure (Tree vs LS)
+        # Step 2: Display Directory Structure (Tree vs LS)
         if command -v tree > /dev/null 2>&1; then
             echo -e "   Running: ${YELLOW}tree $PROV_INSTANCE_DIR${NC}"
             echo "------------------------------------"
@@ -266,58 +321,20 @@ if [[ -d "$PROV_INSTANCE_DIR" && -f "$PROV_CONFIG_FILE" ]]; then
             echo "------------------------------------"
         fi
 
-        # Step 4: Display the JSON Configuration Content
-        echo -e "   Content of ${YELLOW}\$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_config.json${NC}"
-        echo "------------------------------------"
-        echo "$CONFIG_OUTPUT"
-        echo "------------------------------------"
-
-        # Step 5: Safely change directory for the remainder of the script
-        cd "$PROV_INSTANCE_DIR"
-
-    else
-        # Failed to read the file (Permissions issue, etc.)
-       stop_spinner 1
-        echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Could not read configuration file:${NC}"
-        echo -e "      ${RED}$PROV_CONFIG_FILE${NC}"
-    fi
-
 else
-    # Directory or file is completely missing
+    # Directory is missing
     stop_spinner 1
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Missing provider instance directory.${NC}"
+    echo "        tree \$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/"
 
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Missing provider instance directory or configuration file!${NC}"
-    echo -e "      Expected Dir:  $PROV_INSTANCE_DIR"
-    echo -e "      Expected File: $PROV_CONFIG_FILE"
-fi
-
-
-# --- Check 7: Show the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file
-echo ''
-start_spinner "Show the provider instance ${PROVIDERINSTANCEDIRNAME}prov_templates.json file..."
-sleep 3
-
-TEMPLATE_FILE="${PROVIDERINSTANCEDIRNAME}prov_templates.json"
-
-if OUTPUT=$(cat "$TEMPLATE_FILE" 2>&1); then
-    stop_spinner 0
-    echo -e "  ${GREEN}${CHECK}${NC}Template file found. Content of ${YELLOW}\$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_templates.json${NC}"
-    echo "------------------------------------"
-    echo "$OUTPUT"
-    echo "------------------------------------"
-else
-    stop_spinner 1
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Missing GKE provider instance directory or template file!${NC}"
-    echo -e "      Expected Dir:  $PROV_INSTANCE_DIR"
-    echo -e "      Expected File: ${PROV_INSTANCE_DIR}/$TEMPLATE_FILE"
 fi
 
 
 
-# --- Check 8: Confirm the provider instance is present and enabled
+# --- Check 10: Confirm the provider instance is present and enabled
 echo ''
 start_spinner "Checking if provider instance is present and enabled..."
-sleep 3
+sleep $SLEEP
 
 HOST_PROVIDERS="${HF_TOP}/conf/providers/hostProviders.json"
 
@@ -325,36 +342,34 @@ if PROV_INST_OUTPUT=$(grep -A2 -B1 "${PROVIDERINSTANCEDIRNAME}" "$HOST_PROVIDERS
     stop_spinner 0
     echo -e "  ${GREEN}${CHECK}${NC} Provider instance is enabled. Content of ${YELLOW}\$HF_TOP/conf/providers/hostProviders.json${NC}"
     echo "------------------------------------"
+    echo "grep -A2 -B1 ${PROVIDERINSTANCEDIRNAME} \$HF_TOP/conf/providers/hostProviders.json"
     echo "$PROV_INST_OUTPUT"
     echo "------------------------------------"
 else
     stop_spinner 1
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider not found in hostProviders.json${NC}"
-    echo -e "   Dir: ${YELLOW}\$HF_TOP/conf/providers/${NC}"
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: The provider instance directory or configuration file is missing, or GCE is not configured in the hostProviders.json.${NC}"
+    echo "        grep -A2 -B1 ${PROVIDERINSTANCEDIRNAME} \$HF_TOP/conf/providers/hostProviders.json"
 
 fi
 
 
-
-
-# --- Check 9: Confirm a requestor is configured to use the  provider instance
+# --- Check 11: Confirm a requestor is configured to use the  provider instance
 echo ''
 start_spinner "Checking if a requestor is configured to use the  provider instance..."
-sleep 3
+sleep $SLEEP
 
 HOST_REQUESTORS="${HF_TOP}/conf/requestors/hostRequestors.json"
 
 if REQ_OUTPUT=$(grep "${PROVIDERINSTANCEDIRNAME}" "$HOST_REQUESTORS" 2>&1); then
     stop_spinner 0
-    echo -e "  ${GREEN}${CHECK}${NC} Requestor file configured with the provider instance. Content of ${YELLOW}\$HF_TOP/conf/requestors/hostRequestors.json${NC}"
+    echo -e "  ${GREEN}${CHECK}${NC} Requestor file configured with the provider instance. Content of ${YELLOW}\$HF_TOP/conf/requestors/hostRequestors.json${NC}:"
     echo "------------------------------------"
+    echo "grep ${PROVIDERINSTANCEDIRNAME} \$HF_TOP/conf/requestors/hostRequestors.json"
     echo "$REQ_OUTPUT"
     echo "------------------------------------"
 else
     stop_spinner 1
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance not found in hostRequestors.json${NC}"
-    echo -e "   Dir: ${YELLOW}\$HF_TOP/conf/requestors/${NC}"
+    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: The requestors directory or configuration file is missing, or hostRequestors.json is not configured with a GCE.${NC}"
+    echo "        grep ${PROVIDERINSTANCEDIRNAME} \$HF_TOP/conf/requestors/hostRequestors.json"
 
 fi
-
-
