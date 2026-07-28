@@ -33,8 +33,6 @@ kubectl wait --for=condition=Ready pod \
     -l "app=$RESOURCE_NAME" \
     --timeout=60s
 
-echo "[PASS] Resource request successfully created and initialized pods."
-
 for pod in $(kubectl get pods -l "app=${RESOURCE_NAME}" -o jsonpath='{.items[*].metadata.name}'); do
     STATUS=$(kubectl get pod "$pod" -o jsonpath='{.status.phase}')
 
@@ -52,10 +50,12 @@ SR_PHASE=$(kubectl get gcpsr "${RESOURCE_NAME}" -o jsonpath='{.status.phase}')
 POD_COUNT=$(kubectl get pods -l "app=${RESOURCE_NAME}" --no-headers | wc -l)
 
 if [[ 
-    $SR_MACHINE_COUNT != $SR_AVAILABLE_MACHINES || \
-    $SR_AVAILABLE_MACHINES != $POD_COUNT || \
-    $SR_PHASE != "Running" 
-]] then
+    $SR_MACHINE_COUNT == $SR_AVAILABLE_MACHINES && \
+    $SR_AVAILABLE_MACHINES == $POD_COUNT && \
+    $SR_PHASE == "Running" 
+]]; then
+    echo "[PASS] All machines are running and the resource state is consistent."
+else
     echo "[FAIL] Resources mismatch:"
     echo " - Requested machines: $SR_MACHINE_COUNT"
     echo " - Available machines: $SR_AVAILABLE_MACHINES"
@@ -63,8 +63,6 @@ if [[
     echo " - Resource phase:     $SR_PHASE"
     exit 1
 fi
-
-echo "[PASS] All machines are running and the resource state is consistent."
 
 RETURN_RESOURCE="
 apiVersion: accenture.com/v1
