@@ -40,27 +40,38 @@ This guide covers setting up the development environment, running tests, and bui
 ## Prerequisites
 
 *   **Python 3.9+**
-*   **uv**: A Python package installer and resolver. [Install uv](https://docs.astral.sh/uv/getting-started/installation/).
+*   **uv v0.11.26**: A Python package installer and resolver. [Install uv](https://docs.astral.sh/uv/getting-started/installation/).
 
 ## Install Dependencies
 
-1.  **Navigate to the project directory:**
+1. **Install uv**
+    ```bash
+    export UV_VERSION=0.11.26
+    curl -LsSf "https://astral.sh/uv/${UV_VERSION}/install.sh" | sh
+    ```
+
+1.  **Verify uv version 0.11.26:**
+
+    ```bash
+    uv --version
+    # Output: uv 0.11.26
+    ```
+
+2.  **Navigate to the project directory:**
 
     ```bash
     cd hf-provider
     ```
 
-2.  **Create and activate a virtual environment:**
+3.  **Run uv sync:**
 
     ```bash
-    uv venv
-    source .venv/bin/activate
+    uv sync --locked
     ```
 
-3.  **Install dependencies and PyInstaller:**
+4.  **Install PyInstaller:**
 
     ```bash
-    uv pip install .
     uv pip install pyinstaller
     ```
 
@@ -71,15 +82,15 @@ Run unit tests to ensure the setup is correct. These commands simulate the GitHu
 ```bash
 # Run Common Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
-python -m pytest tests/unit/common
+uv run python -m pytest tests/unit/common
 
 # Run GCP GCE Provider Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgceinst
-python -m pytest tests/unit/gce_provider
+uv run python -m pytest tests/unit/gce_provider
 
 # Run GCP GKE Provider Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
-python -m pytest tests/unit/gke_provider
+uv run python -m pytest tests/unit/gke_provider
 ```
 
 ## Build CLIs
@@ -88,13 +99,13 @@ Build the standalone CLI executables for GCE and GKE providers.
 
 ```bash
 # Build hf-gce CLI (GCE clusters)
-uv run pyinstaller hf-gce.spec --clean
+uv run --locked pyinstaller hf-gce.spec --clean
 
 # Build hf-monitor CLI (GCE VM monitoring)
-uv run pyinstaller hf-monitor.spec --clean
+uv run --locked pyinstaller hf-monitor.spec --clean
 
 # Build hf-gke CLI (GKE clusters)
-uv run pyinstaller hf-gke.spec --clean
+uv run --locked pyinstaller hf-gke.spec --clean
 ```
 
 **Verify the build:**
@@ -144,30 +155,28 @@ The executables are created in the `dist/` directory.
 
 2. Set the working directory to the root of this module.
 
-3. Activate a virtual environment, e.g.: `uv venv; source .venv/bin/activate`
+3. Install the project dependencies with `uv sync --locked`
 
-4. Install the project dependencies with `uv pip install -r pyproject.toml`
-
-5. Execute the CLI using:
+4. Execute the CLI using:
    ```bash
    # GCE provider
-   uv run hf-gce --help
+   uv run --locked hf-gce --help
    
    # GKE provider
-   uv run hf-gke --help
+   uv run --locked hf-gke --help
    ```
    This should give you a list of available commands.
 
-6. For the following commands: `requestMachines`, `requestReturnMachines`, `getRequestStatus`, and `getReturnRequests`, you should include a JSON payload either as a string argument, or using `--json-file [payload file]`. Examples:
+5. For the following commands: `requestMachines`, `requestReturnMachines`, `getRequestStatus`, and `getReturnRequests`, you should include a JSON payload either as a string argument, or using `--json-file [payload file]`. Examples:
        
    ```bash
-   uv run hf-gke getRequestStatus '{"machines": {"name": "foo"}}'
+   uv run --locked hf-gke getRequestStatus '{"machines": {"name": "foo"}}'
    ```
 
      or
 
      ```bash
-     uv run hf-gke requestMachines --json-file ./test/resources/request-machines/request-machines-001.json
+     uv run --locked hf-gke requestMachines --json-file ./test/resources/request-machines/request-machines-001.json
      ```
 
      The `--json-file` can be an absolute or relative path.

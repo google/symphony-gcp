@@ -35,7 +35,7 @@ This project provides two main components that work together to extend IBM Spect
 IBM Spectrum Symphony's Host Factory provides dynamic resource provisioning capabilities, but lacks native support for Google Cloud Platform. This project bridges that gap by:
 
 - **Enabling Cloud Bursting**: Allows Symphony clusters to dynamically scale into GCP when on-premises resources are insufficient
-- **Cost Optimization**: Leverages GCP's spot instances and preemptible VMs for cost-effective compute scaling  
+- **Cost Optimization**: Leverages GCP's spot instances and preemptible VMs for cost-effective compute scaling
 - **Unified Management**: Provides a consistent interface for managing both GKE pods and GCE instances through Symphony's existing Host Factory framework
 - **Enterprise Integration**: Seamlessly integrates with existing Symphony deployments without requiring architectural changes
 
@@ -108,14 +108,12 @@ The Kubernetes Operator manages Symphony compute pods within GKE clusters, handl
 **Key Features:**
 - **Custom Resource Definitions**: `GCPSymphonyResource` and `MachineReturnRequest` CRDs
 - **Asynchronous Operations**: High-performance async processing for large-scale deployments
-- **Preemption Handling**: Automatic detection and management of spot VM preemptions
 - **Resource Cleanup**: Automated cleanup of completed resources with configurable retention
 - **Health Monitoring**: Built-in health checks and status reporting
 
 **Documentation:**
 - [Operator README](k8s-operator/README.md) - Development setup and testing
 - [Configuration Guide](k8s-operator/docs/CONFIG.md) - Environment variables and tuning
-- [Quick Deploy Guide](k8s-operator/docs/QUICKDEPLOY.md) - Rapid deployment instructions
 - [Troubleshooting Guide](k8s-operator/docs/operator-troubleshooting-guide.md) - Comprehensive troubleshooting
 
 ## <a id="getting-started"></a>Getting Started
