@@ -18,6 +18,10 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ## <a id="change-log"></a>Change log
 
+### Version 0.3.1
+- Added integration test for partial machine return requests
+- Removed unnecessary assertion outputs and modified assertion logical conditions for better readability
+
 ### Version 0.3.0
 - Streamlined the k8s-operator workflow to utilize a single Docker build image throughout the entire execution cycle.
 - Implemented operator workflow integration tests, validation workflows (release, GCPSR/MRR/RMM CRDs, deployments, grace periods, cleanups), and health checks.
