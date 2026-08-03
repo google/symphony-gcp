@@ -34,7 +34,7 @@ kubectl wait --for=condition=Ready pod \
   -l "app=$RESOURCE_NAME" \
   --timeout=60s
 
-# Only return 1 out of 3 running pods
+# First partial machine return request by returning 1/3 running pods
 RETURN_RESOURCE="
 apiVersion: accenture.com/v1
 kind: MachineReturnRequest
@@ -58,7 +58,7 @@ MR_RETURNED_MACHINES=$(kubectl get mrr "${RESOURCE_NAME}-return" -o jsonpath='{.
 if [[ $MR_RETURNED_MACHINES == 1 && $MR_PHASE == "Completed" ]]; then
   echo "[PASS] First machine return request completed successfully."
 else
-  echo "[FAIL] Machine return incomplete:"
+  echo "[FAIL] First machine return request incomplete:"
   echo " - Phase:             ${MR_PHASE}"
   echo " - Returned machines: ${MR_RETURNED_MACHINES}"
   exit 1
@@ -77,16 +77,16 @@ if [[
   $SR_AVAILABLE_MACHINES == $POD_COUNT && \
   $SR_PHASE == "Running"
 ]]; then
-  echo "[PASS] First machine return request is successful and the gcpsr is consistent."
+  echo "[PASS] gcpsr is consistent after first machine return request."
 else
-  echo "[FAIL] Resources mismatch:"
+  echo "[FAIL] Resources mismatch  after first machine return request:"
   echo " - Requested machines: $SR_MACHINE_COUNT"
   echo " - Available machines: $SR_AVAILABLE_MACHINES"
   echo " - Running pods:       $POD_COUNT"
   exit 1
 fi
 
-# Return the remaining 2 running pods
+# Second partial machine return request by returning 2/3 remaining pods
 RETURN_RESOURCE="
 apiVersion: accenture.com/v1
 kind: MachineReturnRequest
@@ -105,8 +105,6 @@ kubectl wait --for=delete pod \
   -l "app=$RESOURCE_NAME" \
   --timeout=60s
 
-echo "[PASS] The remaining 2 pods successfully terminated after return request."
-
 sleep $SLEEP
 
 MR_PHASE=$(kubectl get mrr "${RESOURCE_NAME}-2-return" -o jsonpath='{.status.phase}')
@@ -114,9 +112,9 @@ MR_RETURNED_MACHINES=$(kubectl get mrr "${RESOURCE_NAME}-2-return" -o jsonpath='
 MR_TOTAL_MACHINES=$(kubectl get mrr "${RESOURCE_NAME}-2-return" -o jsonpath='{.status.totalMachines}')
 
 if [[  $MR_PHASE == "Completed" && $MR_RETURNED_MACHINES == $MR_TOTAL_MACHINES ]]; then
-  echo "[PASS] Machine return request completed successfully."
+  echo "[PASS] Second machine return request completed successfully."
 else
-  echo "[FAIL] Machine return incomplete:"
+  echo "[FAIL] Second machine return request incomplete:"
   echo " - Phase:             ${MR_PHASE}"
   echo " - Returned machines: ${MR_RETURNED_MACHINES}"
   echo " - Total machines:    ${MR_TOTAL_MACHINES}"
@@ -134,9 +132,9 @@ if [[
   $SR_AVAILABLE_MACHINES == 0 && \
   $SR_AVAILABLE_MACHINES == $POD_COUNT \
 ]]; then
-  echo "[PASS] Second machine return request is successful and the gcpsr is consistent."
+  echo "[PASS] gcpsr is consistent after second machine return request."
 else
-  echo "[FAIL] Resources mismatch after cleanup:"
+  echo "[FAIL] Resources mismatch after second machine return request:"
   echo " - Requested machines: $SR_MACHINE_COUNT"
   echo " - Available machines: $SR_AVAILABLE_MACHINES"
   echo " - Running pods:       $POD_COUNT"
