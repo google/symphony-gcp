@@ -18,6 +18,10 @@ A Kubernetes operator for managing GCP Symphony Hostfactory related resources.
 
 ## <a id="change-log"></a>Change log
 
+### Version 0.3.2
+- Added integration test for partial machine return requests
+- Removed unnecessary assertion outputs and modified assertion logical conditions for better readability
+
 ### Version 0.3.1
 - Commented out the preemption configuration in the operator code and added deprecation comments to guide optional manual enablement.
 - Removed preemption details from the configuration documentation.
