@@ -17,7 +17,7 @@ This document is a design proposal for implementing a **HostFactory provider plu
 
 ### Class Diagram
 
-![image-20250904104210953](/Users/cory.y.kim/code/google/google-symphony-hf/docs/architecture/assets/gke-components.png)
+![image-20250904104210953](assets/gke-components.png)
 
 ### Shell Scripts
 
@@ -144,7 +144,7 @@ The Symphony GKE blueprint and associated Terraform modules will be included in 
 
 ### Class Diagram
 
-![image-20250904104210953](/Users/cory.y.kim/code/google/google-symphony-hf/docs/architecture/assets/gce-components.png)
+![image-20250904104210953](assets/gce-components.png)
 
 ### Shell Scripts
 
