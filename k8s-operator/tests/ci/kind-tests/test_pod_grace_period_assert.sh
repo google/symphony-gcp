@@ -77,11 +77,9 @@ ELAPSED=$((END - START))
 echo "Elapsed: ${ELAPSED} seconds"
 
 # assertion
-if [ "$ELAPSED" -ge 10 ] && [ "$ELAPSED" -le 120 ];
-then
+if [ "$ELAPSED" -ge 10 ] && [ "$ELAPSED" -le 120 ]; then
     echo "[PASS] Pod entered terminating state and respected the grace period."
-    exit 0
+else
+    echo "[FAIL] Pod did not respect the grace period. Elapsed time: ${ELAPSED} seconds."
+    exit 1
 fi
-
-echo "[FAIL] Pod did not respect the grace period. Elapsed time: ${ELAPSED} seconds."
-exit 1
