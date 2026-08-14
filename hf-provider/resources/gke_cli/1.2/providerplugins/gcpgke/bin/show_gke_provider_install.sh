@@ -64,11 +64,21 @@ done
 # Shift processed arguments so the main script can use remaining positional arguments
 shift $((OPTIND - 1))
 
+
 ## Redirect stdout to a process substitution that runs tee
-exec 1> >(tee -a "$LOGFILE")
+## Remove ANSI color sequences, Cursor movement codes & Spinner carriage returns
+exec > >(
+    tee >(
+        sed -E '
+            s/\x1B\[[0-9;]*[A-Za-z]//g;
+            s/\r[^\n]*//g;
+        ' > "$LOGFILE"
+    )
+)
 
 ## Redirect stderr to the same place as stdout
 exec 2>&1
+
 
 #Bash Variable
 CHECK=$(printf '\u2713')
