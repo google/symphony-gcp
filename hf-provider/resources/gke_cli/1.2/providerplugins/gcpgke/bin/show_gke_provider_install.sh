@@ -162,6 +162,7 @@ if command -v tree > /dev/null 2>&1; then
 else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Tree package not installed:${NC} Run 'dnf install tree' to install."
+
 fi
 
 
@@ -176,14 +177,16 @@ echo ''
 echo -e "\033[1mConfirm the Symphony variables\033[0m"
 start_spinner "Checking for Symphony variables..."
 sleep $SLEEP
+
 if [[ -n "${HF_TOP}" && "${HF_VERSION}" ]]; then
-stop_spinner 0
-echo -e "  ${GREEN}${CHECK}${NC} Symphony variables are present"
-echo -e "\$HF_TOP: ${YELLOW}${HF_TOP}${NC}"
-echo -e "\$HF_VERSION: ${YELLOW}${HF_VERSION}${NC}"
+   stop_spinner 0
+   echo -e "  ${GREEN}${CHECK}${NC} Symphony variables are present"
+   echo -e "\$HF_TOP: ${YELLOW}${HF_TOP}${NC}"
+   echo -e "\$HF_VERSION: ${YELLOW}${HF_VERSION}${NC}"
 else
-stop_spinner 1
-    echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> \$HF_TOP is empty. ${NC}Source your Symphony environment (e.g. '. \$EGO_TOP/profile.platform')"
+   stop_spinner 1
+   echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> \$HF_TOP is empty. ${NC}Source your Symphony environment (e.g. '. \$EGO_TOP/profile.platform')"
+
 fi
 
 
@@ -224,6 +227,7 @@ if [ -d "$TARGET_DIR" ]; then
         echo -e "  ${GREEN}${CHECK}${NC} Directory structure confirmed. Result:"
         echo "------------------------------------"
         ls -R "$TARGET_DIR"
+    
     fi
 
 else
@@ -252,7 +256,9 @@ else
         stop_spinner 1
         echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Directory '${PROVIDERPLUGINSDIRNAME}' does not exist:${NC}"
         ls -R "$TARGET_DIR"
+    
     fi
+
 fi
 
 
@@ -283,6 +289,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider plugin '${PROVIDERPLUGINSDIRNAME}' not found.${NC}"
     grep -A1 -B1 "${PROVIDERPLUGINSDIRNAME}" "$PROVPLUGIN_FILE"
+
 fi
 
 
@@ -310,6 +317,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Could not change to directory:${NC}"
     cd "$PROVIDER_DIR"
+
 fi
 
 
@@ -333,7 +341,6 @@ if CONFIG_OUTPUT=$(cat ${PROV_CONFIG_FILE} 2>&1); then
     cat ${PROVIDERINSTANCEDIRNAME}prov_config.json
 
 else
-    # ${PROVIDERINSTANCEDIRNAME}prov_config.json file is missing
     echo "---------------------"
     echo -e "${YELLOW}Executing command:${NC}"
     echo " cat \$HF_TOP/conf/providers/${PROVIDERINSTANCEDIRNAME}/${PROVIDERINSTANCEDIRNAME}prov_config.json"
@@ -341,6 +348,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance config file is missing.${NC}"
     echo "$CONFIG_OUTPUT"
+
 fi
 
 
@@ -373,6 +381,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: GKE_KUBECONFIG file is missing.${NC}"
     ls -l "$KUBE_CONFIG"
+
 fi
 
 
@@ -402,6 +411,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error connecting to cluster.${NC}"
     echo "$OUTPUT"
+
 fi
 
 
@@ -433,6 +443,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Template file missing.${NC}"
     echo "$OUTPUT"
+
 fi
 
 
@@ -464,7 +475,8 @@ if [ -n "$PODSPEC" ]; then
         echo "---------------------"
         cat "$i"
         echo ''
-    else
+    
+     else
         # If the file does NOT exist, print a clear error message
         start_spinner "Checking ${PROVIDERINSTANCEDIRNAME}prov_templates.json 'podSpecYaml' file..."
         sleep $SLEEP
@@ -475,7 +487,8 @@ if [ -n "$PODSPEC" ]; then
         echo "---------------------"
         cat "$i"
         echo ''
-    fi
+    
+     fi
     # --- END CONDITIONAL ---
     done
 
@@ -487,6 +500,7 @@ else
   echo "------------------------------------"
   grep podSpecYaml "${HF_TOP}"/conf/providers/"${PROVIDERINSTANCEDIRNAME}"/"${PROVIDERINSTANCEDIRNAME}"prov_templates.json | awk -F\" '{print $4}'
   echo ''
+
 fi
 
 
@@ -513,6 +527,7 @@ if [ -d "$PROV_INSTANCE_DIR" ]; then
             echo "------------------------------------"
             tree "$PROV_INSTANCE_DIR"
             echo "------------------------------------"
+        
         else
             echo -e "   ${YELLOW}[INFO]${NC} 'tree' package not installed. Falling back to 'ls':"
             echo "---------------------"
@@ -525,6 +540,7 @@ if [ -d "$PROV_INSTANCE_DIR" ]; then
             echo -e "  ${GREEN}${CHECK}${NC} Provider instance directory structure confirmed. Result:"
             echo "------------------------------------"
             ls -R "$PROV_INSTANCE_DIR"      
+        
         fi
 
 else
@@ -540,7 +556,8 @@ else
         echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Missing provider instance directory.${NC}"
         tree "$PROV_INSTANCE_DIR"
         echo "------------------------------------"
-     else
+     
+    else
         echo -e "   ${YELLOW}[INFO]${NC} 'tree' package not installed. Falling back to 'ls':"
         echo "---------------------"
         echo -e "${YELLOW}Executing command:${NC}"
@@ -551,7 +568,9 @@ else
         stop_spinner 1
         echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Missing provider instance directory.${NC}"
         ls -R "$PROV_INSTANCE_DIR"
-     fi
+     
+    fi
+
 fi
 
 
@@ -572,6 +591,7 @@ if PROV_INST_OUTPUT=$(grep -A2 -B1 "${PROVIDERINSTANCEDIRNAME}" "$HOST_PROVIDERS
     echo -e "  ${GREEN}${CHECK}${NC} Provider instance is enabled. Result:"
     echo "------------------------------------"
     echo "$PROV_INST_OUTPUT"
+
 else
     echo "---------------------"
     echo -e "${YELLOW}Executing command:${NC}"
@@ -582,6 +602,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance '${PROVIDERINSTANCEDIRNAME}' not found.${NC}"
     echo "$PROV_INST_OUTPUT"
+
 fi
 
 
@@ -602,6 +623,7 @@ if REQ_OUTPUT=$(grep "${PROVIDERINSTANCEDIRNAME}" "$HOST_REQUESTORS" 2>&1); then
     echo -e "  ${GREEN}${CHECK}${NC} Provider instance '${PROVIDERINSTANCEDIRNAME}' found in the requestor. Result:${NC}"
     echo "------------------------------------"
     grep -E "name|provider" "$HOST_REQUESTORS"
+
 else
     echo "---------------------"
     echo -e "${YELLOW}Executing command:${NC}"
@@ -612,6 +634,7 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance '${PROVIDERINSTANCEDIRNAME}' not found in the requestor.${NC}"
     grep -E "name|provider" "$HOST_REQUESTORS"
+
 fi
 
 
@@ -631,6 +654,7 @@ if PODS_OUTPUT=$(kubectl --kubeconfig="${KUBE_CONFIG:-/dev/null}" get pods --nam
     echo -e "  ${GREEN}${CHECK}${NC} Operator manifest applied. Active pods:"
     echo "------------------------------------"
     echo "$PODS_OUTPUT"
+
 else
     echo "---------------------"
     echo -e "${YELLOW}Executing command:${NC}"
@@ -641,5 +665,6 @@ else
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Failed to get pods in namespace gcp-symphony. Result:${NC}"
     echo "$PODS_OUTPUT"
+
 fi
 
