@@ -615,25 +615,25 @@ HOST_REQUESTORS="${HF_TOP}/conf/requestors/hostRequestors.json"
 if REQ_OUTPUT=$(grep "${PROVIDERINSTANCEDIRNAME}" "$HOST_REQUESTORS" 2>&1); then
     echo "---------------------"
     echo -e "${YELLOW}Executing command:${NC}"
-    echo "   grep "${PROVIDERINSTANCEDIRNAME}" \$HF_TOP/conf/requestors/hostRequestors.json"
+    echo "   grep "${PROVIDERINSTANCEDIRNAME}" "$HOST_REQUESTORS""
     echo "---------------------"
     start_spinner "Checking if a requestor is configured to use the  provider instance..."
     sleep $SLEEP
     stop_spinner 0
     echo -e "  ${GREEN}${CHECK}${NC} Provider instance '${PROVIDERINSTANCEDIRNAME}' found in the requestor. Result:${NC}"
     echo "------------------------------------"
-    grep -E "name|provider" "$HOST_REQUESTORS"
+    echo "$REQ_OUTPUT"
 
 else
     echo "---------------------"
     echo -e "${YELLOW}Executing command:${NC}"
-    echo "   grep "${PROVIDERINSTANCEDIRNAME}" \$HF_TOP/conf/requestors/hostRequestors.json"
+    echo "   grep "${PROVIDERINSTANCEDIRNAME}" "$HOST_REQUESTORS""
     echo "---------------------"
     start_spinner "Checking if a requestor is configured to use the  provider instance..."
     sleep $SLEEP
     stop_spinner 1
     echo -e "   ${RED}${CROSS}${NC} ${YELLOW}-> Error: Provider instance '${PROVIDERINSTANCEDIRNAME}' not found in the requestor.${NC}"
-    grep -E "name|provider" "$HOST_REQUESTORS"
+    echo "$REQ_OUTPUT"
 
 fi
 
