@@ -104,7 +104,10 @@ The following configuration variables are supported in the gcpgkeinstprov_config
 | `GKE_CRD_RETURN_REQUEST_KIND`*| `MachineReturnRequest` | The name given to the custom resource definition that defines a request to return compute resources (pods)
 | `GKE_CRD_RETURN_REQUEST_SINGULAR`*| `machine-return-request` | Used in API calls when referring to a single MachineReturnRequest custom resource instance
 | `GKE_REQUEST_TIMEOUT`| `300` | In seconds, how long a request to the GKE control plane will wait for a response.
+| `LOGFILE` | A file with a generated name, located in the directory defined by the HostFactory environment variable `$HF_PROVIDER_LOGDIR` | The location of the log file that the provider should log.
 | `LOG_LEVEL`| `WARNING` | Controls the level of log detail that the GKE Provider writes to the log file. Options are `CRITICAL`, `WARNING`, `ERROR`, `INFO`, `DEBUG`.
+| `LOG_MAX_FILE_SIZE` | `10` | The maximum size in megabytes (MB) of a single log file before rotation occurs.
+| `LOG_MAX_ROTATE` | `5` | The number of backup log files to retain during log rotation
 
 ***Note:** Changing any of the configurations items marked with an asterisk `*` will require syncing them with their counterparts in the kubernetes operator configuration. See [Operator CONFIG](../k8s-operator/docs/CONFIG.md) for details on related operator configuration.* **It is recommended to NOT change these values from the default.**
 
