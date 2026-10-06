@@ -1,5 +1,5 @@
 Name: hf-gcpgke-provider
-Version: 1.0.0
+Version: %{getenv:VERSION}
 Release: %{getenv:GITHUB_RUN_NUMBER}%{?dist}
 Summary: IBM Symphony Host Factory provider for GCP GKE
 License: Apache2
