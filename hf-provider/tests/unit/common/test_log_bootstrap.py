@@ -165,6 +165,23 @@ def test_configure_logging_keeps_old_target_when_new_unwritable(monkeypatch, tmp
 
     assert log_bootstrap._installed_handler() is old_handler
 
+def test_configure_logging_raises_and_logs_invalid_target(monkeypatch, tmp_path):
+    monkeypatch.setenv("HF_PROVIDER_LOGDIR", str(tmp_path))
+    log_bootstrap.bootstrap_logging()
+    old_handler = log_bootstrap._installed_handler()
+    invalid_logfile = str(tmp_path / "missing" / "x.log")
+
+    with pytest.raises(RuntimeError, match="Invalid LOGFILE"):
+        log_bootstrap.configure_logging(logfile=invalid_logfile)
+
+    assert log_bootstrap._installed_handler() is old_handler
+    old_handler.flush()
+
+    with open(old_handler.baseFilename) as default_log:
+        default_log_contents = default_log.read()
+
+    assert "Invalid LOGFILE" in default_log_contents
+    assert invalid_logfile in default_log_contents
 
 def test_import_time_warning_is_captured_end_to_end(tmp_path, src_dir):
     script = "\n".join(
