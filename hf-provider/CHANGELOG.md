@@ -2,6 +2,15 @@
 
 All hf-provider notable changes to this project will be documented in this file.
 
+## [0.3.8] - 2026-10-12
+
+Relevant PRs:
+- #112 - Fix: Fatal LOGFILE configuration validation and error reporting
+
+### Fixed
+- Fixed silent fallback when `LOGFILE` points to an invalid or non-existent directory. Provider startup now fails fast when the configured `LOGFILE` cannot be created.
+- The invalid `LOGFILE` value is now logged as an error to the default provider log
+
 ## [0.3.7] - 2026-07-16
 
 Relevant PRs:
