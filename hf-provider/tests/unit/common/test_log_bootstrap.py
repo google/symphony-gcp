@@ -74,6 +74,7 @@ def test_bootstrap_routes_warnings_to_log_not_stderr(monkeypatch, tmp_path, caps
     assert captured.err == ""
     assert captured.out == ""
 
+
 def test_bootstrap_is_idempotent(monkeypatch, tmp_path):
     monkeypatch.setenv("HF_PROVIDER_LOGDIR", str(tmp_path))
     root_logger = logging.getLogger()
@@ -110,6 +111,7 @@ def test_bootstrap_never_attaches_stream_handler(monkeypatch, tmp_path):
     added_handlers = [handler for handler in root_logger.handlers if handler not in handlers_before]
     assert len(added_handlers) == 1
     assert isinstance(added_handlers[0], logging.NullHandler)
+
 
 def test_bootstrap_reinstalls_after_external_handler_removal(monkeypatch, tmp_path):
     monkeypatch.setenv("HF_PROVIDER_LOGDIR", str(tmp_path))
@@ -161,9 +163,28 @@ def test_configure_logging_keeps_old_target_when_new_unwritable(monkeypatch, tmp
     log_bootstrap.bootstrap_logging()
     old_handler = log_bootstrap._installed_handler()
 
-    log_bootstrap.configure_logging(logfile=str(tmp_path / "missing" / "x.log"))
+    with pytest.raises(RuntimeError, match="Invalid LOGFILE"):
+        log_bootstrap.configure_logging(logfile=str(tmp_path / "missing" / "x.log"))
 
     assert log_bootstrap._installed_handler() is old_handler
+
+
+def test_configure_logging_raises_err_and_logs_invalid_target(monkeypatch, tmp_path):
+    monkeypatch.setenv("HF_PROVIDER_LOGDIR", str(tmp_path))
+    log_bootstrap.bootstrap_logging()
+    old_handler = log_bootstrap._installed_handler()
+    invalid_logfile = str(tmp_path / "missing" / "x.log")
+
+    with pytest.raises(RuntimeError, match="Invalid LOGFILE"):
+        log_bootstrap.configure_logging(logfile=invalid_logfile)
+
+    old_handler.flush()
+
+    with open(old_handler.baseFilename) as default_log:
+        default_log_contents = default_log.read()
+
+    assert "Invalid LOGFILE" in default_log_contents
+    assert invalid_logfile in default_log_contents
 
 
 def test_import_time_warning_is_captured_end_to_end(tmp_path, src_dir):

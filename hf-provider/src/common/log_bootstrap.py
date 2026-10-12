@@ -175,9 +175,8 @@ def configure_logging(
     )
 
     if new_handler is None:
-        logging.getLogger(__name__).warning(
-            "Could not open configured log file %r, keeping the current log target",
-            logfile,
-        )
-        return
+        message = f"Invalid LOGFILE {logfile!r}: could not create the configured log file. "
+        logging.getLogger(__name__).error(message)
+        raise RuntimeError(message)
+    
     _install_handler(new_handler)
