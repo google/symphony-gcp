@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 
 import common.utils.path_utils as path_utils
 from common import log_bootstrap
+from common.utils.config_utils import validate_int_in_range
 from common.utils.file_utils import load_json_file
 
 # Load environment variables from .env file (if it exists)
@@ -31,7 +32,11 @@ DEFAULT_POLLING_INTERVAL = 10
 DEFAULT_FAST_API_ENABLED = False
 DEFAULT_LOG_LEVEL = "WARNING"
 DEFAULT_LOG_MAX_FILE_SIZE = "10" # 10 MB
+DEFAULT_LOG_MAX_FILE_SIZE_MIN = 1
+DEFAULT_LOG_MAX_FILE_SIZE_MAX = 1999
 DEFAULT_LOG_MAX_ROTATE = "5"
+DEFAULT_LOG_MAX_ROTATE_MIN = 0
+DEFAULT_LOG_MAX_ROTATE_MAX = 1000
 
 DEFAULT_HF_PROVIDER_NAME = "gcp-symphony"
 
@@ -133,15 +138,27 @@ class Config:
         )
         self.log_level = hf_provider_conf.get("LOG_LEVEL", DEFAULT_LOG_LEVEL)
 
+        log_max_file_size = validate_int_in_range(
+            value=hf_provider_conf.get("LOG_MAX_FILE_SIZE", DEFAULT_LOG_MAX_FILE_SIZE),
+            default=int(DEFAULT_LOG_MAX_FILE_SIZE),
+            min_value=DEFAULT_LOG_MAX_FILE_SIZE_MIN,
+            max_value=DEFAULT_LOG_MAX_FILE_SIZE_MAX,
+            config_name="LOG_MAX_FILE_SIZE"
+        )
+
+        log_max_rotate = validate_int_in_range(
+            value=hf_provider_conf.get("LOG_MAX_ROTATE", DEFAULT_LOG_MAX_ROTATE),
+            default=int(DEFAULT_LOG_MAX_ROTATE),
+            min_value=DEFAULT_LOG_MAX_ROTATE_MIN,
+            max_value=DEFAULT_LOG_MAX_ROTATE_MAX,
+            config_name="LOG_MAX_ROTATE"
+        )
+
         log_bootstrap.configure_logging(
             logfile=str(self.hf_provider_log_file),
             level=self.log_level,
-            max_bytes=int(
-                hf_provider_conf.get("LOG_MAX_FILE_SIZE", DEFAULT_LOG_MAX_FILE_SIZE)
-            ) * 1024 * 1024,  # nth MB in bytes
-            backup_count=int(
-                hf_provider_conf.get("LOG_MAX_ROTATE", DEFAULT_LOG_MAX_ROTATE)
-            )
+            max_bytes=log_max_file_size * 1024 * 1024,  # nth MB in bytes
+            backup_count=log_max_rotate
         )
 
         # iterate over the class attributes and log them
