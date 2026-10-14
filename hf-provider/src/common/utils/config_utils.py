@@ -1,4 +1,4 @@
-import logging
+from typing import Optional, Tuple
 
 def validate_int_in_range(
     value: str, 
@@ -6,23 +6,19 @@ def validate_int_in_range(
     min_value: int,
     max_value: int,
     config_name: str,
-) -> int:
-    """Return an integer setting within bounds, or log and use its default."""
+) -> Tuple[int, Optional[str]]:
+    """Validate an integer setting and return its value and any deferred warning."""
     try:
         parsed_value = int(value)
     except ValueError:
         parsed_value = None
 
     if parsed_value is not None and min_value <= parsed_value <= max_value:
-        return parsed_value
+        return parsed_value, None
 
-    logging.getLogger(__name__).warning(
-        "Invalid %s value %r; expected an integer from %d to %d. Using default %d.",
-        config_name,
-        value,
-        min_value,
-        max_value,
-        default,
+    warning = (
+        f"Invalid {config_name} value {value!r}; expected an integer from "
+        f"{min_value} to {max_value}. Using default value of {default}."
     )
 
-    return default
+    return default, warning

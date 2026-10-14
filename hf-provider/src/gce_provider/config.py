@@ -110,11 +110,12 @@ class Config:
             )
 
         # configure logging. This should occur before any log entries are emitted
+        # This allows the user to override the default HF log directory/filename
         self.hf_provider_log_file = (
             hf_provider_conf.get(CONFIG_VAR_LOGFILE) or log_bootstrap.default_log_file()
         )
 
-        log_max_file_size = validate_int_in_range(
+        log_max_file_size, log_max_file_size_warning = validate_int_in_range(
             value=hf_provider_conf.get(CONFIG_VAR_LOG_MAX_FILE_SIZE, DEFAULT_LOG_MAX_FILE_SIZE),
             default=int(DEFAULT_LOG_MAX_FILE_SIZE),
             min_value=DEFAULT_LOG_MAX_FILE_SIZE_MIN,
@@ -122,7 +123,7 @@ class Config:
             config_name=CONFIG_VAR_LOG_MAX_FILE_SIZE
         )
 
-        log_max_rotate = validate_int_in_range(
+        log_max_rotate, log_max_rotate_warning = validate_int_in_range(
             value=hf_provider_conf.get(CONFIG_VAR_LOG_MAX_ROTATE, DEFAULT_LOG_MAX_ROTATE),
             default=int(DEFAULT_LOG_MAX_ROTATE),
             min_value=DEFAULT_LOG_MAX_ROTATE_MIN,
@@ -138,6 +139,9 @@ class Config:
             backup_count=log_max_rotate
         )
         self.logger = logging.getLogger(__name__)
+        for warning in (log_max_file_size_warning, log_max_rotate_warning):
+            if warning is not None:
+                self.logger.warning(warning)
 
         # determine the instance label value text, defaulting to hostname
         self.instance_label_name_text = "symphony_gce_connector"

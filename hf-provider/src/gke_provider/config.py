@@ -112,6 +112,41 @@ class Config:
         self.crd_singular = hf_provider_conf.get("GKE_CRD_SINGULAR", DEFAULT_CRD_SINGULAR)
         self.crd_plural = hf_provider_conf.get("GKE_CRD_PLURAL", f"{self.crd_singular}s")
         self.crd_label_name_text = "symphony_gke_connector"
+
+        # configure logging. This should occur before any log entries are emitted
+        # This allows the user to override the default HF log directory/filename
+        self.hf_provider_log_file = (
+            hf_provider_conf.get("LOGFILE") or log_bootstrap.default_log_file()
+        )
+        self.log_level = hf_provider_conf.get("LOG_LEVEL", DEFAULT_LOG_LEVEL)
+
+        log_max_file_size, log_max_file_size_warning = validate_int_in_range(
+            value=hf_provider_conf.get("LOG_MAX_FILE_SIZE", DEFAULT_LOG_MAX_FILE_SIZE),
+            default=int(DEFAULT_LOG_MAX_FILE_SIZE),
+            min_value=DEFAULT_LOG_MAX_FILE_SIZE_MIN,
+            max_value=DEFAULT_LOG_MAX_FILE_SIZE_MAX,
+            config_name="LOG_MAX_FILE_SIZE"
+        )
+
+        log_max_rotate, log_max_rotate_warning = validate_int_in_range(
+            value=hf_provider_conf.get("LOG_MAX_ROTATE", DEFAULT_LOG_MAX_ROTATE),
+            default=int(DEFAULT_LOG_MAX_ROTATE),
+            min_value=DEFAULT_LOG_MAX_ROTATE_MIN,
+            max_value=DEFAULT_LOG_MAX_ROTATE_MAX,
+            config_name="LOG_MAX_ROTATE"
+        )
+
+        log_bootstrap.configure_logging(
+            logfile=str(self.hf_provider_log_file),
+            level=self.log_level,
+            max_bytes=log_max_file_size * 1024 * 1024,  # nth MB in bytes
+            backup_count=log_max_rotate
+        )
+
+        for warning in (log_max_file_size_warning, log_max_rotate_warning):
+            if warning is not None:
+                self.logger.warning(warning)
+
         # Get the hostname from the running environment for use in the crd_label_value_text
         try:
             self.crd_label_value_text = gethostname()  # type: ignore
@@ -131,34 +166,6 @@ class Config:
         )
         self.polling_interval = int(
             hf_provider_conf.get("GKE_POLLING_INTERVAL", DEFAULT_POLLING_INTERVAL)
-        )
-        # This allows the user to override the default HF log directory/filename
-        self.hf_provider_log_file = (
-            hf_provider_conf.get("LOGFILE") or log_bootstrap.default_log_file()
-        )
-        self.log_level = hf_provider_conf.get("LOG_LEVEL", DEFAULT_LOG_LEVEL)
-
-        log_max_file_size = validate_int_in_range(
-            value=hf_provider_conf.get("LOG_MAX_FILE_SIZE", DEFAULT_LOG_MAX_FILE_SIZE),
-            default=int(DEFAULT_LOG_MAX_FILE_SIZE),
-            min_value=DEFAULT_LOG_MAX_FILE_SIZE_MIN,
-            max_value=DEFAULT_LOG_MAX_FILE_SIZE_MAX,
-            config_name="LOG_MAX_FILE_SIZE"
-        )
-
-        log_max_rotate = validate_int_in_range(
-            value=hf_provider_conf.get("LOG_MAX_ROTATE", DEFAULT_LOG_MAX_ROTATE),
-            default=int(DEFAULT_LOG_MAX_ROTATE),
-            min_value=DEFAULT_LOG_MAX_ROTATE_MIN,
-            max_value=DEFAULT_LOG_MAX_ROTATE_MAX,
-            config_name="LOG_MAX_ROTATE"
-        )
-
-        log_bootstrap.configure_logging(
-            logfile=str(self.hf_provider_log_file),
-            level=self.log_level,
-            max_bytes=log_max_file_size * 1024 * 1024,  # nth MB in bytes
-            backup_count=log_max_rotate
         )
 
         # iterate over the class attributes and log them
