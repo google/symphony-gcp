@@ -1,16 +1,23 @@
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 
 def validate_int_in_range(
-    value: str, 
+    value: Any,
     default: int,
     min_value: int,
     max_value: int,
     config_name: str,
 ) -> Tuple[int, Optional[str]]:
     """Validate an integer setting and return its value and any deferred warning."""
-    try:
-        parsed_value = int(value)
-    except ValueError:
+    if isinstance(value, bool):
+        parsed_value = None
+    elif isinstance(value, int):
+        parsed_value = value
+    elif isinstance(value, str):
+        try:
+            parsed_value = int(value)
+        except ValueError:
+            parsed_value = None
+    else:
         parsed_value = None
 
     if parsed_value is not None and min_value <= parsed_value <= max_value:
