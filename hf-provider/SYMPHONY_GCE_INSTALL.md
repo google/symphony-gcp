@@ -180,8 +180,8 @@ The following configuration variables are supported. Variables that have no defa
 | `RETURNED_VM_TTL` | `30` | Determines how long a returned machine record remains in the database. Value is in days. Example: 30 means any machine older than 30 days will be permanently removed during cleanup.
 | `LOGFILE` | A file with a generated name, located in the directory defined by the HostFactory environment variable `$HF_PROVIDER_LOGDIR` | The location of the log file that the provider should log to
 | `LOG_LEVEL`  | `WARNING` | Controls the level of log detail that the GCE Provider writes to the log file. Options are `CRITICAL`, `WARNING`, `ERROR`, `INFO`, `DEBUG`.
-| `LOG_MAX_FILE_SIZE` | `10` | The maximum size in megabytes (MB) of a single log file before rotation occurs.
-| `LOG_MAX_ROTATE` | `5` | The number of backup log files to retain during log rotation
+| `LOG_MAX_FILE_SIZE` | `10` | The maximum size in megabytes (MB) of a single log file before rotation occurs. Valid range: 1-1999; invalid or out-of-range values use the default.
+| `LOG_MAX_ROTATE` | `5` | The number of backup log files to retain during log rotation. Valid range: 0-1000; 0 turns rotation off; invalid or out-of-range values use the default.
 
 ### Example file:
 ```
