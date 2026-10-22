@@ -12,6 +12,9 @@ import pytest
 
 from common import log_bootstrap
 
+from gce_provider import config as gce_config
+from gke_provider import config as gke_config
+
 def _remove_managed_handlers():
     root_logger = logging.getLogger()
     for handler in list(root_logger.handlers):
@@ -219,3 +222,62 @@ def test_import_time_warning_is_captured_end_to_end(tmp_path, src_dir):
     assert result.stderr == ""
     log_content = (tmp_path / "gcp-symphony-provider.e2ehost.log").read_text()
     assert "synthetic-import-time-warning" in log_content
+
+
+@pytest.mark.parametrize(
+    ("config_module", "config_values"),
+    [
+        pytest.param(
+            gce_config,
+            {
+                "LOG_MAX_FILE_SIZE": "invalid",
+                "LOG_MAX_ROTATE": 1001,
+            },
+            id="gce",
+        ),
+        pytest.param(
+            gke_config,
+            {
+                "GKE_KUBECONFIG": "kubeconfig",
+                "LOG_MAX_FILE_SIZE": "invalid",
+                "LOG_MAX_ROTATE": 1001,
+            },
+            id="gke",
+        ),
+    ],
+)
+def test_invalid_rotation_settings_warn_to_custom_logfile(
+    monkeypatch, tmp_path, config_module, config_values
+):
+    default_log_dir = tmp_path / "default"
+    default_log_dir.mkdir()
+    custom_logfile = tmp_path / "custom" / "provider.log"
+    custom_logfile.parent.mkdir()
+
+    monkeypatch.setenv("HF_PROVIDER_LOGDIR", str(default_log_dir))
+    monkeypatch.setenv("HF_PROVIDER_NAME", "test-provider")
+    monkeypatch.setenv("EGOSC_INSTANCE_HOST", "test-host")
+    monkeypatch.setenv("HF_DBDIR", str(tmp_path))
+    monkeypatch.setattr(
+        config_module,
+        "load_json_file",
+        lambda _: {
+            **config_values,
+            "LOGFILE": str(custom_logfile),
+            "LOG_LEVEL": "WARNING",
+        },
+    )
+
+    config_module.Config()
+
+    handler = log_bootstrap._installed_handler()
+    assert handler is not None
+    handler.flush()
+
+    custom_contents = custom_logfile.read_text()
+    default_logfile = default_log_dir / "test-provider-provider.test-host.log"
+    default_contents = default_logfile.read_text()
+    for setting in ("LOG_MAX_FILE_SIZE", "LOG_MAX_ROTATE"):
+        warning = f"Invalid {setting}"
+        assert warning in custom_contents
+        assert warning not in default_contents
