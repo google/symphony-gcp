@@ -2,6 +2,18 @@
 
 All hf-provider notable changes to this project will be documented in this file.
 
+## [0.3.9] - 2026-10-28
+
+Relevant PRs:
+- #114 - Feat: Additional logging configuration guardrails
+
+### Added
+- Added validation for `LOG_MAX_FILE_SIZE` (1–1999 MB) and `LOG_MAX_ROTATE` (0–1000) in the GCE and GKE providers.
+- Added tests for logging configuration validation.
+
+### Fixed
+- Invalid or out-of-range logging values emit a warning through the provider logger and fall back to their defaults instead of interrupting provider startup.
+
 ## [0.3.8] - 2026-10-12
 
 Relevant PRs:
