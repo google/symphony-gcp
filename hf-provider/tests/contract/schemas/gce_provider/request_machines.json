@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory requestMachines response",
+  "$comment": "Pins what hf-gce emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-requestmachines.",
+  "type": "object",
+  "required": ["requestId"],
+  "properties": {
+    "requestId": { "type": "string", "minLength": 1 },
+    "message": { "type": "string" }
+  },
+  "additionalProperties": false
+}
