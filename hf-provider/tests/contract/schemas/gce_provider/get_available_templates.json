@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory getAvailableTemplates response",
+  "$comment": "Pins what hf-gce emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-getavailabletemplates. Differences from the spec are noted inline.",
+  "type": "object",
+  "required": ["templates"],
+  "properties": {
+    "message": { "type": "string" },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["templateId", "maxNumber", "attributes"],
+        "properties": {
+          "templateId": { "type": "string" },
+          "maxNumber": {
+            "type": "integer",
+            "$comment": "The spec uses -1 for unlimited."
+          },
+          "attributes": {
+            "type": "object",
+            "$comment": "Not constrained. The spec requires type, ncores, ncpus and nram. The hf-gce templates have no ncores."
+          }
+        },
+        "$comment": "The spec allows provider-specific attributes. hf-gce adds gcp_zone and gcp_instance_group.",
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}
