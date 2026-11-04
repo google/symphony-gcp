@@ -26,6 +26,8 @@ jobs:
       image: rockylinux/rockylinux:${{ matrix.version }}
     steps:
     - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e #v2.8.0
+      with:
+        persist-credentials: false
 
     - name: Check Tag
       id: check-tag
@@ -38,7 +40,7 @@ jobs:
       if: steps.check-tag.outputs.match == 'true'
       run: |
         # Extract the version part (e.g., 1.2.3)
-        echo "VERSION=$(echo "$GITHUB_REF" | sed 's/^v//')" >> $GITHUB_ENV
+        echo "VERSION=$(echo "$GITHUB_REF_NAME" | sed 's/^v//')" >> $GITHUB_ENV
 
     - name: Set version on any other tag
       if: steps.check-tag.outputs.match != 'true'
