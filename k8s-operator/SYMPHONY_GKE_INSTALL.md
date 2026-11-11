@@ -12,16 +12,14 @@ The operator image serves two primary purposes:
 * Generate the kubernetes manifests needed to deploy the operator CRD
 * The image supporting the Operator CRD's custom object
 
-## Pull from FIXME image repository
-GCP GKE Operator images can be pulled from [FIXME image repo](https://<FIXME>)
-
 ## Build from source
+Build and push the operator image to your container registry (e.g. [Artifact Registry](https://docs.cloud.google.com/artifact-registry/docs/docker/store-docker-container-images)).
 
-Example image build script
+Example image build script:
 ```
 export IMAGE="gcp-symphony-operator"
 export REGISTRY="<CHANGEME-image repo>"
-export TAG="CHANGEME-0.0.0>"
+export TAG="<CHANGEME-0.0.0>"
 
 bash -c 'docker buildx build --platform linux/amd64 -t $IMAGE:$TAG -t $IMAGE:latest -t $REGISTRY/$IMAGE:$TAG -t $REGISTRY/$IMAGE:latest .'
 bash -c 'docker push $REGISTRY/$IMAGE:$TAG && docker push $REGISTRY/$IMAGE:latest'
