@@ -6,6 +6,9 @@ on:
     paths:
       - hf-provider/**
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-24.04
@@ -22,12 +25,14 @@ jobs:
     container:
       image: rockylinux/rockylinux:${{ matrix.version }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@0717577d45739eb3c851188b29f50ed6c0b2194e #v2.8.0
+      with:
+        persist-credentials: false
 
     - name: Check Tag
       id: check-tag
       run: |
-        if [[ ${{ github.event.ref }} =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        if [[ "$GITHUB_REF" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "match=true" >> $GITHUB_OUTPUT
         fi
 
@@ -35,7 +40,7 @@ jobs:
       if: steps.check-tag.outputs.match == 'true'
       run: |
         # Extract the version part (e.g., 1.2.3)
-        echo "VERSION=$(echo "${{ github.ref_name }}" | sed 's/^v//')" >> $GITHUB_ENV
+        echo "VERSION=$(echo "$GITHUB_REF_NAME" | sed 's/^v//')" >> $GITHUB_ENV
 
     - name: Set version on any other tag
       if: steps.check-tag.outputs.match != 'true'
@@ -102,7 +107,7 @@ jobs:
       run: rpmbuild -bb hf-provider/resources/hf-gcpgce-provider.spec | grep Wrote |awk '{print "gce_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gce artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
       with:
         name: hf-gcpgce-provider-${{ env.VERSION }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gce-rpm.outputs.gce_rpm_path }}"
@@ -113,7 +118,7 @@ jobs:
       run: rpmbuild -bb hf-provider/resources/hf-gcpgke-provider.spec | grep Wrote |awk '{print "gke_rpm_path="$2}' >> $GITHUB_OUTPUT
 
     - name: Upload gke artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 #v4.6.2
       with:
         name: hf-gcpgke-provider-${{ env.VERSION }}-${{ github.run_number }}.el${{ matrix.version }}.x86_64.rpm
         path: "${{ steps.gke-rpm.outputs.gke_rpm_path }}"

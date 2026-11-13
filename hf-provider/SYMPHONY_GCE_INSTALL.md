@@ -198,8 +198,8 @@ The following configuration variables are supported. Variables that have no defa
 Copy `gcpgceinstprov_templates.json.dist` to `gcpgceinstprov_templates.json`
 
 Two values typically needs to be modified:
-* gcp_zone - <FIXME>
-* gcp_instance_group - <FIXME>
+* gcp_zone - The zone where the managed instance group is located (e.g. us-central1-c). Only a single zone is supported.
+* gcp_instance_group - The name of the zonal managed instance group for this template. Regional MIGs are not supported.
 
 Modify to suit, with the understanding that the attributes should be aligned with the configuration of the supporting instance group.
 
