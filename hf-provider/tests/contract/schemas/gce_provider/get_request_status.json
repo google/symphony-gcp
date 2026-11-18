@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory getRequestStatus response",
+  "$comment": "Pins what hf-gce emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-getrequeststatus. Differences from the spec are noted inline.",
+  "type": "object",
+  "required": ["requests"],
+  "properties": {
+    "message": { "type": "string" },
+    "requests": {
+      "type": "array",
+      "$comment": "The spec shows a single object. hf-gce emits an array.",
+      "items": {
+        "type": "object",
+        "required": ["requestId", "status", "machines"],
+        "properties": {
+          "requestId": { "type": "string", "minLength": 1 },
+          "message": { "type": "string" },
+          "status": {
+            "type": "string",
+            "enum": ["running", "complete", "complete_with_error"]
+          },
+          "machines": {
+            "type": "array",
+            "$comment": "The spec shows a single object. hf-gce emits an array.",
+            "items": {
+              "type": "object",
+              "required": ["machineId", "name", "result", "launchTime"],
+              "properties": {
+                "machineId": { "type": "string" },
+                "name": { "type": "string" },
+                "result": {
+                  "type": "string",
+                  "enum": ["executing", "fail", "succeed"]
+                },
+                "status": {
+                  "type": "string",
+                  "$comment": "The spec also lists 'stopping'. hf-gce has no such status.",
+                  "enum": ["running", "stopped", "terminated", "shutting-down"]
+                },
+                "privateIpAddress": {
+                  "type": "string",
+                  "$comment": "Mandatory in the spec. hf-gce leaves it out when there is no internal IP."
+                },
+                "publicIpAddress": { "type": "string" },
+                "launchTime": {
+                  "type": "integer",
+                  "$comment": "The spec and hf-gke use 'launchtime'. HostFactory accepts either spelling."
+                },
+                "message": {
+                  "type": "string",
+                  "$comment": "Mandatory in the spec when result is 'fail'. hf-gce never sets it."
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

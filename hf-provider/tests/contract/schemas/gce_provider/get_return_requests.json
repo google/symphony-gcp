@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory getReturnRequests response",
+  "$comment": "Pins what hf-gce emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-getreturnrequests. Differences from the spec are noted inline. The spec example has a top-level 'status' that hf-gce does not emit.",
+  "type": "object",
+  "required": ["requests"],
+  "properties": {
+    "message": { "type": "string" },
+    "requests": {
+      "type": "array",
+      "$comment": "The spec shows a single object. hf-gce emits an array.",
+      "items": {
+        "type": "object",
+        "required": ["machine", "gracePeriod"],
+        "properties": {
+          "machine": { "type": "string" },
+          "gracePeriod": { "type": "integer" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

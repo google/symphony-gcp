@@ -91,6 +91,9 @@ uv run python -m pytest tests/unit/gce_provider
 # Run GCP GKE Provider Tests
 export HF_PROVIDER_CONFDIR=./tests/resources/provider-config/config-001/conf/providers/gcpgkeinst
 uv run python -m pytest tests/unit/gke_provider
+
+# Run Contract Tests
+uv run python -m pytest tests/contract
 ```
 
 ## Build CLIs

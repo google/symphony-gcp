@@ -89,6 +89,11 @@ jobs:
       run: |
            cd hf-provider
            uv run --locked python -m pytest tests/unit/gke_provider
+      
+    - name: run contract tests
+      run: |
+           cd hf-provider
+           uv run --locked python -m pytest tests/contract
 
     - name: build clis
       run: |
