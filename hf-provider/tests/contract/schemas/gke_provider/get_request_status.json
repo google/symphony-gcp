@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory getRequestStatus response",
+  "$comment": "Pins what hf-gke emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-getrequeststatus. Differences from the spec are noted inline.",
+  "type": "object",
+  "required": ["requests"],
+  "properties": {
+    "message": { "type": "string" },
+    "requests": {
+      "$comment": "The spec shows a single object. hf-gke answers in the form it was asked: an array for a list of requests, one object for one request.",
+      "oneOf": [
+        { "type": "array", "items": { "$ref": "#/$defs/request" } },
+        { "$ref": "#/$defs/request" }
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "request": {
+      "type": "object",
+      "required": ["requestId", "status", "machines"],
+      "properties": {
+        "requestId": { "type": "string", "minLength": 1 },
+        "message": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["running", "complete", "complete_with_error"]
+        },
+        "machines": {
+          "type": "array",
+          "$comment": "The spec shows a single object. hf-gke emits an array.",
+          "items": { "$ref": "#/$defs/machine" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "machine": {
+      "type": "object",
+      "required": ["machineId", "name", "result", "privateIpAddress", "launchtime"],
+      "properties": {
+        "machineId": { "type": "string" },
+        "name": { "type": "string" },
+        "result": {
+          "type": "string",
+          "enum": ["executing", "fail", "succeed"]
+        },
+        "status": {
+          "type": "string",
+          "$comment": "The spec also lists 'shutting-down' and 'stopping'. hf-gke has no such status.",
+          "enum": ["running", "stopped", "terminated"]
+        },
+        "privateIpAddress": {
+          "type": ["string", "null"],
+          "$comment": "The spec requires a string. hf-gke emits null while the pod has no IP."
+        },
+        "publicIpAddress": {
+          "type": "string",
+          "$comment": "hf-gke always emits an empty string."
+        },
+        "launchtime": {
+          "anyOf": [{ "type": "integer" }, { "const": "" }],
+          "$comment": "The spec requires a number. hf-gke emits an empty string while the pod has no start time. hf-gce uses 'launchTime'. HostFactory accepts either spelling."
+        },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory getAvailableTemplates response",
+  "$comment": "Pins what hf-gke emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-getavailabletemplates. Differences from the spec are noted inline.",
+  "type": "object",
+  "required": ["templates"],
+  "properties": {
+    "message": { "type": "string" },
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["templateId", "maxNumber", "attributes"],
+        "properties": {
+          "templateId": { "type": "string" },
+          "maxNumber": {
+            "type": "integer",
+            "$comment": "The spec uses -1 for unlimited."
+          },
+          "attributes": {
+            "type": "object",
+            "$comment": "Not constrained. The spec requires type, ncpus and nram."
+          }
+        },
+        "$comment": "The spec allows provider-specific attributes. hf-gke adds podSpecYaml.",
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": false
+}

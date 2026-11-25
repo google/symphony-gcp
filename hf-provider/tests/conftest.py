@@ -23,11 +23,6 @@ def provider_config_dir() -> Path:
 
 
 @pytest.fixture
-def provider_log_name() -> str:
-    return f"gcp-symphony-provider.{_CONTRACT_HOST}.log"
-
-
-@pytest.fixture
 def make_cli_env(src_dir: Path):
     """Build the environment HostFactory sets when it invokes a provider CLI."""
 
