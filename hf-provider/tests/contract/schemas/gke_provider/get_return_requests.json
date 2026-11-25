@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HostFactory getReturnRequests response",
+  "$comment": "Pins what hf-gke emits today. Spec: https://www.ibm.com/docs/en/spectrum-symphony/7.3.2?topic=specification-getreturnrequests. Differences from the spec are noted inline.",
+  "type": "object",
+  "required": ["requests"],
+  "properties": {
+    "message": { "type": "string" },
+    "status": {
+      "type": "string",
+      "$comment": "Not in the spec output format. The spec example shows it. hf-gke always emits 'complete'.",
+      "const": "complete"
+    },
+    "requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["machine", "gracePeriod"],
+        "properties": {
+          "machine": { "type": "string" },
+          "gracePeriod": { "type": "integer" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}
